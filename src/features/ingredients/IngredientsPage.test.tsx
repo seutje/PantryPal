@@ -7,6 +7,13 @@ import { IngredientsPage } from './IngredientsPage';
 vi.mock('../../lib/ipc', () => ({
   getCatalog: vi.fn(),
   nativeAvailable: vi.fn(),
+  getMeasurementPreferences: vi.fn(async () => ({
+    mode: 'mixed',
+    cupConvention: null,
+    fractions: true,
+    decimalPlaces: 3,
+    aggregateCompatible: true,
+  })),
 }));
 beforeEach(() => {
   vi.mocked(nativeAvailable).mockReturnValue(true);
@@ -58,8 +65,8 @@ describe('saved ingredient catalog', () => {
       await screen.findByText('<script>Herb</script>'),
     ).toBeInTheDocument();
     expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.getByText('Produce')).toBeInTheDocument();
-    expect(screen.getByText('US cup')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Produce' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'US cup' })).toBeInTheDocument();
     expect(document.querySelector('script')).toBeNull();
   });
   it('shows a recoverable storage error without internal details', async () => {

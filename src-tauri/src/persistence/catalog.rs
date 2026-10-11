@@ -215,7 +215,12 @@ async fn validate_references(
         ensure_reference(tx, query, id).await?;
     }
     if let Some(id) = &input.preferred_unit_id {
-        ensure_reference(tx, "SELECT count(*) FROM unit WHERE id=?", id).await?;
+        let query = if old.is_some_and(|old| old.preferred_unit_id.as_ref() == Some(id)) {
+            "SELECT count(*) FROM unit WHERE id=?"
+        } else {
+            "SELECT count(*) FROM unit WHERE id=? AND dimension<>'temperature'"
+        };
+        ensure_reference(tx, query, id).await?;
     }
     Ok(())
 }

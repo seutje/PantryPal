@@ -10,6 +10,11 @@ import type {
   FieldInput,
   Vocabulary,
   VocabularyKind,
+  MeasurementPreferences,
+  ConversionRequest,
+  ConversionResult,
+  ConversionRule,
+  RuleInput,
 } from './models';
 
 export interface AppInfo {
@@ -71,6 +76,24 @@ async function invokeNative<T>(
 export const getStorageStatus = () =>
   invokeNative<StorageStatus>('get_storage_status');
 export const getCatalog = () => invokeNative<Catalog>('get_catalog');
+export const getMeasurementPreferences = () =>
+  invokeNative<MeasurementPreferences>('get_measurement_preferences');
+export const saveMeasurementPreferences = (input: MeasurementPreferences) =>
+  invokeNative<MeasurementPreferences>('save_measurement_preferences', {
+    input,
+  });
+export const convertMeasurement = (input: ConversionRequest) =>
+  invokeNative<ConversionResult>('convert_measurement', { input });
+export const listConversionRules = (ingredientId: string) =>
+  invokeNative<ConversionRule[]>('list_conversion_rules', { ingredientId });
+export const saveConversionRule = (id: string | null, input: RuleInput) =>
+  invokeNative<ConversionRule>('save_conversion_rule', { id, input });
+export const retireConversionRule = (id: string, confirmed: boolean) =>
+  invokeNative<void>('retire_conversion_rule', { id, confirmed });
+export const ingredientCandidates = (
+  names: string[],
+  excludeId: string | null,
+) => invokeNative<Ingredient[]>('ingredient_candidates', { names, excludeId });
 export const createIngredient = (input: IngredientInput) =>
   invokeNative<Ingredient>('create_ingredient', { input });
 export const updateIngredient = (id: string, input: IngredientInput) =>

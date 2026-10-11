@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-measurement-preferences"
+description = "Enables the save_measurement_preferences command without any pre-configured scope."
+commands.allow = ["save_measurement_preferences"]
+
+[[permission]]
+identifier = "deny-save-measurement-preferences"
+description = "Denies the save_measurement_preferences command without any pre-configured scope."
+commands.deny = ["save_measurement_preferences"]

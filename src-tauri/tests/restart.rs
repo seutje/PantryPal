@@ -1,5 +1,9 @@
 use pantrypal_lib::{
-    domain::{catalog::IngredientInput, meals::MealInput},
+    domain::{
+        catalog::IngredientInput,
+        meals::MealInput,
+        measurements::{CupConvention, Mode, RuleInput},
+    },
     persistence::Database,
 };
 use std::{path::PathBuf, process::Command};
@@ -45,6 +49,26 @@ async fn restart_child() {
         let mut input = ingredient.data;
         input.notes = "Persisted edit".into();
         db.update_ingredient(&ingredient.id, input).await.unwrap();
+        let mut preferences = db.measurement_preferences().await.unwrap();
+        preferences.mode = Mode::Metric;
+        preferences.cup_convention = Some(CupConvention::Us);
+        preferences.fractions = false;
+        preferences.decimal_places = 2;
+        db.save_measurement_preferences(preferences).await.unwrap();
+        db.save_conversion_rule(
+            None,
+            RuleInput {
+                ingredient_id: ingredient.id.clone(),
+                from_unit_id: "piece".into(),
+                from_amount: "½".into(),
+                to_unit_id: "g".into(),
+                to_amount: "75".into(),
+                approximate: true,
+                notes: "Medium bundle".into(),
+            },
+        )
+        .await
+        .unwrap();
         db.retire_ingredient("ingredient-garlic", true)
             .await
             .unwrap();
@@ -64,6 +88,16 @@ async fn restart_child() {
         assert_eq!(ingredient.data.notes, "Persisted edit");
         assert_eq!(ingredient.data.aliases, ["Restart leaves"]);
         assert_eq!(ingredient.data.season_months, [6, 7]);
+        let preferences = db.measurement_preferences().await.unwrap();
+        assert_eq!(preferences.mode, Mode::Metric);
+        assert_eq!(preferences.cup_convention, Some(CupConvention::Us));
+        assert!(!preferences.fractions);
+        assert_eq!(preferences.decimal_places, 2);
+        let rules = db.conversion_rules(&ingredient.id).await.unwrap();
+        assert_eq!(rules.len(), 1);
+        assert_eq!(rules[0].original_from_text, "½");
+        assert!(rules[0].approximate);
+        assert_eq!(rules[0].notes, "Medium bundle");
         assert!(db.ingredient("ingredient-garlic").await.unwrap().retired);
         let meals = db.list_meals().await.unwrap();
         assert_eq!(meals.len(), 1);
@@ -71,7 +105,7 @@ async fn restart_child() {
         assert_eq!(meals[0].revision, 2);
         assert_eq!(meals[0].data.ingredients[0].raw_text, "1/3 US cup rice");
         assert!(meals[0].data.ingredients[2].quantity.is_none());
-        assert_eq!(db.status().await.unwrap().schema_version, 4);
+        assert_eq!(db.status().await.unwrap().schema_version, 5);
     }
     db.close().await;
 }

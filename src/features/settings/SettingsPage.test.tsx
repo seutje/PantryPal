@@ -7,6 +7,19 @@ import { SettingsPage } from './SettingsPage';
 vi.mock('../../lib/ipc', () => ({
   getStorageStatus: vi.fn(),
   nativeAvailable: () => true,
+  getMeasurementPreferences: vi.fn(async () => ({
+    mode: 'mixed',
+    cupConvention: null,
+    fractions: true,
+    decimalPlaces: 3,
+    aggregateCompatible: true,
+  })),
+  getCatalog: vi.fn(async () => ({
+    ingredients: [],
+    categories: [],
+    sections: [],
+    units: [],
+  })),
 }));
 describe('local storage status', () => {
   it('shows repository counts', async () => {

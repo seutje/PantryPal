@@ -23,6 +23,13 @@ describe('native permission boundary', () => {
     'create_vocabulary',
     'update_vocabulary',
     'retire_vocabulary',
+    'get_measurement_preferences',
+    'save_measurement_preferences',
+    'convert_measurement',
+    'list_conversion_rules',
+    'save_conversion_rule',
+    'retire_conversion_rule',
+    'ingredient_candidates',
   ];
   it('grants only named repository operations to the local main window', () => {
     expect(config.app.security.capabilities).toEqual(['main']);

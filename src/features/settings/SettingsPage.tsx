@@ -1,6 +1,7 @@
 import { EmptyState } from '../../components/EmptyState';
 import { useQuery } from '@tanstack/react-query';
 import { getStorageStatus, nativeAvailable } from '../../lib/ipc';
+import { MeasurementSettings } from './MeasurementSettings';
 
 export function SettingsPage() {
   const status = useQuery({
@@ -31,9 +32,9 @@ export function SettingsPage() {
           <p role="status">Checking local data…</p>
         )}
       </section>
+      {nativeAvailable() && <MeasurementSettings />}
       <EmptyState title="Made for your household">
-        Measurement preferences, backups and other settings will be available in
-        a later update.
+        Backups and browser settings will be available in a later update.
       </EmptyState>
     </>
   );

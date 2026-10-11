@@ -39,7 +39,7 @@ fn field(kind: FieldKind) -> FieldInput {
 async fn fresh_database_migrates_once_and_preserves_seed_edits() {
     let directory = TempDir::new().unwrap();
     let db = Database::open(directory.path()).await.unwrap();
-    assert_eq!(db.status().await.unwrap().schema_version, 4);
+    assert_eq!(db.status().await.unwrap().schema_version, 5);
     assert_eq!(db.status().await.unwrap().ingredient_count, 16);
     let foreign_keys: i64 = sqlx::query_scalar("PRAGMA foreign_keys")
         .fetch_one(&db.pool)
@@ -83,7 +83,7 @@ async fn fresh_database_migrates_once_and_preserves_seed_edits() {
         .fetch_one(&reopened.pool)
         .await
         .unwrap();
-    assert_eq!(count, 4);
+    assert_eq!(count, 5);
     reopened.close().await;
 }
 
@@ -122,7 +122,7 @@ async fn migration_from_existing_catalog_preserves_household_rows() {
         .unwrap();
     pool.close().await;
     let upgraded = Database::open(directory.path()).await.unwrap();
-    assert_eq!(upgraded.status().await.unwrap().schema_version, 4);
+    assert_eq!(upgraded.status().await.unwrap().schema_version, 5);
     assert_eq!(upgraded.status().await.unwrap().ingredient_count, 17);
     assert_eq!(
         upgraded

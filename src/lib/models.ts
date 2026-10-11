@@ -97,3 +97,61 @@ export interface Meal extends MealInput {
   createdAt: string;
   updatedAt: string;
 }
+export interface MeasurementPreferences {
+  mode: 'mixed' | 'metric' | 'us';
+  cupConvention: 'metric' | 'us' | 'imperial' | null;
+  fractions: boolean;
+  decimalPlaces: number;
+  aggregateCompatible: boolean;
+}
+export interface ConversionRequest {
+  amount: string;
+  fromUnit: string;
+  toUnit: string;
+  ingredientId: string | null;
+  purpose: 'quantity' | 'temperature';
+}
+export type ConversionResult =
+  | {
+      status: 'converted';
+      original: ConversionRequest;
+      numerator: string;
+      denominator: string;
+      exact: string;
+      display: string;
+      rounded: boolean;
+      approximate: boolean;
+      ruleIds: string[];
+      fromUnitId: string;
+      toUnitId: string;
+    }
+  | {
+      status: 'cannot_convert';
+      original: ConversionRequest;
+      reason: string;
+      candidates: string[];
+    };
+export interface RuleInput {
+  ingredientId: string;
+  fromUnitId: string;
+  fromAmount: string;
+  toUnitId: string;
+  toAmount: string;
+  approximate: boolean;
+  notes: string;
+}
+export interface ConversionRule {
+  id: string;
+  ingredientId: string;
+  fromUnitId: string;
+  fromNumerator: number;
+  fromDenominator: number;
+  toUnitId: string;
+  toNumerator: number;
+  toDenominator: number;
+  approximate: boolean;
+  notes: string;
+  originalFromText: string;
+  originalToText: string;
+  retired: boolean;
+}

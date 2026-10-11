@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-conversion-rules"
+description = "Enables the list_conversion_rules command without any pre-configured scope."
+commands.allow = ["list_conversion_rules"]
+
+[[permission]]
+identifier = "deny-list-conversion-rules"
+description = "Denies the list_conversion_rules command without any pre-configured scope."
+commands.deny = ["list_conversion_rules"]

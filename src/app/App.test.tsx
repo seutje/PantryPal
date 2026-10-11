@@ -8,6 +8,13 @@ import { getStorageStatus } from '../lib/ipc';
 
 vi.mock('../lib/ipc', () => ({
   nativeAvailable: () => true,
+  getMeasurementPreferences: vi.fn(async () => ({
+    mode: 'mixed',
+    cupConvention: null,
+    fractions: true,
+    decimalPlaces: 3,
+    aggregateCompatible: true,
+  })),
   getAppInfo: vi.fn(async () => ({ name: 'PantryPal', version: '0.1.0' })),
   getCatalog: vi.fn(async () => ({
     ingredients: [],

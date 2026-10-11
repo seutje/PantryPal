@@ -8,7 +8,7 @@
 | ----- | ----------------------------------------------------- | ----------- |
 | 0     | Repository scaffold and quality gates                 | Complete    |
 | 1     | SQLite schema, seed catalog, and core domain          | Complete    |
-| 2     | Measurement engine and ingredient management          | Not started |
+| 2     | Measurement engine and ingredient management          | Complete    |
 | 3     | Meal library and custom fields                        | Not started |
 | 4     | Weekly planner, cooking history                       | Not started |
 | 5     | Shopping list engine and copy/edit UX                 | Not started |
@@ -73,20 +73,27 @@
 
 **Goal:** Correct mixed-unit handling, ingredient identity, and practical catalog editing.
 
-- [ ] Implement unit dimension/system registry and parse amount forms including `½`, `1/3`, `1 1/2`.
-- [ ] Implement precise mass conversions for mg/g/kg/oz/lb.
-- [ ] Implement explicit regional volume variants and conversions (US, metric, Imperial).
-- [ ] Implement temperature display conversions separately from grocery quantities.
-- [ ] Implement a `cannot convert` result for incompatible or ambiguous dimensions.
-- [ ] Add optional ingredient-specific conversions (count/mass, volume/mass, package sizes), approximation metadata.
-- [ ] Add tests for round-trips, boundaries, ambiguous cups, fractional scaling and inconvertible cases.
-- [ ] Build ingredient browse/search/create/edit screens for categories, shopping sections, aliases, season months, default unit and notes.
-- [ ] Enforce canonical alias/name uniqueness and display candidate matches for duplicates.
-- [ ] Build measurement preference UI and simple inline conversion control.
+- [x] Implement unit dimension/system registry and parse amount forms including `½`, `1/3`, `1 1/2`.
+- [x] Implement precise mass conversions for mg/g/kg/oz/lb.
+- [x] Implement explicit regional volume variants and conversions (US, metric, Imperial).
+- [x] Implement temperature display conversions separately from grocery quantities.
+- [x] Implement a `cannot convert` result for incompatible or ambiguous dimensions.
+- [x] Add optional ingredient-specific conversions (count/mass, volume/mass, package sizes), approximation metadata.
+- [x] Add tests for round-trips, boundaries, ambiguous cups, fractional scaling and inconvertible cases.
+- [x] Build ingredient browse/search/create/edit screens for categories, shopping sections, aliases, season months, default unit and notes.
+- [x] Enforce canonical alias/name uniqueness and display candidate matches for duplicates.
+- [x] Build measurement preference UI and simple inline conversion control.
 
 **Acceptance gate:** Test vectors in DESIGN.md yield correct results without inventing conversions, and ingredient CRUD works end to end.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-11):** Phase 2 acceptance gate passed on Windows x64. Added checked exact Rust rational parsing/arithmetic, compatible mass and explicit regional volume conversions, isolated affine temperature display, explicit ambiguity/incompatibility results and ingredient-specific conversion rules with original text and approximation provenance. Ingredients now supports alias search, create/edit/confirmed retirement, category/section management, season months, preferred units and notes. Duplicate names/aliases show existing canonical candidates, including reserved retired names. Settings saves validated measurement mode, cup review convention, fraction/decimal formatting and future aggregation preferences; inline conversion controls preserve original values. Migration 0005 is additive and retains existing rules/preferences. ADR 0003 documents precision bounds, single-rule paths, ambiguity policy and the test boundary.
+
+- Passed `npm run check`: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (23 tests). Keyboard/form flows cover ingredient create/search/edit/retirement, canonical duplicate review, failed-save draft retention, independent vocabularies, ingredient rules, explicit cup selection, rounded/approximate labels, temperature isolation and preference saves.
+- Passed `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked` (27 unit tests and three integration tests). The process-restart test runs its normally ignored child twice in separate processes and now checks ingredient rules/preferences as well as earlier data. Measurement tests cover DESIGN.md quantity vectors, all compatible mass/volume unit-pair round-trips, fractional scaling, input/overflow boundaries, Unicode/unknown parsing, signed temperatures, scoped/reversed/ambiguous rules, stable rule edits and confirmed retirement.
+- The Tauri integration test uses actual command deserialization, the capability manifest and temporary SQLite storage with only the OS runtime mocked. Ingredient create/edit/retire, alias candidates, rule conversion and preference persistence pass through IPC. Simulated remote-origin catalog/conversion requests are denied. The schema 4-to-5 integration test retains edited ingredients, legacy rule rational pairs and existing mode/fraction settings; reopening does not reseed or overwrite them. Migrations 0001–0004 were not modified.
+- Passed `npm run tauri build -- --debug --no-bundle`, including TypeScript/Vite production compilation. Launched the bundled Windows executable, visually verified the live catalog, new-ingredient form/focus and measurement settings, and executed the native temperature converter (`1 °C` → `33⅘ °F`) through real IPC. Closed/reopened the app and verified `Local data ready`. Read-only `sqlite3` checks confirm five applied migrations, 16 ingredients, zero demo meals, integrity `ok` and no foreign-key violations. Native verification used scoped Win32 navigation/input and captures under ignored `.verification/`; it did not save test records or alter household preferences.
+- Resolved initial verification failures: corrected an unreduced expected fraction; fixed TypeScript closure narrowing and updated frontend mocks for the new query/mutation APIs; repaired a test fixture encoding introduced by a PowerShell read; renamed checked arithmetic methods to satisfy Clippy. The new Tauri mock-runtime integration executable initially failed with `STATUS_ENTRYPOINT_NOT_FOUND` because its Common Controls v6 manifest was absent. Added a Windows test-only linker manifest and a test icon; all subsequent checks passed.
+- No Phase 2 blocker remains. Exact arithmetic is bounded and rejects overflow; multiple ingredient-rule paths require user review and do not chain automatically. Measurement mode/aggregation preferences will be consumed by grocery generation in Phase 5. Native CRUD writes are covered by the command/SQLite integration and React flow tests, rather than writing disposable recipes/ingredients into household data. GitHub CI, release/installer packaging and actual external-page WebView isolation remain **not verified**. Later-phase checkboxes were not changed.
 
 ## Phase 3 — Meals and extensible fields
 

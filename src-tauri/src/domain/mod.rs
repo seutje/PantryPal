@@ -2,4 +2,5 @@
 pub mod catalog;
 pub mod fields;
 pub mod meals;
+pub mod measurements;
 pub mod validation;

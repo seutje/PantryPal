@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ingredient-candidates"
+description = "Enables the ingredient_candidates command without any pre-configured scope."
+commands.allow = ["ingredient_candidates"]
+
+[[permission]]
+identifier = "deny-ingredient-candidates"
+description = "Denies the ingredient_candidates command without any pre-configured scope."
+commands.deny = ["ingredient_candidates"]

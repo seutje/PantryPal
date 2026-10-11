@@ -1,4 +1,4 @@
-use super::validation::{self, Amount};
+use super::validation;
 use crate::error::{AppError, AppResult};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -84,19 +84,6 @@ pub struct Unit {
     pub factor_denominator: Option<i64>,
     pub offset_numerator: Option<i64>,
     pub offset_denominator: Option<i64>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct IngredientConversion {
-    pub id: String,
-    pub ingredient_id: String,
-    pub from_unit_id: String,
-    pub from_amount: Amount,
-    pub to_unit_id: String,
-    pub to_amount: Amount,
-    pub approximate: bool,
-    pub notes: String,
 }
 
 #[derive(Debug, Serialize)]

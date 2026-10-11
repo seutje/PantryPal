@@ -37,7 +37,14 @@ pub fn run() {
             commands::retire_field,
             commands::create_vocabulary,
             commands::update_vocabulary,
-            commands::retire_vocabulary
+            commands::retire_vocabulary,
+            commands::get_measurement_preferences,
+            commands::save_measurement_preferences,
+            commands::convert_measurement,
+            commands::list_conversion_rules,
+            commands::save_conversion_rule,
+            commands::retire_conversion_rule,
+            commands::ingredient_candidates
         ])
         .run(tauri::generate_context!())
         .expect("failed to run PantryPal");

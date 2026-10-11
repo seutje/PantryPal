@@ -2,6 +2,7 @@
 pub mod catalog;
 pub mod fields;
 pub mod meals;
+pub mod measurements;
 
 use crate::error::{AppError, AppResult};
 use serde::Serialize;
@@ -89,5 +90,7 @@ impl Database {
     }
 }
 
+#[cfg(test)]
+mod measurement_tests;
 #[cfg(test)]
 mod tests;

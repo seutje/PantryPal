@@ -22,6 +22,13 @@
     "allow-retire-field",
     "allow-create-vocabulary",
     "allow-update-vocabulary",
-    "allow-retire-vocabulary"
+    "allow-retire-vocabulary",
+    "allow-get-measurement-preferences",
+    "allow-save-measurement-preferences",
+    "allow-convert-measurement",
+    "allow-list-conversion-rules",
+    "allow-save-conversion-rule",
+    "allow-retire-conversion-rule",
+    "allow-ingredient-candidates"
   ]
 }

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-measurement-preferences"
+description = "Enables the get_measurement_preferences command without any pre-configured scope."
+commands.allow = ["get_measurement_preferences"]
+
+[[permission]]
+identifier = "deny-get-measurement-preferences"
+description = "Denies the get_measurement_preferences command without any pre-configured scope."
+commands.deny = ["get_measurement_preferences"]

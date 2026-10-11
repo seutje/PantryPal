@@ -1,0 +1,21 @@
+# ADR 0003: Exact measurements and explicit ingredient conversions
+
+Date: 2026-10-11
+
+Status: Accepted
+
+Phase 2 needs precise Canadian mixed-unit conversions without replacing source values or inventing densities. Phase 1 already stores rational pairs and explicit regional unit factors in SQLite.
+
+Use reduced rational arithmetic with checked `i128` operations in Rust. Parsing supports decimals, ASCII fractions, mixed fractions and common Unicode fraction glyphs. Unknown/to-taste wording returns an unknown amount, never zero. Entered reduced numerators and denominators are bounded to one billion, matching persisted amount validation; decimal input supports at most nine fractional digits. Malformed, negative grocery quantities, zero denominators and arithmetic overflow produce validation errors. Negative temperatures are valid. The calculation engine uses no floating-point arithmetic and adds no arithmetic dependency.
+
+Conversion responses include original input, exact numerator/denominator **as strings**, a formatted view, rounding and approximation flags, explicit unit IDs and applied rule IDs. Strings prevent loss at the JavaScript integer boundary. Fraction display uses common Unicode glyphs or exact mixed fractions. Decimal display supports zero to six places and rounds half away from zero; rounding never affects storage or subsequent arithmetic.
+
+Universal conversions use the persisted mass and volume factors. Temperature uses affine offsets and a separate display-only request purpose. Count units only match themselves universally; informal quantities remain unconvertible. Source aliases such as `cup`, `tsp` and `fl oz` return explicit regional candidates. A saved cup convention is a review preference, never automatic source reinterpretation. The conversion control requires an explicit choice and retains it in the request. Later meal/import review will persist that source choice with the meal line.
+
+An ingredient conversion may bridge different quantity dimensions or distinct count units. It requires positive exact amounts, canonical ingredient ID, approximation metadata and notes describing the applicable size/preparation/package. No package size or piece weight is prefilled. Rules work in both directions, with compatible universal conversions before/after **one** ingredient rule. Chaining multiple ingredient rules is intentionally unsupported. Multiple applicable rules return `cannot_convert` even when their values agree: users must edit/retire the conflicting rules. Exact or reversed duplicate unit pairs are rejected transactionally. Rule edits retain IDs; confirmed retirement retains rows. There is no seeded density or package assumption.
+
+Migration 0005 adds original rule amount text, rule retirement and validated measurement preferences without changing migrations 0001–0004. Legacy rational rules remain available; the editor displays their exact stored pair when original text is unavailable. Existing measurement mode and fraction preferences are carried forward. Saving preferences updates their legacy keys in the same transaction. Mixed mode is the default, with no automatic cup interpretation. Mode and compatible-aggregation preferences are persisted now; grocery generation will consume them in Phase 5. Backups and import review remain in their planned phases.
+
+Ingredient identity stays in the SQLite name/alias namespace. Rust returns exact normalized candidates, including retired records whose names remain reserved. The UI offers an explicit existing-ingredient action; it never merges fuzzy matches. Category and shopping-section vocabularies remain independent, editable durable records. New preferred shopping-unit assignments exclude temperature; historical references can remain unchanged during other edits.
+
+Verification combines React keyboard/form flows, the real Tauri command/ACL/SQLite path using Tauri's mock OS runtime, migration upgrades and independent write/read process restart tests. The mock IPC origin-denial check does not replace the Phase 6 real external-WebView security spike. Tauri's test feature is development-only. Windows integration test executables embed Common Controls v6 because Tauri's linked dialog code imports `TaskDialogIndirect`; this does not change the production app manifest or permissions.
