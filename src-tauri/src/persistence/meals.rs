@@ -18,8 +18,8 @@ impl Database {
         input.validate()?;
         let id = Uuid::new_v4().to_string();
         let mut tx = self.pool.begin().await?;
-        sqlx::query("INSERT INTO meal(id,title,normalized_title,description,servings_numerator,servings_denominator,prep_minutes,cook_minutes,instructions,notes,source_url,source_site) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
-            .bind(&id).bind(input.title.trim()).bind(validation::normalized(&input.title)).bind(&input.description).bind(input.base_servings.numerator).bind(input.base_servings.denominator).bind(input.prep_minutes).bind(input.cook_minutes).bind(&input.instructions).bind(&input.notes).bind(&input.source_url).bind(&input.source_site).execute(&mut *tx).await?;
+        sqlx::query("INSERT INTO meal(id,title,normalized_title,description,servings_numerator,servings_denominator,prep_minutes,cook_minutes,instructions,notes,source_url,source_site,base_servings_text) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
+            .bind(&id).bind(input.title.trim()).bind(validation::normalized(&input.title)).bind(&input.description).bind(input.base_servings.numerator).bind(input.base_servings.denominator).bind(input.prep_minutes).bind(input.cook_minutes).bind(&input.instructions).bind(&input.notes).bind(&input.source_url).bind(&input.source_site).bind(&input.base_servings_text).execute(&mut *tx).await?;
         write_children(&mut tx, &id, &input, None).await?;
         let result = load_meal(&mut tx, &id).await?;
         tx.commit().await?;
@@ -73,8 +73,8 @@ impl Database {
             }
         }
         input.validate()?;
-        sqlx::query("UPDATE meal SET title=?,normalized_title=?,description=?,servings_numerator=?,servings_denominator=?,prep_minutes=?,cook_minutes=?,instructions=?,notes=?,source_url=?,source_site=?,revision=revision+1,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?")
-            .bind(input.title.trim()).bind(validation::normalized(&input.title)).bind(&input.description).bind(input.base_servings.numerator).bind(input.base_servings.denominator).bind(input.prep_minutes).bind(input.cook_minutes).bind(&input.instructions).bind(&input.notes).bind(&input.source_url).bind(&input.source_site).bind(id).execute(&mut *tx).await?;
+        sqlx::query("UPDATE meal SET title=?,normalized_title=?,description=?,servings_numerator=?,servings_denominator=?,prep_minutes=?,cook_minutes=?,instructions=?,notes=?,source_url=?,source_site=?,base_servings_text=?,revision=revision+1,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?")
+            .bind(input.title.trim()).bind(validation::normalized(&input.title)).bind(&input.description).bind(input.base_servings.numerator).bind(input.base_servings.denominator).bind(input.prep_minutes).bind(input.cook_minutes).bind(&input.instructions).bind(&input.notes).bind(&input.source_url).bind(&input.source_site).bind(&input.base_servings_text).bind(id).execute(&mut *tx).await?;
         sqlx::query("DELETE FROM meal_ingredient WHERE meal_id=?")
             .bind(id)
             .execute(&mut *tx)
@@ -111,6 +111,24 @@ async fn write_children(
     old: Option<&Meal>,
 ) -> AppResult<()> {
     for (index, line) in input.ingredients.iter().enumerate() {
+        if let Some(unit_id) = &line.unit_id {
+            let previous = old.is_some_and(|meal| {
+                meal.data
+                    .ingredients
+                    .iter()
+                    .any(|prior| prior.id == line.id && prior.unit_id.as_ref() == Some(unit_id))
+            });
+            ensure_reference(
+                tx,
+                if previous {
+                    "SELECT count(*) FROM unit WHERE id=?"
+                } else {
+                    "SELECT count(*) FROM unit WHERE id=? AND dimension<>'temperature'"
+                },
+                unit_id,
+            )
+            .await?;
+        }
         if let Some(ingredient_id) = &line.ingredient_id {
             let previously_used = old.is_some_and(|old| {
                 old.data
@@ -125,8 +143,8 @@ async fn write_children(
             };
             ensure_reference(tx, query, ingredient_id).await?;
         }
-        sqlx::query("INSERT INTO meal_ingredient(id,meal_id,ingredient_id,quantity_numerator,quantity_denominator,unit_id,raw_text,source_convention,note,optional,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
-            .bind(&line.id).bind(meal_id).bind(&line.ingredient_id).bind(line.quantity.as_ref().map(|q|q.numerator)).bind(line.quantity.as_ref().map(|q|q.denominator)).bind(&line.unit_id).bind(&line.raw_text).bind(&line.source_convention).bind(&line.note).bind(line.optional).bind(index as i64).execute(&mut **tx).await?;
+        sqlx::query("INSERT INTO meal_ingredient(id,meal_id,ingredient_id,quantity_numerator,quantity_denominator,unit_id,raw_text,source_convention,note,optional,sort_order,amount_text) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+            .bind(&line.id).bind(meal_id).bind(&line.ingredient_id).bind(line.quantity.as_ref().map(|q|q.numerator)).bind(line.quantity.as_ref().map(|q|q.denominator)).bind(&line.unit_id).bind(&line.raw_text).bind(&line.source_convention).bind(&line.note).bind(line.optional).bind(index as i64).bind(&line.amount_text).execute(&mut **tx).await?;
     }
     for tag in &input.tags {
         sqlx::query("INSERT INTO meal_tag(meal_id,tag) VALUES (?,?)")
@@ -190,6 +208,7 @@ async fn load_meal(tx: &mut Transaction<'_, Sqlite>, id: &str) -> AppResult<Meal
                 (None, None) => None,
                 _ => return Err(AppError::storage()),
             },
+            amount_text: line.try_get("amount_text")?,
             unit_id: line.try_get("unit_id")?,
             raw_text: line.try_get("raw_text")?,
             source_convention: line.try_get("source_convention")?,
@@ -231,6 +250,7 @@ async fn load_meal(tx: &mut Transaction<'_, Sqlite>, id: &str) -> AppResult<Meal
                 numerator: row.try_get("servings_numerator")?,
                 denominator: row.try_get("servings_denominator")?,
             },
+            base_servings_text: row.try_get("base_servings_text")?,
             prep_minutes: row.try_get("prep_minutes")?,
             cook_minutes: row.try_get("cook_minutes")?,
             instructions: row.try_get("instructions")?,

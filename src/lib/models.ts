@@ -70,6 +70,7 @@ export interface MealIngredient {
   id: string;
   ingredientId: string | null;
   quantity: Amount | null;
+  amountText?: string | null;
   unitId: string | null;
   rawText: string;
   sourceConvention: string | null;
@@ -80,6 +81,7 @@ export interface MealInput {
   title: string;
   description: string;
   baseServings: Amount;
+  baseServingsText?: string | null;
   prepMinutes: number | null;
   cookMinutes: number | null;
   instructions: string;
@@ -89,6 +91,43 @@ export interface MealInput {
   tags: string[];
   ingredients: MealIngredient[];
   customFields: { fieldId: string; value: FieldValue | null }[];
+}
+export interface IngredientDraft extends Omit<
+  MealIngredient,
+  'quantity' | 'amountText'
+> {
+  amount: string;
+}
+export interface MealDraft extends Omit<
+  MealInput,
+  'baseServings' | 'baseServingsText' | 'ingredients'
+> {
+  servings: string;
+  ingredients: IngredientDraft[];
+}
+export interface MealSearch {
+  text: string;
+  ingredientId: string | null;
+  tag: string;
+  field: {
+    fieldId: string;
+    operator: 'equals' | 'known' | 'unknown';
+    value: FieldValue | null;
+  } | null;
+  cooked: 'any' | 'never' | 'cooked';
+  cookedFrom: string | null;
+  cookedTo: string | null;
+}
+export interface MealRecord {
+  meal: Meal;
+  lastCooked: string | null;
+  servingsDisplay: string;
+  quantityDisplays: (string | null)[];
+}
+export interface MealLibrary {
+  meals: MealRecord[];
+  catalog: Catalog;
+  fields: FieldDefinition[];
 }
 export interface Meal extends MealInput {
   id: string;

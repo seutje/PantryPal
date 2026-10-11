@@ -8,7 +8,9 @@ use crate::{
     persistence::{StorageState, StorageStatus},
 };
 use serde::Serialize;
+mod meals;
 mod measurements;
+pub use meals::*;
 pub use measurements::*;
 use tauri::State;
 

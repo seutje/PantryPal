@@ -72,8 +72,13 @@ async fn restart_child() {
         db.retire_ingredient("ingredient-garlic", true)
             .await
             .unwrap();
-        let meal: MealInput =
+        let mut meal: MealInput =
             serde_json::from_str(include_str!("../../tests/fixtures/demo-meal.json")).unwrap();
+        meal.base_servings_text = Some("4".into());
+        meal.ingredients[0].amount_text = Some("⅓".into());
+        meal.ingredients[2].amount_text = Some("to taste".into());
+        let definition = db.create_field(serde_json::from_value(serde_json::json!({"label":"Freezes well","kind":"boolean","description":"Household preference","options":[],"minimum":null,"maximum":null,"unitLabel":null,"sortOrder":0})).unwrap()).await.unwrap();
+        meal.custom_fields.push(serde_json::from_value(serde_json::json!({"fieldId":definition.id,"value":{"kind":"boolean","value":false}})).unwrap());
         let created = db.create_meal(meal).await.unwrap();
         let mut input = created.data;
         input.title = "Restart supper".into();
@@ -105,7 +110,25 @@ async fn restart_child() {
         assert_eq!(meals[0].revision, 2);
         assert_eq!(meals[0].data.ingredients[0].raw_text, "1/3 US cup rice");
         assert!(meals[0].data.ingredients[2].quantity.is_none());
-        assert_eq!(db.status().await.unwrap().schema_version, 5);
+        let fields = db.list_fields().await.unwrap();
+        let input = serde_json::from_value(serde_json::json!({"text":"rice","ingredientId":"ingredient-broccoli","tag":"simple","field":{"fieldId":fields[0].id,"operator":"equals","value":{"kind":"boolean","value":false}},"cooked":"never","cookedFrom":null,"cookedTo":null})).unwrap();
+        let library = db.search_meals(input).await.unwrap();
+        assert_eq!(library.meals.len(), 1);
+        assert_eq!(
+            library.meals[0].meal.data.ingredients[0]
+                .amount_text
+                .as_deref(),
+            Some("⅓")
+        );
+        let mut input = library.meals[0].meal.data.clone();
+        input.notes = "Edited after process restart".into();
+        let edited = db
+            .update_meal(&meals[0].id, 2, input.clone())
+            .await
+            .unwrap();
+        assert_eq!(edited.data, input);
+        assert_eq!(edited.revision, 3);
+        assert_eq!(db.status().await.unwrap().schema_version, 6);
     }
     db.close().await;
 }

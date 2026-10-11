@@ -29,6 +29,8 @@
     "allow-list-conversion-rules",
     "allow-save-conversion-rule",
     "allow-retire-conversion-rule",
-    "allow-ingredient-candidates"
+    "allow-ingredient-candidates",
+    "allow-search-meals",
+    "allow-save-meal-draft"
   ]
 }

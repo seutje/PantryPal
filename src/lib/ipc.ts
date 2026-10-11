@@ -15,6 +15,9 @@ import type {
   ConversionResult,
   ConversionRule,
   RuleInput,
+  MealDraft,
+  MealSearch,
+  MealLibrary,
 } from './models';
 
 export interface AppInfo {
@@ -101,6 +104,13 @@ export const updateIngredient = (id: string, input: IngredientInput) =>
 export const retireIngredient = (id: string, confirmed: boolean) =>
   invokeNative<void>('retire_ingredient', { id, confirmed });
 export const listMeals = () => invokeNative<Meal[]>('list_meals');
+export const searchMeals = (input: MealSearch) =>
+  invokeNative<MealLibrary>('search_meals', { input });
+export const saveMealDraft = (
+  id: string | null,
+  expectedRevision: number | null,
+  input: MealDraft,
+) => invokeNative<Meal>('save_meal_draft', { id, expectedRevision, input });
 export const getMeal = (id: string) => invokeNative<Meal>('get_meal', { id });
 export const createMeal = (input: MealInput) =>
   invokeNative<Meal>('create_meal', { input });

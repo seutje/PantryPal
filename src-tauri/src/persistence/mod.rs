@@ -1,6 +1,7 @@
 //! Parameterized repositories. The frontend never supplies SQL or a path.
 pub mod catalog;
 pub mod fields;
+mod history;
 pub mod meals;
 pub mod measurements;
 
@@ -90,6 +91,8 @@ impl Database {
     }
 }
 
+#[cfg(test)]
+mod meal_library_tests;
 #[cfg(test)]
 mod measurement_tests;
 #[cfg(test)]

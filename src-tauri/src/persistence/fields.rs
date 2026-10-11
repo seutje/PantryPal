@@ -7,6 +7,19 @@ use sqlx::{Row, SqliteConnection};
 use uuid::Uuid;
 
 impl Database {
+    pub async fn all_fields(&self) -> AppResult<Vec<FieldDefinition>> {
+        let mut connection = self.pool.acquire().await?;
+        let ids: Vec<String> = sqlx::query_scalar(
+            "SELECT id FROM custom_field_definition ORDER BY sort_order,normalized_label,id",
+        )
+        .fetch_all(&mut *connection)
+        .await?;
+        let mut result = vec![];
+        for id in ids {
+            result.push(load_field(&mut connection, &id).await?);
+        }
+        Ok(result)
+    }
     pub async fn create_field(&self, input: FieldInput) -> AppResult<FieldDefinition> {
         input.validate()?;
         let id = Uuid::new_v4().to_string();

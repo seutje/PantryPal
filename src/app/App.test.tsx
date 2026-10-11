@@ -8,6 +8,11 @@ import { getStorageStatus } from '../lib/ipc';
 
 vi.mock('../lib/ipc', () => ({
   nativeAvailable: () => true,
+  searchMeals: vi.fn(async () => ({
+    meals: [],
+    fields: [],
+    catalog: { ingredients: [], categories: [], sections: [], units: [] },
+  })),
   getMeasurementPreferences: vi.fn(async () => ({
     mode: 'mixed',
     cupConvention: null,

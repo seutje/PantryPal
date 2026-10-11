@@ -12,6 +12,8 @@ pub struct MealIngredient {
     pub id: String,
     pub ingredient_id: Option<String>,
     pub quantity: Option<Amount>,
+    #[serde(default)]
+    pub amount_text: Option<String>,
     pub unit_id: Option<String>,
     pub raw_text: String,
     pub source_convention: Option<String>,
@@ -32,6 +34,8 @@ pub struct MealInput {
     pub title: String,
     pub description: String,
     pub base_servings: Amount,
+    #[serde(default)]
+    pub base_servings_text: Option<String>,
     pub prep_minutes: Option<i64>,
     pub cook_minutes: Option<i64>,
     pub instructions: String,
@@ -50,6 +54,7 @@ impl MealInput {
         validation::text(&self.instructions, 100_000, false)?;
         validation::text(&self.notes, 10_000, false)?;
         self.base_servings.validate(true)?;
+        validate_amount_text(&self.base_servings_text, Some(&self.base_servings))?;
         for minutes in [self.prep_minutes, self.cook_minutes].into_iter().flatten() {
             if !(0..=100_000).contains(&minutes) {
                 return Err(AppError::validation("Invalid cooking time."));
@@ -83,6 +88,7 @@ impl MealInput {
             if let Some(amount) = &line.quantity {
                 amount.validate(false)?;
             }
+            validate_amount_text(&line.amount_text, line.quantity.as_ref())?;
             validation::text(&line.raw_text, 2_000, false)?;
             validation::text(&line.note, 2_000, false)?;
             if let Some(convention) = &line.source_convention {
@@ -105,6 +111,23 @@ impl MealInput {
         }
         Ok(())
     }
+}
+
+fn validate_amount_text(text: &Option<String>, amount: Option<&Amount>) -> AppResult<()> {
+    use super::measurements::rational::{self, Rational};
+    if let Some(text) = text {
+        validation::text(text, 120, false)?;
+        let parsed = rational::parse(text)?;
+        let expected = amount
+            .map(|a| Rational::new(a.numerator.into(), a.denominator.into()))
+            .transpose()?;
+        if parsed != expected {
+            return Err(AppError::validation(
+                "Entered amount does not match its exact quantity.",
+            ));
+        }
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

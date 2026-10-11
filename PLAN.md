@@ -9,7 +9,7 @@
 | 0     | Repository scaffold and quality gates                 | Complete    |
 | 1     | SQLite schema, seed catalog, and core domain          | Complete    |
 | 2     | Measurement engine and ingredient management          | Complete    |
-| 3     | Meal library and custom fields                        | Not started |
+| 3     | Meal library and custom fields                        | Complete    |
 | 4     | Weekly planner, cooking history                       | Not started |
 | 5     | Shopping list engine and copy/edit UX                 | Not started |
 | 6     | Authenticated browser feasibility and import pipeline | Not started |
@@ -99,18 +99,18 @@
 
 **Goal:** Create, find and edit meals without imports.
 
-- [ ] Build meal list/detail/editor with title, base servings, times, instructions, notes, tags, and source link.
-- [ ] Implement ordered ingredient lines with quantity, unit, ingredient chooser, raw wording, optional flag and preparation note.
-- [ ] Support unknown amounts and informal units without discarding information.
-- [ ] Create/manage custom field definitions: boolean, select, number, date, text and rating.
-- [ ] Implement typed custom-field validation and values, including unknown boolean state.
-- [ ] Allow meal search/filter by title, ingredients, custom fields and derived metadata.
-- [ ] Implement safe custom-field rename/retire and confirmation for destructive changes.
-- [ ] Add tests for meal CRUD, field values, invalid input and ingredient deletion behavior.
+- [x] Build meal list/detail/editor with title, base servings, times, instructions, notes, tags, and source link.
+- [x] Implement ordered ingredient lines with quantity, unit, ingredient chooser, raw wording, optional flag and preparation note.
+- [x] Support unknown amounts and informal units without discarding information.
+- [x] Create/manage custom field definitions: boolean, select, number, date, text and rating.
+- [x] Implement typed custom-field validation and values, including unknown boolean state.
+- [x] Allow meal search/filter by title, ingredients, custom fields and derived metadata.
+- [x] Implement safe custom-field rename/retire and confirmation for destructive changes.
+- [x] Add tests for meal CRUD, field values, invalid input and ingredient deletion behavior.
 
 **Acceptance gate:** A user can create a complete meal with custom fields, restart, locate it by filters, and edit it without losing data.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-11):** Completed the meal list/detail/editor, ordered ingredient lines, all six custom field definitions and typed values, Rust search with canonical ingredients/aliases/tags/field predicates and actual last-cooked date filters, safe rename/confirmed retirement, draft-preserving validation errors, and migration 6 for original amount text. ADR 0004 documents immutable field shapes, unknown defaults, raw quantity retention and read-only history scope. Verified `npm run check` (format/lint/typecheck and 28 frontend tests), `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked` (29 unit tests and four integration tests; the parent executes the normally ignored restart child twice), and `npm run tauri build -- --debug --no-bundle` on Windows. Actual IPC/SQLite coverage saves all six field kinds, rejects invalid/stale edits, renames/retires safely and reopens without loss; the process restart gate locates a complete recipe by combined filters and edits it. Native Windows screen inspection verified the library/editor and title focus, startup schema 6, database integrity and foreign keys; no test meals were added to household data. Initial historical-fixture and UI-provider test failures were fixed. One rerun encountered the open native executable lock; after graceful close, the suite passed. No Phase 3 blockers. History recording remains Phase 4; importing/browser opening remains Phase 6; release installer checks remain Phase 8.
 
 ## Phase 4 — Week planner and history
 

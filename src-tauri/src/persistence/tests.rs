@@ -39,7 +39,7 @@ fn field(kind: FieldKind) -> FieldInput {
 async fn fresh_database_migrates_once_and_preserves_seed_edits() {
     let directory = TempDir::new().unwrap();
     let db = Database::open(directory.path()).await.unwrap();
-    assert_eq!(db.status().await.unwrap().schema_version, 5);
+    assert_eq!(db.status().await.unwrap().schema_version, 6);
     assert_eq!(db.status().await.unwrap().ingredient_count, 16);
     let foreign_keys: i64 = sqlx::query_scalar("PRAGMA foreign_keys")
         .fetch_one(&db.pool)
@@ -83,7 +83,7 @@ async fn fresh_database_migrates_once_and_preserves_seed_edits() {
         .fetch_one(&reopened.pool)
         .await
         .unwrap();
-    assert_eq!(count, 5);
+    assert_eq!(count, 6);
     reopened.close().await;
 }
 
@@ -122,7 +122,7 @@ async fn migration_from_existing_catalog_preserves_household_rows() {
         .unwrap();
     pool.close().await;
     let upgraded = Database::open(directory.path()).await.unwrap();
-    assert_eq!(upgraded.status().await.unwrap().schema_version, 5);
+    assert_eq!(upgraded.status().await.unwrap().schema_version, 6);
     assert_eq!(upgraded.status().await.unwrap().ingredient_count, 17);
     assert_eq!(
         upgraded
@@ -721,7 +721,22 @@ async fn seed_upgrade_preserves_existing_meals_fields_and_shopping_edits() {
         field_id: definition.id.clone(),
         value: Some(FieldValue::Boolean(false)),
     }];
-    let meal = prior.create_meal(input).await.unwrap();
+    // Populate the historical schema directly: current repositories require
+    // current columns and must not masquerade as older application code.
+    sqlx::query("INSERT INTO meal(id,title,normalized_title,description,servings_numerator,servings_denominator,prep_minutes,cook_minutes,instructions,notes,source_url,source_site) VALUES ('legacy-meal',?,?,?,?,?,?,?,?,?,?,?)")
+        .bind(&input.title).bind(crate::domain::validation::normalized(&input.title)).bind(&input.description).bind(input.base_servings.numerator).bind(input.base_servings.denominator).bind(input.prep_minutes).bind(input.cook_minutes).bind(&input.instructions).bind(&input.notes).bind(&input.source_url).bind(&input.source_site).execute(&prior.pool).await.unwrap();
+    for (index, line) in input.ingredients.iter().enumerate() {
+        sqlx::query("INSERT INTO meal_ingredient(id,meal_id,ingredient_id,quantity_numerator,quantity_denominator,unit_id,raw_text,source_convention,note,optional,sort_order) VALUES (?,'legacy-meal',?,?,?,?,?,?,?,?,?)")
+            .bind(&line.id).bind(&line.ingredient_id).bind(line.quantity.as_ref().map(|q|q.numerator)).bind(line.quantity.as_ref().map(|q|q.denominator)).bind(&line.unit_id).bind(&line.raw_text).bind(&line.source_convention).bind(&line.note).bind(line.optional).bind(index as i64).execute(&prior.pool).await.unwrap();
+    }
+    for tag in &input.tags {
+        sqlx::query("INSERT INTO meal_tag(meal_id,tag) VALUES ('legacy-meal',?)")
+            .bind(tag)
+            .execute(&prior.pool)
+            .await
+            .unwrap();
+    }
+    sqlx::query("INSERT INTO meal_custom_field_value(meal_id,field_id,value_json) VALUES ('legacy-meal',?,?)").bind(&definition.id).bind(serde_json::to_string(&FieldValue::Boolean(false)).unwrap()).execute(&prior.pool).await.unwrap();
     sqlx::query("INSERT INTO shopping_list(id,week_start) VALUES ('legacy-list','2026-10-12')")
         .execute(&prior.pool)
         .await
@@ -734,7 +749,7 @@ async fn seed_upgrade_preserves_existing_meals_fields_and_shopping_edits() {
     prior.close().await;
     let upgraded = Database::open(directory.path()).await.unwrap();
     assert_eq!(upgraded.ingredient(&herb.id).await.unwrap(), herb);
-    assert_eq!(upgraded.meal(&meal.id).await.unwrap(), meal);
+    assert_eq!(upgraded.meal("legacy-meal").await.unwrap().data, input);
     assert_eq!(upgraded.field(&definition.id).await.unwrap(), definition);
     let row =
         sqlx::query("SELECT checked,override_json FROM shopping_item WHERE id='legacy-manual'")
