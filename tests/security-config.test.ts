@@ -1,0 +1,41 @@
+import { readFileSync, readdirSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+import config from '../src-tauri/tauri.conf.json';
+import main from '../src-tauri/capabilities/main.json';
+
+describe('native permission boundary', () => {
+  it('grants only app identity to the local main window', () => {
+    expect(config.app.security.capabilities).toEqual(['main']);
+    expect(readdirSync('src-tauri/capabilities')).toEqual(['main.json']);
+    expect(main).toMatchObject({
+      local: true,
+      windows: ['main'],
+      permissions: ['allow-get-app-info'],
+    });
+    expect(main).not.toHaveProperty('remote');
+    expect(main).not.toHaveProperty('webviews');
+    expect(config.app.withGlobalTauri).toBe(false);
+    expect(config.app.windows.map((window) => window.label)).toEqual(['main']);
+  });
+
+  it('subjects every registered application command to ACL', () => {
+    const build = readFileSync('src-tauri/build.rs', 'utf8');
+    const lib = readFileSync('src-tauri/src/lib.rs', 'utf8');
+    const registered = lib
+      .match(/generate_handler!\[([^\]]+)\]/)?.[1]
+      ?.split(',')
+      .map((name) => name.trim().replace('commands::', ''));
+    expect(registered).toEqual(['get_app_info']);
+    expect(build).toContain('AppManifest::new().commands(&["get_app_info"])');
+  });
+
+  it('blocks remote scripts, frames and network in the production shell', () => {
+    expect(config.app.security.csp).toContain("script-src 'self'");
+    expect(config.app.security.csp).toContain("frame-src 'none'");
+    expect(config.app.security.csp).toContain("object-src 'none'");
+    expect(config.app.security.csp).toContain(
+      'connect-src ipc: http://ipc.localhost;',
+    );
+    expect(config.app.security.csp).not.toMatch(/https:|unsafe-eval|\*/);
+  });
+});

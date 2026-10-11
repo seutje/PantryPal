@@ -4,17 +4,17 @@
 
 ## Status dashboard
 
-| Phase | Outcome | Status |
-|---|---|---|
-| 0 | Repository scaffold and quality gates | Not started |
-| 1 | SQLite schema, seed catalog, and core domain | Not started |
-| 2 | Measurement engine and ingredient management | Not started |
-| 3 | Meal library and custom fields | Not started |
-| 4 | Weekly planner, cooking history | Not started |
-| 5 | Shopping list engine and copy/edit UX | Not started |
-| 6 | Authenticated browser feasibility and import pipeline | Not started |
-| 7 | Backup, preferences, security and polish | Not started |
-| 8 | End-to-end validation and Windows release | Not started |
+| Phase | Outcome                                               | Status      |
+| ----- | ----------------------------------------------------- | ----------- |
+| 0     | Repository scaffold and quality gates                 | Complete    |
+| 1     | SQLite schema, seed catalog, and core domain          | Not started |
+| 2     | Measurement engine and ingredient management          | Not started |
+| 3     | Meal library and custom fields                        | Not started |
+| 4     | Weekly planner, cooking history                       | Not started |
+| 5     | Shopping list engine and copy/edit UX                 | Not started |
+| 6     | Authenticated browser feasibility and import pipeline | Not started |
+| 7     | Backup, preferences, security and polish              | Not started |
+| 8     | End-to-end validation and Windows release             | Not started |
 
 > **Rule:** Update this dashboard and checkboxes in the same commit as completed work. Do not mark a phase complete until its acceptance gate passes.
 
@@ -22,18 +22,26 @@
 
 **Goal:** A runnable Windows Tauri/React project with a repeatable build and test workflow.
 
-- [ ] Initialize Tauri 2 + React + TypeScript workspace, lockfiles and Rust tooling.
-- [ ] Configure Tailwind and accessible UI component primitives (shadcn/ui or equivalent).
-- [ ] Define frontend folders, typed IPC wrapper, backend module structure and error conventions.
-- [ ] Configure formatting/linting: `cargo fmt`, `cargo clippy`, TypeScript strict type checking, ESLint/Prettier.
-- [ ] Set up Rust unit tests and frontend test runner; add a smoke test in each layer.
-- [ ] Configure Tauri 2 capabilities with least privilege and no remote-origin privileged commands.
-- [ ] Document dev commands and Windows prerequisites in `README.md`.
-- [ ] Verify developer can run the app on Windows and produce a debug build.
+- [x] Initialize Tauri 2 + React + TypeScript workspace, lockfiles and Rust tooling.
+- [x] Configure Tailwind and accessible UI component primitives (shadcn/ui or equivalent).
+- [x] Define frontend folders, typed IPC wrapper, backend module structure and error conventions.
+- [x] Configure formatting/linting: `cargo fmt`, `cargo clippy`, TypeScript strict type checking, ESLint/Prettier.
+- [x] Set up Rust unit tests and frontend test runner; add a smoke test in each layer.
+- [x] Configure Tauri 2 capabilities with least privilege and no remote-origin privileged commands.
+- [x] Document dev commands and Windows prerequisites in `README.md`.
+- [x] Verify developer can run the app on Windows and produce a debug build.
 
 **Acceptance gate:** Windows dev app opens, navigation shell renders, lint/typecheck/tests pass, and the release/build pipeline is documented.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-11):** Phase 0 acceptance gate passed on Windows x64. Added the five-section placeholder shell, Tailwind/native accessible primitives, TanStack Query, typed identity IPC and structured error conventions; Rust domain/service/persistence/importer boundaries; committed dependency lockfiles; pinned Rust tooling; Windows quality workflow; README and ADR 0001. Later-phase data and importer behavior remain unimplemented.
+
+- Passed `npm ci` and `npm audit` (zero vulnerabilities after updating initial advisory-affected Vitest/tooling dependencies).
+- Passed `npm run check`: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (8 tests, including keyboard/focus, IPC success/error and static capability/CSP regression checks).
+- Passed `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked` (2 Rust tests).
+- Passed `npm run tauri build -- --debug --no-bundle` (including TypeScript/Vite production build); executable at `target/debug/pantrypal.exe`.
+- Ran `npm run tauri dev -- --no-watch`; visually verified the native Windows window, navigation shell, Tailwind styling and successful Rust IPC (`Desktop · v0.1.0`). Also launched and visually verified the bundled debug executable without Vite. Local verification captures are ignored under `.verification/`.
+- Resolved environment/setup failures: sandbox denied npm registry access and native app initialization; reran with approved network/runtime access. Clean-installed the updated compatible npm dependency set after stale peer resolution failed. Closed leftover project processes after a failed dev launch caused a port conflict and locked the executable; subsequent dev launch and debug build passed. Corrected initial heading autofocus found during visual inspection, with a StrictMode regression assertion.
+- No Phase 0 blocker remains. In-app browser automation was unavailable; native window captures and deterministic UI tests supplied this phase's verification. GitHub CI execution, release/NSIS packaging and clean-machine installation are **not verified**; their commands are documented. Actual external-page IPC isolation remains a Phase 6 runtime spike; Phase 0 verifies the local-only capability configuration and command manifest.
 
 ## Phase 1 — Database and core models
 

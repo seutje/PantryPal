@@ -1,0 +1,9 @@
+node_modules
+dist
+target
+src-tauri/gen
+coverage
+.verification
+Cargo.lock
+AGENTS.md
+DESIGN.md
