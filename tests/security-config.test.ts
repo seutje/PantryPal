@@ -32,6 +32,10 @@ describe('native permission boundary', () => {
     'ingredient_candidates',
     'search_meals',
     'save_meal_draft',
+    'get_week',
+    'apply_plan',
+    'get_meal_history',
+    'change_meal_history',
   ];
   it('grants only named repository operations to the local main window', () => {
     expect(config.app.security.capabilities).toEqual(['main']);

@@ -1,6 +1,7 @@
 import type { MealLibrary, MealRecord } from '../../lib/models';
 import { Button } from '../../components/ui/Button';
 import { fieldText } from './field-text';
+import { CookingHistory } from './CookingHistory';
 
 export function MealDetail({
   record,
@@ -20,8 +21,12 @@ export function MealDetail({
     <article className="space-y-4">
       <div className="flex flex-wrap gap-2">
         <Button onClick={onBack}>Back to meals</Button>
-        <Button onClick={onEdit}>Edit meal</Button>
-        <Button onClick={onRetire}>Retire meal</Button>
+        <Button disabled={meal.retired} onClick={onEdit}>
+          Edit meal
+        </Button>
+        <Button disabled={meal.retired} onClick={onRetire}>
+          Retire meal
+        </Button>
       </div>
       <h2 className="text-2xl font-semibold">{meal.title}</h2>
       <p>{meal.description}</p>
@@ -108,6 +113,7 @@ export function MealDetail({
             </div>
           ))}
       </dl>
+      <CookingHistory mealId={meal.id} />
     </article>
   );
 }

@@ -6,6 +6,8 @@ import { ShoppingPage } from '../features/shopping/ShoppingPage';
 import { IngredientsPage } from '../features/ingredients/IngredientsPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { getAppInfo, getStorageStatus, nativeAvailable } from '../lib/ipc';
+import type { MealRecord, MealLibrary } from '../lib/models';
+import { localToday } from '../lib/local-date';
 
 const sections = [
   'Week',
@@ -25,6 +27,10 @@ const pages = {
 
 export function App() {
   const [section, setSection] = useState<Section>('Week');
+  const [weekDate, setWeekDate] = useState(localToday);
+  const [shoppingWeek, setShoppingWeek] = useState<string | null>(null);
+  const [mealContext, setMealContext] = useState<MealLibrary | null>(null);
+  const [mealToOpen, setMealToOpen] = useState<MealRecord | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const previousSection = useRef(section);
   const info = useQuery({
@@ -80,7 +86,10 @@ export function App() {
               key={name}
               type="button"
               aria-current={name === section ? 'page' : undefined}
-              onClick={() => setSection(name)}
+              onClick={() => {
+                setMealToOpen(null);
+                setSection(name);
+              }}
               className={`rounded-lg px-4 py-3 text-left font-medium ${name === section ? 'bg-green-100 text-green-900' : 'text-stone-600 hover:bg-stone-200'}`}
             >
               {name}
@@ -104,7 +113,27 @@ export function App() {
               Close PantryPal and retry, or use a compatible version.
             </p>
           )}
-          <Page />
+          {section === 'Week' ? (
+            <WeekPage
+              date={weekDate}
+              onDateChange={setWeekDate}
+              onOpenMeal={(record, library) => {
+                setMealToOpen(record);
+                setMealContext(library);
+                setSection('Meals');
+              }}
+              onShopping={(week) => {
+                setShoppingWeek(week);
+                setSection('Shopping');
+              }}
+            />
+          ) : section === 'Meals' ? (
+            <MealsPage initialMeal={mealToOpen} initialLibrary={mealContext} />
+          ) : section === 'Shopping' ? (
+            <ShoppingPage weekStart={shoppingWeek} />
+          ) : (
+            <Page />
+          )}
         </main>
       </div>
     </div>

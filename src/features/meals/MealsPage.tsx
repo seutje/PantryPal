@@ -6,7 +6,12 @@ import {
   keepPreviousData,
 } from '@tanstack/react-query';
 import { searchMeals, retireMeal } from '../../lib/ipc';
-import type { Meal, MealSearch, MealRecord } from '../../lib/models';
+import type {
+  Meal,
+  MealSearch,
+  MealRecord,
+  MealLibrary,
+} from '../../lib/models';
 import { Button } from '../../components/ui/Button';
 import { FormField } from '../../components/ui/FormField';
 import { MealEditor } from './MealEditor';
@@ -24,13 +29,21 @@ const emptySearch: MealSearch = {
   cookedTo: null,
 };
 
-export function MealsPage() {
+export function MealsPage({
+  initialMeal,
+  initialLibrary,
+}: {
+  initialMeal?: MealRecord | null;
+  initialLibrary?: MealLibrary | null;
+}) {
   const client = useQueryClient();
   const [search, setSearch] = useState<MealSearch>(emptySearch);
   const [view, setView] = useState<'list' | 'detail' | 'editor' | 'fields'>(
-    'list',
+    initialMeal ? 'detail' : 'list',
   );
-  const [selected, setSelected] = useState<MealRecord | null>(null);
+  const [selected, setSelected] = useState<MealRecord | null>(
+    initialMeal ?? null,
+  );
   const [retiring, setRetiring] = useState(false);
   const library = useQuery({
     queryKey: ['meal-library', search],
@@ -48,7 +61,26 @@ export function MealsPage() {
     queryKey: ['meal-library', emptySearch],
     queryFn: () => searchMeals(emptySearch),
   });
-  const data = library.data ?? context.data;
+  const current = library.data ?? context.data;
+  // Retired planned meals can reference ingredient labels absent from the active library.
+  const data =
+    current && initialLibrary && initialMeal?.meal.retired
+      ? {
+          ...current,
+          catalog: {
+            ...current.catalog,
+            ingredients: [
+              ...current.catalog.ingredients,
+              ...initialLibrary.catalog.ingredients.filter(
+                (i) =>
+                  !current.catalog.ingredients.some(
+                    (active) => active.id === i.id,
+                  ),
+              ),
+            ],
+          },
+        }
+      : current;
   const change = <K extends keyof MealSearch>(key: K, value: MealSearch[K]) =>
     setSearch((s) => ({ ...s, [key]: value }));
   const refresh = () => {
@@ -102,7 +134,11 @@ export function MealsPage() {
           ) : view === 'detail' && selected ? (
             <>
               <MealDetail
-                record={selected}
+                record={
+                  data.meals.find(
+                    (record) => record.meal.id === selected.meal.id,
+                  ) ?? selected
+                }
                 library={data}
                 onEdit={() => setView('editor')}
                 onBack={() => {

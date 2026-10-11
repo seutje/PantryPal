@@ -10,7 +10,7 @@
 | 1     | SQLite schema, seed catalog, and core domain          | Complete    |
 | 2     | Measurement engine and ingredient management          | Complete    |
 | 3     | Meal library and custom fields                        | Complete    |
-| 4     | Weekly planner, cooking history                       | Not started |
+| 4     | Weekly planner, cooking history                       | Complete    |
 | 5     | Shopping list engine and copy/edit UX                 | Not started |
 | 6     | Authenticated browser feasibility and import pipeline | Not started |
 | 7     | Backup, preferences, security and polish              | Not started |
@@ -116,17 +116,22 @@
 
 **Goal:** Select a useful week of meals and record what was actually cooked.
 
-- [ ] Implement Monday-start local weeks, previous/next navigation and unscheduled-week pool.
-- [ ] Add/remove/reorder planned meals and choose servings per occurrence.
-- [ ] Track plan status (`planned`, `cooked`, `skipped`) with explicit user actions.
-- [ ] Record cooked events exactly once per action; implement undo/correction semantics.
-- [ ] Derive and display `last eaten` from cooked events; allow backfill if appropriate.
-- [ ] Connect planner to meal detail and shopping-list generation action.
-- [ ] Test repeated meals, date edges, invalid servings and plan changes.
+- [x] Implement Monday-start local weeks, previous/next navigation and unscheduled-week pool.
+- [x] Add/remove/reorder planned meals and choose servings per occurrence.
+- [x] Track plan status (`planned`, `cooked`, `skipped`) with explicit user actions.
+- [x] Record cooked events exactly once per action; implement undo/correction semantics.
+- [x] Derive and display `last eaten` from cooked events; allow backfill if appropriate.
+- [x] Connect planner to meal detail and shopping-list generation action (week-aware Shopping handoff; calculations remain Phase 5).
+- [x] Test repeated meals, date edges, invalid servings and plan changes.
 
 **Acceptance gate:** The weekly view works across month/year boundaries and only intentionally cooked meals update eating history.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-11):** Phase 4 acceptance gate passed on Windows. Added Monday–Sunday local weeks, previous/current/next and calendar navigation, an unscheduled pool, repeated occurrences, positive exact fractional servings, day moves and keyboard ordering. Explicit planned/cooked/skipped actions use transactional repositories, per-week revisions and durable action receipts. Cooking creates one linked event; retries do not repeat it, including after undo or restart. Backfill, confirmed correction and undo retain voided records and an audit trail. Last eaten uses only non-voided cooked events; scheduling, skipping and moving never imply cooking. Removing a plan preserves detached cooking history and its origin ID. Historical retired recipes and their ingredient labels remain readable. Migration 7 preserves existing plans, exact legacy serving pairs, events, recipes and shopping adjustments. ADR 0005 records local-date/timezone policy, retry/undo semantics and the Phase 5 handoff boundary.
+
+- Passed `npm run check`: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (35 frontend tests). New flows cover independent repeated meals, fractions, day/pool moves, keyboard ordering, skip/cook/confirmed undo/removal, backfill/date correction, failed-input preservation and same-action retry, historical detail labels, recipe navigation and week-aware Shopping handoff.
+- Passed `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, and `cargo test --workspace --locked` (34 unit tests and five integration tests). The parent runs its normally ignored child in separate write/read processes, retaining repeated plans and actual cooking and replaying the saved original action safely. Actual Tauri command deserialization/ACL/SQLite tests cover planner/history and reject simulated remote-origin requests. Repository tests cover month/year/leap-day/DST edges, invalid servings/dates/future cooking, stale revisions, exact reordering membership, action reuse, rollback, correction/undo audit, retirement and removal preservation. Schema 6-to-7 migration coverage retains prior cooked plans and manual shopping overrides; migrations 1–6 remain unchanged.
+- Passed `npm run tauri build -- --debug --no-bundle`, including TypeScript/Vite production compilation. Native Windows inspection verified local current-week defaults, repeated next-week navigation to 28 December 2026–3 January 2027, and Shopping receiving the exact Monday `2026-12-28`. Read-only household database checks show seven applied migrations, 16 ingredients, zero test meals/plans/history, integrity `ok` and no foreign-key violations. Writes and history corrections are verified with isolated command/database tests and UI flows; no disposable records were added to household data.
+- Initial verification issues were resolved: removed an unused Rust import, fixed historical migration fixture filenames, and made the date-label UI test respect local display order rather than assuming US month/day ordering. Final checks pass. No Phase 4 blocker remains. The Shopping action carries week context to the generation screen; calculation/regeneration/clipboard functionality stays in Phase 5. GitHub CI execution, release packaging and actual external-WebView isolation remain not verified. Later-phase checkboxes were not changed.
 
 ## Phase 5 — Grocery generation
 

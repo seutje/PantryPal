@@ -129,6 +129,90 @@ export interface MealLibrary {
   catalog: Catalog;
   fields: FieldDefinition[];
 }
+export type PlanStatus = 'planned' | 'cooked' | 'skipped';
+export interface CookedEvent {
+  id: string;
+  mealId: string;
+  localDate: string;
+  planEntryId: string | null;
+  originPlanEntryId: string | null;
+  voided: boolean;
+  revision: number;
+}
+export interface PlanEntry {
+  id: string;
+  mealId: string;
+  localDate: string | null;
+  servings: Amount;
+  servingsText: string;
+  status: PlanStatus;
+  sortOrder: number;
+  cookedEvent: CookedEvent | null;
+}
+export interface WeekView {
+  weekStart: string;
+  weekEnd: string;
+  days: string[];
+  previousWeek: string | null;
+  nextWeek: string | null;
+  revision: number;
+  entries: PlanEntry[];
+  library: MealLibrary;
+}
+export type PlanOperation =
+  | {
+      kind: 'add';
+      entryId: string;
+      mealId: string;
+      localDate: string | null;
+      servings: string;
+    }
+  | {
+      kind: 'edit';
+      entryId: string;
+      localDate: string | null;
+      servings: string;
+    }
+  | { kind: 'reorder'; localDate: string | null; entryIds: string[] }
+  | { kind: 'remove'; entryId: string; confirmed: boolean }
+  | {
+      kind: 'set_status';
+      entryId: string;
+      status: PlanStatus;
+      cookedDate: string | null;
+      confirmed: boolean;
+    };
+export interface PlanMutation {
+  actionId: string;
+  weekStart: string;
+  expectedRevision: number;
+  operation: PlanOperation;
+}
+export interface MealHistory {
+  mealId: string;
+  lastCooked: string | null;
+  events: CookedEvent[];
+}
+export type HistoryOperation =
+  | { kind: 'record'; eventId: string; localDate: string }
+  | {
+      kind: 'correct';
+      eventId: string;
+      expectedRevision: number;
+      localDate: string;
+      confirmed: boolean;
+    }
+  | {
+      kind: 'undo';
+      eventId: string;
+      expectedRevision: number;
+      confirmed: boolean;
+    };
+export interface HistoryMutation {
+  actionId: string;
+  mealId: string;
+  operation: HistoryOperation;
+}
 export interface Meal extends MealInput {
   id: string;
   retired: boolean;

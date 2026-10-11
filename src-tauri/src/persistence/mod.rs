@@ -4,6 +4,7 @@ pub mod fields;
 mod history;
 pub mod meals;
 pub mod measurements;
+mod planning;
 
 use crate::error::{AppError, AppResult};
 use serde::Serialize;
@@ -95,5 +96,7 @@ impl Database {
 mod meal_library_tests;
 #[cfg(test)]
 mod measurement_tests;
+#[cfg(test)]
+mod planning_tests;
 #[cfg(test)]
 mod tests;

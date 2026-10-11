@@ -83,6 +83,11 @@ async fn restart_child() {
         let mut input = created.data;
         input.title = "Restart supper".into();
         db.update_meal(&created.id, 1, input).await.unwrap();
+        let mut week = db.get_week("2021-01-01").await.unwrap();
+        for (index, day) in [(0, None), (1, Some("2021-01-01"))] {
+            week=db.apply_plan(serde_json::from_value(serde_json::json!({"actionId":format!("restart-plan-{index}"),"weekStart":week.week_start,"expectedRevision":week.revision,"operation":{"kind":"add","entryId":format!("restart-entry-{index}"),"mealId":created.id,"localDate":day,"servings":"1 ½"}})).unwrap()).await.unwrap();
+        }
+        db.apply_plan(serde_json::from_value(serde_json::json!({"actionId":"restart-cook","weekStart":week.week_start,"expectedRevision":week.revision,"operation":{"kind":"set_status","entryId":"restart-entry-1","status":"cooked","cookedDate":"2021-01-01","confirmed":false}})).unwrap()).await.unwrap();
     } else {
         let catalog = db.catalog().await.unwrap();
         let ingredient = catalog
@@ -111,7 +116,7 @@ async fn restart_child() {
         assert_eq!(meals[0].data.ingredients[0].raw_text, "1/3 US cup rice");
         assert!(meals[0].data.ingredients[2].quantity.is_none());
         let fields = db.list_fields().await.unwrap();
-        let input = serde_json::from_value(serde_json::json!({"text":"rice","ingredientId":"ingredient-broccoli","tag":"simple","field":{"fieldId":fields[0].id,"operator":"equals","value":{"kind":"boolean","value":false}},"cooked":"never","cookedFrom":null,"cookedTo":null})).unwrap();
+        let input = serde_json::from_value(serde_json::json!({"text":"rice","ingredientId":"ingredient-broccoli","tag":"simple","field":{"fieldId":fields[0].id,"operator":"equals","value":{"kind":"boolean","value":false}},"cooked":"cooked","cookedFrom":null,"cookedTo":null})).unwrap();
         let library = db.search_meals(input).await.unwrap();
         assert_eq!(library.meals.len(), 1);
         assert_eq!(
@@ -128,7 +133,21 @@ async fn restart_child() {
             .unwrap();
         assert_eq!(edited.data, input);
         assert_eq!(edited.revision, 3);
-        assert_eq!(db.status().await.unwrap().schema_version, 6);
+        let week = db.get_week("2021-01-01").await.unwrap();
+        assert_eq!(week.week_start, "2020-12-28");
+        assert_eq!(week.entries.len(), 2);
+        assert_eq!(week.entries[0].servings_text, "1 ½");
+        assert_eq!(db.meal_history(&meals[0].id).await.unwrap().events.len(), 1);
+        db.apply_plan(serde_json::from_value(serde_json::json!({"actionId":"restart-cook","weekStart":week.week_start,"expectedRevision":2,"operation":{"kind":"set_status","entryId":"restart-entry-1","status":"cooked","cookedDate":"2021-01-01","confirmed":false}})).unwrap()).await.unwrap();
+        assert_eq!(
+            db.meal_history(&meals[0].id)
+                .await
+                .unwrap()
+                .last_cooked
+                .as_deref(),
+            Some("2021-01-01")
+        );
+        assert_eq!(db.status().await.unwrap().schema_version, 7);
     }
     db.close().await;
 }

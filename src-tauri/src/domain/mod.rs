@@ -4,4 +4,5 @@ pub mod fields;
 pub mod meal_library;
 pub mod meals;
 pub mod measurements;
+pub mod planning;
 pub mod validation;

@@ -8,6 +8,28 @@ import { getStorageStatus } from '../lib/ipc';
 
 vi.mock('../lib/ipc', () => ({
   nativeAvailable: () => true,
+  getWeek: vi.fn(async () => ({
+    weekStart: '2026-12-28',
+    weekEnd: '2027-01-03',
+    days: [
+      '2026-12-28',
+      '2026-12-29',
+      '2026-12-30',
+      '2026-12-31',
+      '2027-01-01',
+      '2027-01-02',
+      '2027-01-03',
+    ],
+    previousWeek: '2026-12-21',
+    nextWeek: '2027-01-04',
+    revision: 0,
+    entries: [],
+    library: {
+      meals: [],
+      fields: [],
+      catalog: { ingredients: [], categories: [], sections: [], units: [] },
+    },
+  })),
   searchMeals: vi.fn(async () => ({
     meals: [],
     fields: [],

@@ -45,6 +45,10 @@ fn main() {
             "ingredient_candidates",
             "search_meals",
             "save_meal_draft",
+            "get_week",
+            "apply_plan",
+            "get_meal_history",
+            "change_meal_history",
         ]),
     ))
     .expect("failed to build PantryPal Tauri configuration");

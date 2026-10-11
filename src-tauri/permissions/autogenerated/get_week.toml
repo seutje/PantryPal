@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-week"
+description = "Enables the get_week command without any pre-configured scope."
+commands.allow = ["get_week"]
+
+[[permission]]
+identifier = "deny-get-week"
+description = "Denies the get_week command without any pre-configured scope."
+commands.deny = ["get_week"]

@@ -11,6 +11,11 @@ import demo from '../../../tests/fixtures/demo-meal.json';
 
 vi.mock('../../lib/ipc', () => ({
   searchMeals: vi.fn(),
+  getMealHistory: vi.fn(async () => ({
+    mealId: 'meal-test',
+    lastCooked: null,
+    events: [],
+  })),
   saveMealDraft: vi.fn(),
   createField: vi.fn(),
   updateField: vi.fn(),
@@ -73,6 +78,44 @@ function open() {
   );
 }
 describe('meal library workflows', () => {
+  it('opens a retired planned recipe with its historical ingredient labels', async () => {
+    const retiredMeal = {
+      ...meal,
+      retired: true,
+      ingredients: [
+        { ...meal.ingredients[0]!, ingredientId: 'historical-onion' },
+      ],
+    };
+    const record = {
+      meal: retiredMeal,
+      lastCooked: null,
+      servingsDisplay: '4',
+      quantityDisplays: ['⅓'],
+    };
+    const library = {
+      meals: [record],
+      fields: [],
+      catalog: {
+        ...catalogFixture,
+        ingredients: [
+          {
+            ...catalogFixture.ingredients[0]!,
+            id: 'historical-onion',
+            name: 'Retired onion',
+            retired: true,
+          },
+        ],
+      },
+    };
+    render(
+      <AppProviders>
+        <MealsPage initialMeal={record} initialLibrary={library} />
+      </AppProviders>,
+    );
+    expect(await screen.findByText(/⅓.*Retired onion/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit meal' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Retire meal' })).toBeDisabled();
+  });
   it('keeps invalid date filters available for correction', async () => {
     const user = userEvent.setup();
     vi.mocked(api.searchMeals).mockImplementation(async (input) => {

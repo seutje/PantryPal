@@ -46,7 +46,11 @@ pub fn run() {
             commands::retire_conversion_rule,
             commands::ingredient_candidates,
             commands::search_meals,
-            commands::save_meal_draft
+            commands::save_meal_draft,
+            commands::get_week,
+            commands::apply_plan,
+            commands::get_meal_history,
+            commands::change_meal_history
         ])
         .run(tauri::generate_context!())
         .expect("failed to run PantryPal");

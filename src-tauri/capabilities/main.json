@@ -31,6 +31,10 @@
     "allow-retire-conversion-rule",
     "allow-ingredient-candidates",
     "allow-search-meals",
-    "allow-save-meal-draft"
+    "allow-save-meal-draft",
+    "allow-get-week",
+    "allow-apply-plan",
+    "allow-get-meal-history",
+    "allow-change-meal-history"
   ]
 }

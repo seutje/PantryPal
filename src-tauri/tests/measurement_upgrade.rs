@@ -61,7 +61,7 @@ async fn phase_one_upgrade_preserves_edited_catalog_existing_rules_and_preferenc
     sqlx::query("INSERT INTO ingredient_conversion(id,ingredient_id,from_unit_id,from_numerator,from_denominator,to_unit_id,to_numerator,to_denominator,approximate,notes) VALUES ('prior-onion-rule','ingredient-onion','piece',1,2,'g',75,1,1,'Medium onion')").execute(&pool).await.unwrap();
     pool.close().await;
     let db = Database::open(directory.path()).await.unwrap();
-    assert_eq!(db.status().await.unwrap().schema_version, 6);
+    assert_eq!(db.status().await.unwrap().schema_version, 7);
     assert_eq!(
         db.ingredient("ingredient-onion").await.unwrap().data.notes,
         "Preserve edited onion"

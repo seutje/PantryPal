@@ -18,6 +18,10 @@ import type {
   MealDraft,
   MealSearch,
   MealLibrary,
+  WeekView,
+  PlanMutation,
+  MealHistory,
+  HistoryMutation,
 } from './models';
 
 export interface AppInfo {
@@ -104,6 +108,14 @@ export const updateIngredient = (id: string, input: IngredientInput) =>
 export const retireIngredient = (id: string, confirmed: boolean) =>
   invokeNative<void>('retire_ingredient', { id, confirmed });
 export const listMeals = () => invokeNative<Meal[]>('list_meals');
+export const getWeek = (date: string) =>
+  invokeNative<WeekView>('get_week', { date });
+export const applyPlan = (input: PlanMutation) =>
+  invokeNative<WeekView>('apply_plan', { input });
+export const getMealHistory = (mealId: string) =>
+  invokeNative<MealHistory>('get_meal_history', { mealId });
+export const changeMealHistory = (input: HistoryMutation) =>
+  invokeNative<MealHistory>('change_meal_history', { input });
 export const searchMeals = (input: MealSearch) =>
   invokeNative<MealLibrary>('search_meals', { input });
 export const saveMealDraft = (
