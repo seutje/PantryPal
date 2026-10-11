@@ -39,6 +39,11 @@ describe('native permission boundary', () => {
     'get_shopping',
     'change_shopping',
     'copy_shopping',
+    'inspect_recipe_url',
+    'preview_recipe_import',
+    'confirm_recipe_import',
+    'open_recipe_browser',
+    'reset_recipe_browser',
   ];
   it('grants only named repository operations to the local main window', () => {
     expect(config.app.security.capabilities).toEqual(['main']);

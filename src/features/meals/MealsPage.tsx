@@ -18,6 +18,7 @@ import { MealEditor } from './MealEditor';
 import { MealDetail } from './MealDetail';
 import { FieldManager } from './FieldManager';
 import { FieldValueControl } from './FieldValueControl';
+import { ImportPage } from '../import/ImportPage';
 
 const emptySearch: MealSearch = {
   text: '',
@@ -38,9 +39,9 @@ export function MealsPage({
 }) {
   const client = useQueryClient();
   const [search, setSearch] = useState<MealSearch>(emptySearch);
-  const [view, setView] = useState<'list' | 'detail' | 'editor' | 'fields'>(
-    initialMeal ? 'detail' : 'list',
-  );
+  const [view, setView] = useState<
+    'list' | 'detail' | 'editor' | 'fields' | 'import'
+  >(initialMeal ? 'detail' : 'list');
   const [selected, setSelected] = useState<MealRecord | null>(
     initialMeal ?? null,
   );
@@ -106,18 +107,25 @@ export function MealsPage({
   return (
     <>
       <div className="mb-4 flex items-center gap-3">
-        <Button disabled aria-describedby="import-availability">
+        <Button
+          disabled={!data || view === 'import'}
+          onClick={() => setView('import')}
+        >
           Import recipe
         </Button>
-        <p id="import-availability" className="text-sm text-stone-600">
-          Recipe importing is coming in a later update.
-        </p>
       </div>
       {library.error && <p role="alert">{library.error.message}</p>}
       {library.isPending && <p role="status">Loading meals…</p>}
       {data && (
         <>
-          {view === 'editor' ? (
+          {view === 'import' ? (
+            <ImportPage
+              catalog={data.catalog}
+              fields={data.fields}
+              onSaved={saved}
+              onCancel={() => setView('list')}
+            />
+          ) : view === 'editor' ? (
             <MealEditor
               key={selected?.meal.id ?? 'new'}
               meal={selected?.meal}

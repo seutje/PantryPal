@@ -72,7 +72,61 @@ Commit both lockfiles. Use `npm ci` and Cargo's `--locked` option for repeatable
 - `src/lib/ipc.ts`: named typed operations and safe normalized errors.
 - `src-tauri/src/commands`: narrow IPC adapters; `domain` and `services` own business rules.
 - `src-tauri/src/persistence` and `src-tauri/migrations`: SQLx repositories and numbered embedded migrations in per-user app data.
-- `src-tauri/src/importers`: reserved for reviewed draft-only import adapters.
+- `src-tauri/src/importers`: bounded, authorized JSON-LD/manual draft adapters and URL validation.
+
+## Recipe importing and website sessions
+
+On Meals, choose **Import recipe**, paste a public HTTPS recipe URL and choose
+**Check website**. **Open recipe website** opens a separate WebView2 window;
+sign in on the website itself. Its local profile retains sessions best-effort.
+Cross-origin redirects, popups, downloads and device permissions are blocked. If
+a login, MFA or page needs another origin, use your regular browser instead.
+Close the previous recipe window before opening a different recipe.
+
+Return to PantryPal and enter permitted recipe text, or paste an authorized
+schema.org Recipe JSON-LD export/object (without script tags). No website is
+automatically scraped. Preview, check servings, choose explicit regional units,
+review canonical ingredient suggestions and confirm saving. Unknown quantities,
+ranges and package sizes retain their original wording. Imported HTML markup is
+inert text. The saved meal remains editable; its original import payload,
+attribution, source and timestamp remain in a durable import record.
+
+Duplicate source URLs require an explicit **Save another meal** choice and never
+overwrite an existing recipe. Failed saves retain the draft; identical retries
+reuse the original action ID. Cancel/discard does not create a meal.
+
+**Clear website sessions** is available in Import and Settings. Confirming it
+closes recipe browsing and clears cookies, cache, local storage and saved browser
+data in `%APPDATA%\ca.pantrypal.desktop\recipe-browser-profile`. Recipes and other
+household data are unchanged. Clearing waits for WebView2 completion; an error
+does not claim success. Website passwords/tokens are never collected by the app.
+
+The five requested recipe URLs were visited in native Windows WebView2 and all
+loaded their recipe page titles. They currently use manual/browser-assisted
+import: Budget Bytes prohibits scraping; permission for automated integration
+with the other publishers was not established. A loaded title does not verify
+full recipe access or a subscription login. Cook Smarts automated importing is
+unsupported under the reviewed terms; no official integration was established.
+See [ADR 0007](docs/adr/0007-reviewed-imports-and-browser.md) for evidence and limits.
+
+Explicit Windows acceptance harnesses (each uses isolated fixture storage, never
+the household database):
+
+```powershell
+. ./scripts/Enter-DevEnvironment.ps1
+cargo run -p pantrypal --example browser_spike --locked -- write
+cargo run -p pantrypal --example browser_spike --locked -- read
+cargo run -p pantrypal --example browser_spike --locked -- cleared
+# Optional live compatibility visits, no recipe extraction:
+cargo run -p pantrypal --example recipe_sites --locked
+```
+
+The three-process owned fixture verifies native evaluation, ACL rejection of
+remote application commands, reviewed local-IPC save, meal persistence after
+process restart, login-cookie/local-storage retention and the actual session reset
+command. Loopback HTTP is permitted only in this isolated test fixture. Results
+and disposable profiles are ignored under `.verification/`. The live site check
+records only load state and page title, not recipe content or credentials.
 
 Only the local `main` window can invoke the explicitly granted identity, storage-status, measurement, catalog/meal/field and planner/history and shopping operations. There are no generic filesystem, SQL, shell, HTTP, clipboard or remote-origin permissions. New commands must be included in the build-time command manifest and granted individually. See [ADR 0001](docs/adr/0001-foundation.md), [ADR 0002](docs/adr/0002-local-storage.md), [ADR 0003](docs/adr/0003-exact-measurements.md), [ADR 0004](docs/adr/0004-meal-library.md), [ADR 0005](docs/adr/0005-week-planner-history.md), [ADR 0006](docs/adr/0006-shopping-generation.md) and [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
 

@@ -24,7 +24,21 @@ import type {
   HistoryMutation,
   ShoppingView,
   ShoppingMutation,
+  ImportInput,
+  ImportedRecipeDraft,
+  ConfirmImport,
 } from './models';
+
+export const inspectRecipeUrl = (sourceUrl: string) =>
+  invokeNative<string>('inspect_recipe_url', { sourceUrl });
+export const openRecipeBrowser = (sourceUrl: string) =>
+  invokeNative<void>('open_recipe_browser', { sourceUrl });
+export const previewRecipeImport = (input: ImportInput) =>
+  invokeNative<ImportedRecipeDraft>('preview_recipe_import', { input });
+export const confirmRecipeImport = (input: ConfirmImport) =>
+  invokeNative<Meal>('confirm_recipe_import', { input });
+export const resetRecipeBrowser = (confirmed: boolean) =>
+  invokeNative<void>('reset_recipe_browser', { confirmed });
 
 export interface AppInfo {
   name: string;

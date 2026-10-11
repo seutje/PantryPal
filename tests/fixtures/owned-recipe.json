@@ -1,0 +1,33 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "WebPage", "name": "Original PantryPal fixture" },
+    {
+      "@type": ["Recipe"],
+      "name": "Owned fixture soup",
+      "author": { "@type": "Person", "name": "PantryPal test author" },
+      "recipeYield": "4 servings",
+      "prepTime": "PT1H5M",
+      "cookTime": "PT30M",
+      "recipeIngredient": [
+        "½ US cup rice",
+        "1 1/2 g salt",
+        "salt to taste",
+        "1 cup milk",
+        "2-3 onions",
+        "1 can tomatoes",
+        "500 g chickn",
+        "1 (400 g) can beans"
+      ],
+      "recipeInstructions": [
+        {
+          "@type": "HowToSection",
+          "name": "Prepare",
+          "itemListElement": [
+            { "@type": "HowToStep", "text": "Cook this original fixture." }
+          ]
+        }
+      ]
+    }
+  ]
+}

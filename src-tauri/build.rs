@@ -8,6 +8,11 @@ fn main() {
             .expect("test manifest missing");
         println!("cargo:rerun-if-changed=tests/windows.manifest");
         println!("cargo:rustc-link-arg-tests=/MANIFEST:EMBED");
+        println!("cargo:rustc-link-arg-examples=/MANIFEST:EMBED");
+        println!(
+            "cargo:rustc-link-arg-examples=/MANIFESTINPUT:{}",
+            manifest.display()
+        );
         println!(
             "cargo:rustc-link-arg-tests=/MANIFESTINPUT:{}",
             manifest.display()
@@ -52,6 +57,11 @@ fn main() {
             "get_shopping",
             "change_shopping",
             "copy_shopping",
+            "inspect_recipe_url",
+            "preview_recipe_import",
+            "confirm_recipe_import",
+            "open_recipe_browser",
+            "reset_recipe_browser",
         ]),
     ))
     .expect("failed to build PantryPal Tauri configuration");

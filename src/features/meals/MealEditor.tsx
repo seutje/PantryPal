@@ -62,20 +62,28 @@ export function MealEditor({
   fields,
   onSaved,
   onCancel,
+  initialDraft,
+  submitDraft,
 }: {
   meal?: Meal | undefined;
   catalog: Catalog;
   fields: FieldDefinition[];
   onSaved: (meal: Meal) => void;
   onCancel: () => void;
+  initialDraft?: MealDraft;
+  submitDraft?: (draft: MealDraft) => Promise<Meal>;
 }) {
-  const [draft, setDraft] = useState(() => mealDraft(meal));
+  const [draft, setDraft] = useState(() => initialDraft ?? mealDraft(meal));
   const [tags, setTags] = useState(draft.tags.join('\n'));
   const [remove, setRemove] = useState<string | null>(null);
   const [discard, setDiscard] = useState(false);
   const save = useMutation({
     mutationFn: () =>
-      saveMealDraft(meal?.id ?? null, meal?.revision ?? null, {
+      (
+        submitDraft ??
+        ((input: MealDraft) =>
+          saveMealDraft(meal?.id ?? null, meal?.revision ?? null, input))
+      )({
         ...draft,
         tags: tags
           .split('\n')
@@ -338,12 +346,14 @@ export function MealEditor({
         <FormField label="Source link (https)">
           <input
             value={draft.sourceUrl ?? ''}
+            readOnly={initialDraft !== undefined}
             onChange={(e) => change('sourceUrl', e.target.value || null)}
           />
         </FormField>
         <FormField label="Source site">
           <input
             value={draft.sourceSite ?? ''}
+            readOnly={initialDraft !== undefined}
             onChange={(e) => change('sourceSite', e.target.value || null)}
           />
         </FormField>

@@ -339,3 +339,23 @@ export interface ShoppingMutation {
   expectedRevision: number;
   operation: ShoppingOperation;
 }
+export interface ImportInput {
+  sourceUrl: string;
+  format: 'json_ld' | 'manual';
+  payload: string;
+  permitted: boolean;
+}
+export interface ImportedRecipeDraft {
+  meal: MealDraft;
+  warnings: string[];
+  originalYield: string;
+  attribution: string;
+  duplicateTitles: string[];
+}
+export interface ConfirmImport {
+  actionId: string;
+  source: ImportInput;
+  reviewed: MealDraft;
+  confirmed: boolean;
+  allowDuplicate: boolean;
+}

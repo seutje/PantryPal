@@ -58,70 +58,7 @@ impl Database {
                 "Meal edits require the saved revision.",
             ));
         }
-        let base_servings = if let Some(old) = &old {
-            if draft.servings
-                == old
-                    .data
-                    .base_servings_text
-                    .clone()
-                    .unwrap_or_else(|| pair(&old.data.base_servings))
-            {
-                old.data.base_servings.clone()
-            } else {
-                quantity(&draft.servings, true)?.unwrap()
-            }
-        } else {
-            quantity(&draft.servings, true)?.unwrap()
-        };
-        if draft.ingredients.len() > 300 {
-            return Err(AppError::validation("Too many ingredient lines."));
-        }
-        let mut ingredients = vec![];
-        for line in draft.ingredients {
-            let previous = old
-                .as_ref()
-                .and_then(|m| m.data.ingredients.iter().find(|l| l.id == line.id));
-            let amount = if let Some(previous) = previous {
-                if line.amount
-                    == previous
-                        .amount_text
-                        .clone()
-                        .unwrap_or_else(|| previous.quantity.as_ref().map(pair).unwrap_or_default())
-                {
-                    previous.quantity.clone()
-                } else {
-                    quantity(&line.amount, false)?
-                }
-            } else {
-                quantity(&line.amount, false)?
-            };
-            ingredients.push(MealIngredient {
-                id: line.id,
-                ingredient_id: line.ingredient_id,
-                quantity: amount,
-                amount_text: Some(line.amount),
-                unit_id: line.unit_id,
-                raw_text: line.raw_text,
-                source_convention: line.source_convention,
-                note: line.note,
-                optional: line.optional,
-            });
-        }
-        let input = MealInput {
-            title: draft.title,
-            description: draft.description,
-            base_servings,
-            base_servings_text: Some(draft.servings),
-            prep_minutes: draft.prep_minutes,
-            cook_minutes: draft.cook_minutes,
-            instructions: draft.instructions,
-            notes: draft.notes,
-            source_url: draft.source_url,
-            source_site: draft.source_site,
-            tags: draft.tags,
-            ingredients,
-            custom_fields: draft.custom_fields,
-        };
+        let input = draft_input(draft, old.as_ref())?;
         if let Some(id) = id {
             self.update_meal(&id, expected_revision.unwrap(), input)
                 .await
@@ -290,4 +227,74 @@ impl Database {
             fields,
         })
     }
+}
+
+pub(crate) fn draft_input(
+    draft: MealDraft,
+    old: Option<&crate::domain::meals::Meal>,
+) -> AppResult<MealInput> {
+    let base_servings = if let Some(old) = old {
+        if draft.servings
+            == old
+                .data
+                .base_servings_text
+                .clone()
+                .unwrap_or_else(|| pair(&old.data.base_servings))
+        {
+            old.data.base_servings.clone()
+        } else {
+            quantity(&draft.servings, true)?.unwrap()
+        }
+    } else {
+        quantity(&draft.servings, true)?.unwrap()
+    };
+    if draft.ingredients.len() > 300 {
+        return Err(AppError::validation("Too many ingredient lines."));
+    }
+    let mut ingredients = vec![];
+    for line in draft.ingredients {
+        let previous = old
+            .as_ref()
+            .and_then(|m| m.data.ingredients.iter().find(|l| l.id == line.id));
+        let amount = if let Some(previous) = previous {
+            if line.amount
+                == previous
+                    .amount_text
+                    .clone()
+                    .unwrap_or_else(|| previous.quantity.as_ref().map(pair).unwrap_or_default())
+            {
+                previous.quantity.clone()
+            } else {
+                quantity(&line.amount, false)?
+            }
+        } else {
+            quantity(&line.amount, false)?
+        };
+        ingredients.push(MealIngredient {
+            id: line.id,
+            ingredient_id: line.ingredient_id,
+            quantity: amount,
+            amount_text: Some(line.amount),
+            unit_id: line.unit_id,
+            raw_text: line.raw_text,
+            source_convention: line.source_convention,
+            note: line.note,
+            optional: line.optional,
+        });
+    }
+    Ok(MealInput {
+        title: draft.title,
+        description: draft.description,
+        base_servings,
+        base_servings_text: Some(draft.servings),
+        prep_minutes: draft.prep_minutes,
+        cook_minutes: draft.cook_minutes,
+        instructions: draft.instructions,
+        notes: draft.notes,
+        source_url: draft.source_url,
+        source_site: draft.source_site,
+        tags: draft.tags,
+        ingredients,
+        custom_fields: draft.custom_fields,
+    })
 }

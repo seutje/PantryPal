@@ -38,6 +38,11 @@
     "allow-change-meal-history",
     "allow-get-shopping",
     "allow-change-shopping",
-    "allow-copy-shopping"
+    "allow-copy-shopping",
+    "allow-inspect-recipe-url",
+    "allow-preview-recipe-import",
+    "allow-confirm-recipe-import",
+    "allow-open-recipe-browser",
+    "allow-reset-recipe-browser"
   ]
 }

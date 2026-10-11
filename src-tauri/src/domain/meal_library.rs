@@ -4,7 +4,7 @@ use super::{
     meals::{Meal, MealFieldValue},
 };
 use serde::{Deserialize, Serialize};
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IngredientDraft {
     pub id: String,
@@ -16,7 +16,7 @@ pub struct IngredientDraft {
     pub note: String,
     pub optional: bool,
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct MealDraft {
     pub title: String,

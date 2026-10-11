@@ -16,12 +16,8 @@ use uuid::Uuid;
 impl Database {
     pub async fn create_meal(&self, input: MealInput) -> AppResult<Meal> {
         input.validate()?;
-        let id = Uuid::new_v4().to_string();
         let mut tx = self.pool.begin().await?;
-        sqlx::query("INSERT INTO meal(id,title,normalized_title,description,servings_numerator,servings_denominator,prep_minutes,cook_minutes,instructions,notes,source_url,source_site,base_servings_text) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-            .bind(&id).bind(input.title.trim()).bind(validation::normalized(&input.title)).bind(&input.description).bind(input.base_servings.numerator).bind(input.base_servings.denominator).bind(input.prep_minutes).bind(input.cook_minutes).bind(&input.instructions).bind(&input.notes).bind(&input.source_url).bind(&input.source_site).bind(&input.base_servings_text).execute(&mut *tx).await?;
-        write_children(&mut tx, &id, &input, None).await?;
-        let result = load_meal(&mut tx, &id).await?;
+        let result = insert_meal(&mut tx, &input).await?;
         tx.commit().await?;
         Ok(result)
     }
@@ -262,4 +258,16 @@ pub(crate) async fn load_meal(tx: &mut Transaction<'_, Sqlite>, id: &str) -> App
             custom_fields,
         },
     })
+}
+
+pub(crate) async fn insert_meal(
+    tx: &mut Transaction<'_, Sqlite>,
+    input: &MealInput,
+) -> AppResult<Meal> {
+    let id = Uuid::new_v4().to_string();
+    sqlx::query("INSERT INTO meal(id,title,normalized_title,description,servings_numerator,servings_denominator,prep_minutes,cook_minutes,instructions,notes,source_url,source_site,base_servings_text) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
+            .bind(&id).bind(input.title.trim()).bind(validation::normalized(&input.title)).bind(&input.description).bind(input.base_servings.numerator).bind(input.base_servings.denominator).bind(input.prep_minutes).bind(input.cook_minutes).bind(&input.instructions).bind(&input.notes).bind(&input.source_url).bind(&input.source_site).bind(&input.base_servings_text).execute(&mut **tx).await?;
+    write_children(tx, &id, input, None).await?;
+    let result = load_meal(tx, &id).await?;
+    Ok(result)
 }

@@ -2,6 +2,7 @@
 pub mod catalog;
 pub mod fields;
 mod history;
+pub mod imports;
 pub mod meals;
 pub mod measurements;
 mod planning;

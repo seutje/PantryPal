@@ -12,7 +12,7 @@
 | 3     | Meal library and custom fields                        | Complete    |
 | 4     | Weekly planner, cooking history                       | Complete    |
 | 5     | Shopping list engine and copy/edit UX                 | Complete    |
-| 6     | Authenticated browser feasibility and import pipeline | Not started |
+| 6     | Authenticated browser feasibility and import pipeline | Complete    |
 | 7     | Backup, preferences, security and polish              | Not started |
 | 8     | End-to-end validation and Windows release             | Not started |
 
@@ -165,28 +165,36 @@
 
 ### Feasibility spike (required before implementation)
 
-- [ ] Research and document Tauri 2/WebView2 options for persistent browser profiles and session retention.
-- [ ] Prototype a distinct website browser window that can log in (on a test/authorized site) and retain sessions after app restart.
-- [ ] Validate **safe supported** access to recipe data from remote pages; prove remote content has no privileged Tauri commands.
-- [ ] Investigate Cook Smarts official export/API/permission and embedding compatibility; record supported/not-supported outcome.
-- [ ] Write an ADR with chosen extraction mechanism, security boundary, site constraints, and fallback if blocked.
+- [x] Research and document Tauri 2/WebView2 options for persistent browser profiles and session retention.
+- [x] Prototype a distinct website browser window that can log in (on a test/authorized site) and retain sessions after app restart.
+- [x] Validate **safe supported** access to recipe data from remote pages; prove remote content has no privileged Tauri commands.
+- [x] Investigate Cook Smarts official export/API/permission and embedding compatibility; record supported/not-supported outcome.
+- [x] Write an ADR with chosen extraction mechanism, security boundary, site constraints, and fallback if blocked.
 
 ### Import pipeline
 
-- [ ] Define `ImportedRecipeDraft` and `RecipeImporter` interface with source/provenance metadata.
-- [ ] Implement URL/domain validation, redirect policy, bounded payload/time, and non-secret logging.
-- [ ] Implement generic authorized JSON-LD (`schema.org/Recipe`) extractor using saved fixtures.
-- [ ] Implement allowed website-specific adapter(s) only after permission and feasibility checks.
-- [ ] Build paste URL → browser/login if needed → preview → ingredient matching → confirm save flow.
-- [ ] Match aliases and existing ingredient IDs; explicitly resolve uncertain names, amounts or units.
-- [ ] Store source URL, original ingredient strings, normalized values and timestamp; support editing the saved recipe.
-- [ ] Handle expired login, MFA, unavailable metadata, unsupported site, duplicate import and cancellation gracefully.
-- [ ] Provide clear-session/reset controls and manual-entry fallback.
-- [ ] Add importer unit/fixture tests and verify an external page cannot invoke privileged commands.
+- [x] Define `ImportedRecipeDraft` and `RecipeImporter` interface with source/provenance metadata.
+- [x] Implement URL/domain validation, redirect policy, bounded payload/time, and non-secret logging.
+- [x] Implement generic authorized JSON-LD (`schema.org/Recipe`) extractor using saved fixtures.
+- [x] Evaluate conditional website-specific adapters after permission and feasibility checks — none justified; ship the documented browser-assisted/manual fallback (ADR 0007).
+- [x] Build paste URL → browser/login if needed → preview → ingredient matching → confirm save flow.
+- [x] Match aliases and existing ingredient IDs; explicitly resolve uncertain names, amounts or units.
+- [x] Store source URL, original ingredient strings, normalized values and timestamp; support editing the saved recipe.
+- [x] Handle expired login, MFA, unavailable metadata, unsupported site, duplicate import and cancellation gracefully.
+- [x] Provide clear-session/reset controls and manual-entry fallback.
+- [x] Add importer unit/fixture tests and verify an external page cannot invoke privileged commands.
 
 **Acceptance gate:** An allowed test-site import works with review and persistent session where supported; no remote page gains native privileges. If Cook Smarts importing is prohibited/infeasible, document it and leave the core app functional.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-11):** Phase 6 acceptance gate passed on Windows using an owned, authorized fixture and the documented browser-assisted/manual fallback. Added a dedicated unprivileged WebView2 browser/profile, HTTPS URL/origin validation, popup/download/device-permission denial, confirmed session clearing, bounded Rust JSON-LD/manual adapters, typed review drafts, exact canonical/alias suggestions, explicit quantity/unit/servings review, duplicate confirmation, transactional meal/provenance saves and durable retry receipts. Existing schema 8 import storage is sufficient; no migration or earlier schema edit was needed. Original payload, ingredient strings, yield, attribution, reviewed values and import timestamp survive saving/editing. ADR 0007 records the pre-implementation API research/native spike, site constraints and fallback decision.
+
+- Passed `npm run check`: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (42 frontend tests). New flows cover URL checking/browser handoff, authorized JSON-LD/manual input, review before writes, explicit US cup/ingredient selection, inert markup, duplicate choice, failed-save input retention and identical-action retry, confirmed cancellation and session reset. Existing keyboard/library/planner/shopping/security flows pass.
+- Passed `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked` (45 unit tests plus eight integration tests). The existing restart parent executes its normally ignored child twice. Import tests cover graph/type arrays, instruction sections/steps, Unicode/mixed fractions, ambiguous servings/cups/ranges/package sizes, unknown/to-taste lines, bounded malformed/deep/multiple payloads, inert HTML text, all five requested URLs, secret-bearing/dangerous URLs, missing references/transaction rollback, duplicate confirmation, exact retries, retained provenance/timestamp after editing/reopening and actual IPC ACL rejection. The separately ignored clipboard acceptance test was not rerun; clipboard implementation is unchanged.
+- Passed `cargo run -p pantrypal --example browser_spike --locked -- write`, then `read`, then `cleared`, each in a separate Windows process. Native evaluation reads only the owned fixture. Actual ACL errors reject remote identity/catalog/preview/confirm/reset commands. Local IPC previews and confirms the reviewed recipe; subsequent processes read back its original ingredient wording from isolated SQLite. An HttpOnly fixture login and local storage survive restart. The actual reset IPC closes browsing, awaits WebView2 clear completion in a hidden unprivileged window and a third process verifies both cookie and local storage are absent. The HTTP loopback exception and all fixture databases/profiles are confined to this explicit harness under ignored `.verification/`; production rejects loopback URLs.
+- Passed `cargo run -p pantrypal --example recipe_sites --locked`: normal native browsing of all five owner-supplied URLs loaded their expected recipe page titles. This check reads only page title/load state, never recipes or credentials, and does not verify full content access or authenticated subscriber access. Deterministic fixtures use original test content, not redistributed publisher recipes.
+- Site-specific automation is intentionally unavailable: Budget Bytes' reviewed terms prohibit scraping; automated integration permission was not established for Allrecipes, Spend With Pennies, RecipeTin Eats or NYT Cooking. Cook Smarts' terms restrict collection/downloads beyond normal caching without permission; no sanctioned recipe API/export integration was established. Manual entry or supplied authorized JSON-LD remains functional. The conditional-adapter checkbox records this verified outcome, not an implemented publisher scraper. Cross-origin login/MFA/popups can require the user's regular browser; expiry and unavailable metadata use manual fallback. No paywall/anti-bot bypass was attempted.
+- Passed `npm run tauri build -- --debug --no-bundle`, including TypeScript/Vite production compilation. Launched the final bundled executable, visually verified the enabled Meals Import action, import form and URL focus. Read-only household SQLite checks confirm schema 8, zero fixture meals/import records, integrity `ok` and no foreign-key violations. Import writes use isolated databases; native captures are ignored under `.verification/`.
+- Resolved verification issues: updated the old disabled-Import expectation, wrapped Query mutation functions to avoid test-context argument mismatch, fixed a Clippy needless borrow and forced the isolated native main window to the local app origin rather than an unavailable Vite server. The session-reset review found that Tauri's convenience clear API discards asynchronous completion; the final implementation waits for the official WebView2 completion callback, reports failures/timeouts and prevents concurrent browser operations. Two direct Windows dependencies reuse exactly the already-locked Tauri package versions; no new resolved packages. Example-only missing icon and Chromium window-class shutdown warnings did not fail the native checks. No Phase 6 blocker remains. Automated publisher integration remains conditional on future permission evidence; GitHub CI, installer/clean-machine validation and backups remain in their later phases. Later-phase checkboxes were not changed.
 
 ## Phase 7 — Robustness and usability
 

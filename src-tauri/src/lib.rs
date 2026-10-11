@@ -9,6 +9,12 @@ pub fn run() {
     use tauri::Manager;
     tauri::Builder::default()
         .setup(|app| {
+            app.manage(services::browser::BrowserState::new(
+                app.path()
+                    .app_data_dir()
+                    .map(|directory| directory.join("recipe-browser-profile"))
+                    .map_err(|_| error::AppError::storage()),
+            ));
             let database = app
                 .path()
                 .app_data_dir()
@@ -53,7 +59,12 @@ pub fn run() {
             commands::change_meal_history,
             commands::get_shopping,
             commands::change_shopping,
-            commands::copy_shopping
+            commands::copy_shopping,
+            commands::inspect_recipe_url,
+            commands::preview_recipe_import,
+            commands::confirm_recipe_import,
+            commands::open_recipe_browser,
+            commands::reset_recipe_browser
         ])
         .run(tauri::generate_context!())
         .expect("failed to run PantryPal");

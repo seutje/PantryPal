@@ -132,7 +132,7 @@ describe('navigation shell', () => {
       if (name === 'Meals')
         expect(
           screen.getByRole('button', { name: 'Import recipe' }),
-        ).toBeDisabled();
+        ).toBeEnabled();
     }
   });
 });
