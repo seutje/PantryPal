@@ -259,7 +259,10 @@ async fn write_children(
     Ok(())
 }
 
-async fn load_ingredient(tx: &mut Transaction<'_, Sqlite>, id: &str) -> AppResult<Ingredient> {
+pub(crate) async fn load_ingredient(
+    tx: &mut Transaction<'_, Sqlite>,
+    id: &str,
+) -> AppResult<Ingredient> {
     let row = sqlx::query("SELECT * FROM ingredient WHERE id=?")
         .bind(id)
         .fetch_one(&mut **tx)

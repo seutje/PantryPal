@@ -5,6 +5,7 @@ mod history;
 pub mod meals;
 pub mod measurements;
 mod planning;
+mod shopping;
 
 use crate::error::{AppError, AppResult};
 use serde::Serialize;
@@ -98,5 +99,7 @@ mod meal_library_tests;
 mod measurement_tests;
 #[cfg(test)]
 mod planning_tests;
+#[cfg(test)]
+mod shopping_tests;
 #[cfg(test)]
 mod tests;

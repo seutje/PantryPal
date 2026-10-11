@@ -22,6 +22,8 @@ import type {
   PlanMutation,
   MealHistory,
   HistoryMutation,
+  ShoppingView,
+  ShoppingMutation,
 } from './models';
 
 export interface AppInfo {
@@ -116,6 +118,12 @@ export const getMealHistory = (mealId: string) =>
   invokeNative<MealHistory>('get_meal_history', { mealId });
 export const changeMealHistory = (input: HistoryMutation) =>
   invokeNative<MealHistory>('change_meal_history', { input });
+export const getShopping = (weekStart: string) =>
+  invokeNative<ShoppingView>('get_shopping', { weekStart });
+export const changeShopping = (input: ShoppingMutation) =>
+  invokeNative<ShoppingView>('change_shopping', { input });
+export const copyShopping = (weekStart: string, expectedRevision: number) =>
+  invokeNative<void>('copy_shopping', { weekStart, expectedRevision });
 export const searchMeals = (input: MealSearch) =>
   invokeNative<MealLibrary>('search_meals', { input });
 export const saveMealDraft = (

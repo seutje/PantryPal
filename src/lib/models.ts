@@ -278,3 +278,64 @@ export interface ConversionRule {
   originalToText: string;
   retired: boolean;
 }
+
+export interface ShoppingItem {
+  id: string;
+  key: string | null;
+  ingredientId: string | null;
+  label: string;
+  sectionId: string | null;
+  numerator: string | null;
+  denominator: string | null;
+  unitId: string | null;
+  amountText: string;
+  display: string;
+  rounded: boolean;
+  section: string;
+  approximate: boolean;
+  warnings: string[];
+  ruleIds: string[];
+  sources: {
+    entryId: string;
+    mealId: string;
+    mealTitle: string;
+    plannedServings: Amount;
+    baseServings: Amount;
+    line: MealIngredient;
+  }[];
+  adjustment: { amount: string; unitId: string | null } | null;
+  checked: boolean;
+  excluded: boolean;
+  orphaned: boolean;
+  legacy: unknown;
+}
+export interface ShoppingView {
+  weekStart: string;
+  revision: number;
+  generated: boolean;
+  stale: boolean;
+  items: ShoppingItem[];
+  sections: Vocabulary[];
+  units: Unit[];
+  text: string;
+}
+export type ShoppingOperation =
+  | { kind: 'refresh' }
+  | {
+      kind: 'manual';
+      itemId: string;
+      label: string;
+      amount: string;
+      unitId: string | null;
+      sectionId: string | null;
+    }
+  | { kind: 'adjust'; itemId: string; amount: string; unitId: string | null }
+  | { kind: 'reset'; itemId: string; confirmed: boolean }
+  | { kind: 'check'; itemId: string; checked: boolean }
+  | { kind: 'exclude'; itemId: string; excluded: boolean };
+export interface ShoppingMutation {
+  actionId: string;
+  weekStart: string;
+  expectedRevision: number;
+  operation: ShoppingOperation;
+}

@@ -36,6 +36,9 @@ describe('native permission boundary', () => {
     'apply_plan',
     'get_meal_history',
     'change_meal_history',
+    'get_shopping',
+    'change_shopping',
+    'copy_shopping',
   ];
   it('grants only named repository operations to the local main window', () => {
     expect(config.app.security.capabilities).toEqual(['main']);

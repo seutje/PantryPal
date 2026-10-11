@@ -479,6 +479,6 @@ async fn schema_six_upgrade_preserves_plans_events_and_shopping_adjustments() {
             .unwrap();
     assert!(row.0);
     assert_eq!(row.1, "{\"amount\":\"2 packs\"}");
-    assert_eq!(db.status().await.unwrap().schema_version, 7);
+    assert_eq!(db.status().await.unwrap().schema_version, 8);
     db.close().await;
 }

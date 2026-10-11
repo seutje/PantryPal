@@ -147,7 +147,52 @@ async fn restart_child() {
                 .as_deref(),
             Some("2021-01-01")
         );
-        assert_eq!(db.status().await.unwrap().schema_version, 7);
+        assert_eq!(db.status().await.unwrap().schema_version, 8);
+    }
+    // Shopping adjustments survive a real process exit, then a meal revision
+    // changes the fingerprint without mutating the saved checked list.
+    let mut shopping = db.get_shopping("2020-12-28").await.unwrap();
+    if mode == "write" {
+        for operation in [
+            serde_json::json!({"kind":"refresh"}),
+            serde_json::json!({"kind":"manual","itemId":"restart-soap","label":"Soap","amount":"2","unitId":"piece","sectionId":null}),
+            serde_json::json!({"kind":"check","itemId":"restart-soap","checked":true}),
+        ] {
+            shopping=db.change_shopping(serde_json::from_value(serde_json::json!({"actionId":uuid::Uuid::new_v4().to_string(),"weekStart":"2020-12-28","expectedRevision":shopping.revision,"operation":operation})).unwrap()).await.unwrap();
+        }
+        let rice = shopping
+            .items
+            .iter()
+            .find(|i| i.item.ingredient_id.as_deref() == Some("ingredient-rice"))
+            .unwrap()
+            .item
+            .id
+            .clone();
+        for operation in [
+            serde_json::json!({"kind":"adjust","itemId":rice,"amount":"1 1/2","unitId":"cup-us"}),
+            serde_json::json!({"kind":"exclude","itemId":rice,"excluded":true}),
+        ] {
+            shopping=db.change_shopping(serde_json::from_value(serde_json::json!({"actionId":uuid::Uuid::new_v4().to_string(),"weekStart":"2020-12-28","expectedRevision":shopping.revision,"operation":operation})).unwrap()).await.unwrap();
+        }
+    } else {
+        assert!(shopping.stale);
+        let soap = shopping
+            .items
+            .iter()
+            .find(|i| i.item.id == "restart-soap")
+            .unwrap();
+        assert!(soap.item.checked);
+        assert_eq!(soap.display, "2 pcs");
+        shopping=db.change_shopping(serde_json::from_value(serde_json::json!({"actionId":"restart-refresh","weekStart":"2020-12-28","expectedRevision":shopping.revision,"operation":{"kind":"refresh"}})).unwrap()).await.unwrap();
+        assert!(!shopping.stale);
+        assert!(shopping.text.contains("[x] Soap"));
+        let rice = shopping
+            .items
+            .iter()
+            .find(|i| i.item.ingredient_id.as_deref() == Some("ingredient-rice"))
+            .unwrap();
+        assert!(rice.item.excluded);
+        assert_eq!(rice.item.adjustment.as_ref().unwrap().amount, "1 1/2");
     }
     db.close().await;
 }

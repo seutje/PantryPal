@@ -11,7 +11,7 @@
 | 2     | Measurement engine and ingredient management          | Complete    |
 | 3     | Meal library and custom fields                        | Complete    |
 | 4     | Weekly planner, cooking history                       | Complete    |
-| 5     | Shopping list engine and copy/edit UX                 | Not started |
+| 5     | Shopping list engine and copy/edit UX                 | Complete    |
 | 6     | Authenticated browser feasibility and import pipeline | Not started |
 | 7     | Backup, preferences, security and polish              | Not started |
 | 8     | End-to-end validation and Windows release             | Not started |
@@ -137,21 +137,27 @@
 
 **Goal:** A trustworthy, editable and copyable list for the selected week.
 
-- [ ] Implement recipe scaling using planned/base servings with precise arithmetic.
-- [ ] Aggregate only canonical identical ingredients and compatible unit dimensions/conversion paths.
-- [ ] Honor per-ingredient preferred shopping units and global unit preferences.
-- [ ] Show separate rows for unknown or incompatible units, with clear explanation.
-- [ ] Flag approximate conversions and unknown/to-taste ingredient quantities.
-- [ ] Group by shopping section, with configurable section ordering and deterministic item order.
-- [ ] Implement manual items, amount overrides, checkmarks and exclusions.
-- [ ] Define and implement regenerate/merge behavior preserving user edits; add regression tests.
-- [ ] Indicate stale list when underlying meal/plan data changes, with explicit refresh.
-- [ ] Add one-click plain-text copy to clipboard, with a helpful empty-list state.
-- [ ] Test two recipes with mixed units, duplicate meal instances and a partly checked/manual list.
+- [x] Implement recipe scaling using planned/base servings with precise arithmetic.
+- [x] Aggregate only canonical identical ingredients and compatible unit dimensions/conversion paths.
+- [x] Honor per-ingredient preferred shopping units and global unit preferences.
+- [x] Show separate rows for unknown or incompatible units, with clear explanation.
+- [x] Flag approximate conversions and unknown/to-taste ingredient quantities.
+- [x] Group by shopping section, with configurable section ordering and deterministic item order.
+- [x] Implement manual items, amount overrides, checkmarks and exclusions.
+- [x] Define and implement regenerate/merge behavior preserving user edits; add regression tests.
+- [x] Indicate stale list when underlying meal/plan data changes, with explicit refresh.
+- [x] Add one-click plain-text copy to clipboard, with a helpful empty-list state.
+- [x] Test two recipes with mixed units, duplicate meal instances and a partly checked/manual list.
 
 **Acceptance gate:** Multiple planned meals yield a correct, grouped list; edits survive refresh per policy; clipboard output pastes cleanly into another app.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-11):** Phase 5 acceptance gate passed on Windows. Added exact Rust planned/base-serving scaling, canonical aggregation through unique universal or ingredient-specific paths, ingredient/global display preferences, separate unknown/informal/missing/incompatible rows, approximation/rounding provenance, configurable section ordering and deterministic copy text. Shopping now provides manual additions, editable quantities, checkmarks, reversible exclusions, confirmed override reset, explicit refresh and a stale-source indicator. Stable keys preserve adjustments across refresh and display-unit changes; disappeared adjusted rows remain visible for review and are omitted from copy. Planned/cooked occurrences count once each; skipped occurrences do not. Original line values, wording, units and serving pairs remain in source provenance. Migration 8 adds versioned documents/revisions while retaining every earlier shopping row; legacy payloads are carried forward with explicit review labels. ADR 0006 documents these decisions and the conservative full-catalog refresh fingerprint.
+
+- Passed `npm run check`: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (40 frontend tests). Shopping flows exercise explicit refresh, checked overrides, manual unknown items, exclusion/orphan labels, confirmed reset, an explicit no-unit override, selected-week copying, stale-copy blocking, validation correction with retained input, identical-action retry, empty guidance and clipboard errors. Existing planner/library/catalog/security flows still pass.
+- Passed `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, and `cargo test --workspace --locked` (41 unit tests plus seven integration tests). The restart parent executes its normally ignored child twice and now verifies manual/check/override/exclusion persistence followed by refresh after a recipe edit. New tests cover two mixed-unit recipes, fractional duplicate occurrences, explicit regional cups, scoped/ambiguous rules, prevention of implicit rule chaining, unknown/unresolved/informal/missing units, historical temperature non-scaling, preferences, deterministic sections, totals beyond JavaScript integer precision, overflow rollback, disappearing/reappearing keys, exact retries and stale revisions. IPC tests use actual deserialization, ACL and temporary SQLite, including remote-origin denial of get/change/copy commands. Schema 7-to-8 integration verifies legacy basis/override metadata and flags remain intact.
+- Passed `cargo test -p pantrypal --lib windows_clipboard_roundtrip --locked -- --ignored --exact services::clipboard::windows::tests::windows_clipboard_roundtrip`. This explicitly invoked test generates a temporary two-occurrence plan, applies an override/checkmark, writes backend text through the production Windows UTF-16 writer, reads it back exactly and pastes into a separate Windows Forms text control. The normal suite leaves the clipboard alone. No generic clipboard read/write IPC or new dependencies were introduced.
+- Passed `npm run tauri build -- --debug --no-bundle`, including TypeScript/Vite compilation. Launched/reopened the final bundled executable; visually verified the native Shopping empty state and manual form. Read-only household checks confirm schema 8, 16 ingredients, zero test meals/plans/shopping lists, integrity `ok` and no foreign-key violations. All fixture writes use temporary databases. Native captures and the paste fixture are ignored under `.verification/`.
+- Resolved verification issues: updated migration expectations and new-query mocks, corrected a fixture section ID/unit symbol, fixed strict TypeScript indexing, wrapped the UUID lazy initializer, and corrected explicit null-unit restoration. A separate clipboard recheck encountered changed contents after its writer process exited; the final acceptance harness verifies another-process paste while the fixture writer remains alive and passes. No Phase 5 blocker remains. Unrelated catalog edits can conservatively request refresh; changed conversion group identities retain edits as review rows rather than guessing their reassignment. GitHub CI execution, actual remote-WebView isolation, release installer/clean-machine checks and backup workflows remain not verified or in their planned later phases. Later-phase checkboxes were not changed.
 
 ## Phase 6 — Recipe importing and secure browsing
 

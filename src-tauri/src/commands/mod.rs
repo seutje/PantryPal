@@ -10,7 +10,9 @@ use crate::{
 use serde::Serialize;
 mod meals;
 mod planning;
+mod shopping;
 pub use planning::*;
+pub use shopping::*;
 mod measurements;
 pub use meals::*;
 pub use measurements::*;

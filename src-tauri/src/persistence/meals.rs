@@ -184,7 +184,7 @@ async fn write_children(
     Ok(())
 }
 
-async fn load_meal(tx: &mut Transaction<'_, Sqlite>, id: &str) -> AppResult<Meal> {
+pub(crate) async fn load_meal(tx: &mut Transaction<'_, Sqlite>, id: &str) -> AppResult<Meal> {
     let row = sqlx::query("SELECT * FROM meal WHERE id=?")
         .bind(id)
         .fetch_one(&mut **tx)

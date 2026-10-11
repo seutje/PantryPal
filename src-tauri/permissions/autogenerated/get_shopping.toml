@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-shopping"
+description = "Enables the get_shopping command without any pre-configured scope."
+commands.allow = ["get_shopping"]
+
+[[permission]]
+identifier = "deny-get-shopping"
+description = "Denies the get_shopping command without any pre-configured scope."
+commands.deny = ["get_shopping"]

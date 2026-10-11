@@ -8,6 +8,18 @@ import { getStorageStatus } from '../lib/ipc';
 
 vi.mock('../lib/ipc', () => ({
   nativeAvailable: () => true,
+  changeShopping: vi.fn(),
+  copyShopping: vi.fn(),
+  getShopping: vi.fn(async () => ({
+    weekStart: '2026-12-28',
+    revision: 0,
+    generated: false,
+    stale: false,
+    items: [],
+    sections: [],
+    units: [],
+    text: '',
+  })),
   getWeek: vi.fn(async () => ({
     weekStart: '2026-12-28',
     weekEnd: '2027-01-03',

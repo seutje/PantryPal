@@ -137,8 +137,8 @@ export function WeekPage({
                 </Button>
               </div>
               <p className="text-sm text-stone-600">
-                Shopping-list generation is coming in a later update. Scheduling
-                and skipping do not record cooking.
+                Shopping includes planned and cooked meals; skipped meals are
+                excluded. Scheduling and skipping do not record cooking.
               </p>
               {adding && (
                 <AddPlanForm

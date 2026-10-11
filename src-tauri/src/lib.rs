@@ -50,7 +50,10 @@ pub fn run() {
             commands::get_week,
             commands::apply_plan,
             commands::get_meal_history,
-            commands::change_meal_history
+            commands::change_meal_history,
+            commands::get_shopping,
+            commands::change_shopping,
+            commands::copy_shopping
         ])
         .run(tauri::generate_context!())
         .expect("failed to run PantryPal");
