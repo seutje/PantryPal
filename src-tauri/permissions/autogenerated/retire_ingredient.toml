@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-retire-ingredient"
+description = "Enables the retire_ingredient command without any pre-configured scope."
+commands.allow = ["retire_ingredient"]
+
+[[permission]]
+identifier = "deny-retire-ingredient"
+description = "Denies the retire_ingredient command without any pre-configured scope."
+commands.deny = ["retire_ingredient"]

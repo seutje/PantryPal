@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-retire-meal"
+description = "Enables the retire_meal command without any pre-configured scope."
+commands.allow = ["retire_meal"]
+
+[[permission]]
+identifier = "deny-retire-meal"
+description = "Denies the retire_meal command without any pre-configured scope."
+commands.deny = ["retire_meal"]

@@ -5,7 +5,7 @@ import { MealsPage } from '../features/meals/MealsPage';
 import { ShoppingPage } from '../features/shopping/ShoppingPage';
 import { IngredientsPage } from '../features/ingredients/IngredientsPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
-import { getAppInfo, nativeAvailable } from '../lib/ipc';
+import { getAppInfo, getStorageStatus, nativeAvailable } from '../lib/ipc';
 
 const sections = [
   'Week',
@@ -30,6 +30,11 @@ export function App() {
   const info = useQuery({
     queryKey: ['app-info'],
     queryFn: getAppInfo,
+    enabled: nativeAvailable(),
+  });
+  const storage = useQuery({
+    queryKey: ['storage-status'],
+    queryFn: getStorageStatus,
     enabled: nativeAvailable(),
   });
   const Page = pages[section];
@@ -60,7 +65,7 @@ export function App() {
               : info.isError
                 ? 'App connection unavailable'
                 : info.data
-                  ? `Desktop · v${info.data.version}`
+                  ? `Desktop · v${info.data.version}${storage.data ? ' · Local data ready' : ''}`
                   : 'Connecting to app…'}
           </p>
         </div>
@@ -90,6 +95,15 @@ export function App() {
           >
             {section}
           </h1>
+          {storage.isError && (
+            <p
+              role="alert"
+              className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-900"
+            >
+              Local data could not be opened. Your data has not been reset.
+              Close PantryPal and retry, or use a compatible version.
+            </p>
+          )}
           <Page />
         </main>
       </div>

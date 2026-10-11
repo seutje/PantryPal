@@ -2,7 +2,7 @@
 
 An offline-first Windows desktop meal planner for a Canadian household. Built with Rust, Tauri 2, React, TypeScript and, beginning in Phase 1, SQLite. See [DESIGN.md](DESIGN.md), [PLAN.md](PLAN.md) and [AGENTS.md](AGENTS.md) before changing behavior.
 
-Phase 0 supplies a runnable navigation shell for Week, Meals, Shopping, Ingredients and Settings. These sections have clear placeholder states; meal storage, grocery calculations and imports are not implemented yet. No database or browser session is created by the foundation.
+Phases 0–1 supply the navigation shell and local SQLite foundation. Ingredients shows the seeded catalog; Settings reports local storage status. Validated native repositories support ingredients, vocabularies, meals and custom fields. Full editing screens, measurement calculations, planning, grocery generation and imports remain in later phases.
 
 ## Windows prerequisites
 
@@ -17,10 +17,13 @@ Official setup reference: [Tauri Windows prerequisites](https://v2.tauri.app/sta
 
 ```powershell
 npm ci
+. ./scripts/Enter-DevEnvironment.ps1
 npm run tauri dev
 ```
 
 This starts Vite on `http://127.0.0.1:1420` and opens the native Windows app. The first Rust build can take several minutes. Port 1420 must be free; Vite fails instead of selecting a different port. Close the app and stop the dev command with Ctrl+C when finished.
+
+The environment helper locates Visual Studio through `vswhere` and imports the x64 compiler and SDK environment. Merely having `cl.exe` on PATH is insufficient to compile bundled SQLite: it also needs the SDK include/library paths. Run the helper before Cargo checks or native builds in an ordinary PowerShell terminal; a configured Developer PowerShell already supplies those paths.
 
 `npm run dev` starts a browser preview only. It displays “Browser preview” and does not emulate a native connection. Core assets and fonts are bundled/local; dependency installation requires internet, while the built shell does not.
 
@@ -36,7 +39,7 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 ```
 
-`npm run check` runs the four frontend checks. `npm run format` and `cargo fmt --all` apply formatting. Vitest + Testing Library cover navigation, keyboard activation/focus, IPC responses/errors and capability regression checks. Rust smoke tests cover command identity and the serialized error contract. Static security checks do not prove a remote WebView is isolated at runtime; that test belongs to the Phase 6 feasibility spike.
+`npm run check` runs the four frontend checks. `npm run format` and `cargo fmt --all` apply formatting. Vitest + Testing Library cover navigation, keyboard activation/focus, local catalog/status UI, typed IPC payloads/errors and capability regression checks. Rust tests cover migrations, transactional repositories, validation, retirement and persistence. `crud_survives_real_process_restart` launches its normally ignored child harness twice, so the suite verifies a genuine process exit/reopen. Static security checks do not prove a remote WebView is isolated at runtime; that test belongs to the Phase 6 feasibility spike.
 
 The Windows quality workflow in `.github/workflows/quality.yml` runs these checks and builds the debug executable. CI configuration must pass on GitHub before treating a CI run as verified.
 
@@ -62,7 +65,15 @@ Commit both lockfiles. Use `npm ci` and Cargo's `--locked` option for repeatable
 - `src/components`: native semantic UI primitives with shared focus styling.
 - `src/lib/ipc.ts`: named typed operations and safe normalized errors.
 - `src-tauri/src/commands`: narrow IPC adapters; `domain` and `services` own business rules.
-- `src-tauri/src/persistence` and `src-tauri/migrations`: reserved for Phase 1 SQLite repositories and numbered migrations in per-user app data.
+- `src-tauri/src/persistence` and `src-tauri/migrations`: SQLx repositories and numbered embedded migrations in per-user app data.
 - `src-tauri/src/importers`: reserved for reviewed draft-only import adapters.
 
-Only the local `main` window can invoke `get_app_info`. There are no filesystem, SQL, shell, HTTP, clipboard or remote-origin permissions. New commands must be included in the build-time command manifest and granted individually. See [ADR 0001](docs/adr/0001-foundation.md) and [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
+Only the local `main` window can invoke the explicitly granted identity, storage-status and catalog/meal/field repository operations. There are no generic filesystem, SQL, shell, HTTP, clipboard or remote-origin permissions. New commands must be included in the build-time command manifest and granted individually. See [ADR 0001](docs/adr/0001-foundation.md), [ADR 0002](docs/adr/0002-local-storage.md) and [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
+
+## Local data and fixtures
+
+The desktop app creates `%APPDATA%\ca.pantrypal.desktop\pantrypal.sqlite3` using Tauri's app-data resolver. Foreign keys and WAL are enabled. Four migrations initialize schema and seed exactly once; reopening preserves user edits and retirement. SQLite's `-wal` and `-shm` files may be present during use. This directory is outside the repository and contains personal data; do not commit it or delete it to repair a migration error.
+
+If storage is unavailable or incompatible, Settings and Ingredients display an error and the app never silently resets data. Backups/export/restore are Phase 7 work. To make a manual safety copy before then, close all PantryPal processes and copy the database directory; do not copy only the main file while the app is writing. Website session data must not be included in future recipe backups.
+
+`tests/fixtures/demo-meal.json` provides a deterministic meal with an exact fractional amount, raw wording and an unknown/to-taste line. Rust and frontend tests use it without seeding production meals. Tests create isolated temporary databases and never use the household app-data database.

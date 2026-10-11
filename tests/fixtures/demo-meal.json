@@ -1,0 +1,45 @@
+{
+  "title": "Broccoli and rice",
+  "description": "A deterministic development fixture, never installed into household data.",
+  "baseServings": { "numerator": 4, "denominator": 1 },
+  "prepMinutes": 10,
+  "cookMinutes": 20,
+  "instructions": "Cook the rice.\nSteam the broccoli and season to taste.",
+  "notes": "Fixture only.",
+  "sourceUrl": null,
+  "sourceSite": null,
+  "tags": ["simple"],
+  "ingredients": [
+    {
+      "id": "fixture-rice-line",
+      "ingredientId": "ingredient-rice",
+      "quantity": { "numerator": 1, "denominator": 3 },
+      "unitId": "cup-us",
+      "rawText": "1/3 US cup rice",
+      "sourceConvention": "us",
+      "note": "dry",
+      "optional": false
+    },
+    {
+      "id": "fixture-broccoli-line",
+      "ingredientId": "ingredient-broccoli",
+      "quantity": { "numerator": 500, "denominator": 1 },
+      "unitId": "g",
+      "rawText": "500 g broccoli",
+      "sourceConvention": "metric",
+      "note": "cut into florets",
+      "optional": false
+    },
+    {
+      "id": "fixture-salt-line",
+      "ingredientId": "ingredient-salt",
+      "quantity": null,
+      "unitId": "to-taste",
+      "rawText": "salt to taste",
+      "sourceConvention": null,
+      "note": "",
+      "optional": true
+    }
+  ],
+  "customFields": []
+}

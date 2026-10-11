@@ -1,8 +1,27 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main",
-  "description": "Local main window may read non-sensitive application identity only.",
+  "description": "Local main window may access validated catalog and meal repositories only.",
   "local": true,
   "windows": ["main"],
-  "permissions": ["allow-get-app-info"]
+  "permissions": [
+    "allow-get-app-info",
+    "allow-get-storage-status",
+    "allow-get-catalog",
+    "allow-create-ingredient",
+    "allow-update-ingredient",
+    "allow-retire-ingredient",
+    "allow-list-meals",
+    "allow-get-meal",
+    "allow-create-meal",
+    "allow-update-meal",
+    "allow-retire-meal",
+    "allow-list-fields",
+    "allow-create-field",
+    "allow-update-field",
+    "allow-retire-field",
+    "allow-create-vocabulary",
+    "allow-update-vocabulary",
+    "allow-retire-vocabulary"
+  ]
 }

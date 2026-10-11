@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-meals"
+description = "Enables the list_meals command without any pre-configured scope."
+commands.allow = ["list_meals"]
+
+[[permission]]
+identifier = "deny-list-meals"
+description = "Denies the list_meals command without any pre-configured scope."
+commands.deny = ["list_meals"]

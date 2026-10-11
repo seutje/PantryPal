@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-update-field"
+description = "Enables the update_field command without any pre-configured scope."
+commands.allow = ["update_field"]
+
+[[permission]]
+identifier = "deny-update-field"
+description = "Denies the update_field command without any pre-configured scope."
+commands.deny = ["update_field"]

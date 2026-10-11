@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-retire-field"
+description = "Enables the retire_field command without any pre-configured scope."
+commands.allow = ["retire_field"]
+
+[[permission]]
+identifier = "deny-retire-field"
+description = "Denies the retire_field command without any pre-configured scope."
+commands.deny = ["retire_field"]

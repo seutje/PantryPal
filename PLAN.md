@@ -7,7 +7,7 @@
 | Phase | Outcome                                               | Status      |
 | ----- | ----------------------------------------------------- | ----------- |
 | 0     | Repository scaffold and quality gates                 | Complete    |
-| 1     | SQLite schema, seed catalog, and core domain          | Not started |
+| 1     | SQLite schema, seed catalog, and core domain          | Complete    |
 | 2     | Measurement engine and ingredient management          | Not started |
 | 3     | Meal library and custom fields                        | Not started |
 | 4     | Weekly planner, cooking history                       | Not started |
@@ -47,19 +47,27 @@
 
 **Goal:** Durable household data with versioned, reproducible schema.
 
-- [ ] Choose SQLite/SQLx integration and local app-data path; enable foreign-key constraints.
-- [ ] Create migrations for ingredients, aliases, categories, shopping sections and unit registry.
-- [ ] Create migrations for meals, meal ingredient lines, custom field definitions and values.
-- [ ] Create migrations for plan entries, cooked events, shopping lists/items, import records and settings.
-- [ ] Implement Rust domain models, validators, repository boundaries and typed IPC commands.
-- [ ] Create a modest, idempotent seed catalog of common ingredients, units, types and sections.
-- [ ] Implement transaction-safe CRUD, referential integrity and safe deletion/retirement behavior.
-- [ ] Add migration tests from an empty DB and an existing DB; test process restart persistence.
-- [ ] Add deterministic demo/fixture data for UI development.
+- [x] Choose SQLite/SQLx integration and local app-data path; enable foreign-key constraints.
+- [x] Create migrations for ingredients, aliases, categories, shopping sections and unit registry.
+- [x] Create migrations for meals, meal ingredient lines, custom field definitions and values.
+- [x] Create migrations for plan entries, cooked events, shopping lists/items, import records and settings.
+- [x] Implement Rust domain models, validators, repository boundaries and typed IPC commands.
+- [x] Create a modest, idempotent seed catalog of common ingredients, units, types and sections.
+- [x] Implement transaction-safe CRUD, referential integrity and safe deletion/retirement behavior.
+- [x] Add migration tests from an empty DB and an existing DB; test process restart persistence.
+- [x] Add deterministic demo/fixture data for UI development.
 
 **Acceptance gate:** A fresh app initializes exactly once, CRUD persists after restart, and the migration suite passes without data loss.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-11):** Phase 1 acceptance gate passed on Windows x64. Added SQLx/SQLite per-user storage, foreign keys/WAL, four embedded migrations, 16 ingredient seeds, six categories, seven sections and 36 explicit unit definitions. Rust repositories provide validated catalog/vocabulary/meal/custom-field CRUD with transactional child updates, stable IDs, meal revision checks and confirmed retirement. Quantities preserve exact entered rational pairs, units, raw text and source convention; null remains distinct from boolean false. Added typed local-only IPC, a read-only Ingredients catalog, storage status and a visible startup error state. Architecture and limits are recorded in ADR 0002; the deterministic meal fixture never populates household data.
+
+- Passed `npm run check`: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (16 tests).
+- Passed `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked` (20 unit tests plus one process-restart integration test). The integration test executes the normally ignored child harness in separate write/read processes; it is not an unexecuted acceptance check.
+- Migration tests verify empty initialization, upgrades from existing catalog and meal/field/shopping data, seed edits retained across reopening, failed migration rollback, incompatible/checksum rejection, corruption preservation and referential integrity. Repository tests verify rollback after failed child edits, retirement references, explicit field type validation, null/false and manual shopping adjustments in storage. No shopping regeneration behavior is claimed.
+- Passed `npm run tauri build -- --debug --no-bundle` (including TypeScript/Vite production compilation).
+- Launched `target/debug/pantrypal.exe` twice. Verified `%APPDATA%\ca.pantrypal.desktop\pantrypal.sqlite3` exists, and checked it read-only with `sqlite3 -readonly`: four applied migrations, 16 ingredients, zero demo meals, `PRAGMA integrity_check` = `ok`, and no `PRAGMA foreign_key_check` violations. After reopening, visually verified the native shell reports `Local data ready` through the actual storage-status IPC. Native verification captures are ignored under `.verification/`.
+- Resolved the initial SQLite C build failure (`stdarg.h` include path missing) by importing the installed Visual Studio SDK environment with `. ./scripts/Enter-DevEnvironment.ps1`; the helper is documented and used in CI. Subsequent checks/builds passed. Native keyboard automation could not focus the WebView; catalog/status UI behavior is covered by deterministic UI tests, while native startup/reopen/storage IPC was verified directly.
+- No Phase 1 blocker remains. Full ingredient/meal/custom-field editors, measurement arithmetic, planning/cooking workflows, shopping regeneration, importing and backups remain in their planned phases. Planning/shopping/import/settings tables are storage contracts only. GitHub CI execution, release installer packaging and remote-page runtime isolation remain **not verified**. Later-phase checkboxes were not changed.
 
 ## Phase 2 — Units and ingredients
 

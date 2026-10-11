@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-update-meal"
+description = "Enables the update_meal command without any pre-configured scope."
+commands.allow = ["update_meal"]
+
+[[permission]]
+identifier = "deny-update-meal"
+description = "Denies the update_meal command without any pre-configured scope."
+commands.deny = ["update_meal"]

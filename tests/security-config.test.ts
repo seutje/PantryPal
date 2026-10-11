@@ -4,13 +4,35 @@ import config from '../src-tauri/tauri.conf.json';
 import main from '../src-tauri/capabilities/main.json';
 
 describe('native permission boundary', () => {
-  it('grants only app identity to the local main window', () => {
+  const commands = [
+    'get_app_info',
+    'get_storage_status',
+    'get_catalog',
+    'create_ingredient',
+    'update_ingredient',
+    'retire_ingredient',
+    'list_meals',
+    'get_meal',
+    'create_meal',
+    'update_meal',
+    'retire_meal',
+    'list_fields',
+    'create_field',
+    'update_field',
+    'retire_field',
+    'create_vocabulary',
+    'update_vocabulary',
+    'retire_vocabulary',
+  ];
+  it('grants only named repository operations to the local main window', () => {
     expect(config.app.security.capabilities).toEqual(['main']);
     expect(readdirSync('src-tauri/capabilities')).toEqual(['main.json']);
     expect(main).toMatchObject({
       local: true,
       windows: ['main'],
-      permissions: ['allow-get-app-info'],
+      permissions: commands.map(
+        (command) => `allow-${command.replaceAll('_', '-')}`,
+      ),
     });
     expect(main).not.toHaveProperty('remote');
     expect(main).not.toHaveProperty('webviews');
@@ -24,9 +46,14 @@ describe('native permission boundary', () => {
     const registered = lib
       .match(/generate_handler!\[([^\]]+)\]/)?.[1]
       ?.split(',')
+      .filter((name) => name.trim().length > 0)
       .map((name) => name.trim().replace('commands::', ''));
-    expect(registered).toEqual(['get_app_info']);
-    expect(build).toContain('AppManifest::new().commands(&["get_app_info"])');
+    expect(registered).toEqual(commands);
+    const manifest = build
+      .match(/\.commands\(&\[([\s\S]*?)\]\)/)?.[1]
+      ?.match(/"([a-z_]+)"/g)
+      ?.map((command) => command.replaceAll('"', ''));
+    expect(manifest).toEqual(commands);
   });
 
   it('blocks remote scripts, frames and network in the production shell', () => {
