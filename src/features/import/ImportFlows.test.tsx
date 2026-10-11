@@ -13,6 +13,7 @@ vi.mock('../../lib/ipc', () => ({
   previewRecipeImport: vi.fn(),
   confirmRecipeImport: vi.fn(),
   resetRecipeBrowser: vi.fn(),
+  captureRecipeBrowser: vi.fn(),
 }));
 const draft: ImportedRecipeDraft = {
   meal: {
@@ -53,6 +54,44 @@ beforeEach(() => {
   vi.mocked(api.openRecipeBrowser).mockResolvedValue();
   vi.mocked(api.previewRecipeImport).mockResolvedValue(structuredClone(draft));
   vi.mocked(api.resetRecipeBrowser).mockResolvedValue();
+});
+it('reads an authorized browser recipe into review without saving, and retains manual input on access failure', async () => {
+  const user = userEvent.setup();
+  open();
+  const url = sites[4]!.url;
+  const source = {
+    sourceUrl: url,
+    format: 'website' as const,
+    payload: 'bounded visible capture',
+    permitted: true,
+  };
+  await user.type(screen.getByLabelText('Recipe URL (HTTPS)'), url);
+  await user.type(screen.getByLabelText('Recipe title'), 'Kept manual draft');
+  const read = screen.getByRole('button', { name: 'Read recipe from browser' });
+  expect(read).toBeDisabled();
+  await user.click(screen.getByRole('button', { name: 'Check website' }));
+  await user.click(
+    screen.getByLabelText(
+      'I am permitted to import this supplied recipe content.',
+    ),
+  );
+  vi.mocked(api.captureRecipeBrowser)
+    .mockRejectedValueOnce(new Error('Finish website login'))
+    .mockResolvedValueOnce({ source, draft: structuredClone(draft) });
+  await user.click(read);
+  await screen.findByText(/Finish website login/);
+  expect(screen.getByLabelText('Recipe title')).toHaveValue(
+    'Kept manual draft',
+  );
+  expect(api.confirmRecipeImport).not.toHaveBeenCalled();
+  await user.click(read);
+  await screen.findByText(/Original yield:/);
+  expect(api.captureRecipeBrowser).toHaveBeenCalledWith(url, true);
+  expect(api.previewRecipeImport).not.toHaveBeenCalled();
+  expect(api.confirmRecipeImport).not.toHaveBeenCalled();
+  expect(screen.getByLabelText('Instructions')).toHaveValue(
+    '<script>inert</script>',
+  );
 });
 function open() {
   const onSaved = vi.fn();

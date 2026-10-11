@@ -176,7 +176,7 @@
 - [x] Define `ImportedRecipeDraft` and `RecipeImporter` interface with source/provenance metadata.
 - [x] Implement URL/domain validation, redirect policy, bounded payload/time, and non-secret logging.
 - [x] Implement generic authorized JSON-LD (`schema.org/Recipe`) extractor using saved fixtures.
-- [x] Evaluate conditional website-specific adapters after permission and feasibility checks — none justified; ship the documented browser-assisted/manual fallback (ADR 0007).
+- [x] Evaluate conditional website-specific adapters after permission and feasibility checks — initial manual fallback (ADR 0007); owner-authorized adapters for the five supplied publishers now implemented and verified (ADR 0008).
 - [x] Build paste URL → browser/login if needed → preview → ingredient matching → confirm save flow.
 - [x] Match aliases and existing ingredient IDs; explicitly resolve uncertain names, amounts or units.
 - [x] Store source URL, original ingredient strings, normalized values and timestamp; support editing the saved recipe.
@@ -195,6 +195,48 @@
 - Site-specific automation is intentionally unavailable: Budget Bytes' reviewed terms prohibit scraping; automated integration permission was not established for Allrecipes, Spend With Pennies, RecipeTin Eats or NYT Cooking. Cook Smarts' terms restrict collection/downloads beyond normal caching without permission; no sanctioned recipe API/export integration was established. Manual entry or supplied authorized JSON-LD remains functional. The conditional-adapter checkbox records this verified outcome, not an implemented publisher scraper. Cross-origin login/MFA/popups can require the user's regular browser; expiry and unavailable metadata use manual fallback. No paywall/anti-bot bypass was attempted.
 - Passed `npm run tauri build -- --debug --no-bundle`, including TypeScript/Vite production compilation. Launched the final bundled executable, visually verified the enabled Meals Import action, import form and URL focus. Read-only household SQLite checks confirm schema 8, zero fixture meals/import records, integrity `ok` and no foreign-key violations. Import writes use isolated databases; native captures are ignored under `.verification/`.
 - Resolved verification issues: updated the old disabled-Import expectation, wrapped Query mutation functions to avoid test-context argument mismatch, fixed a Clippy needless borrow and forced the isolated native main window to the local app origin rather than an unavailable Vite server. The session-reset review found that Tauri's convenience clear API discards asynchronous completion; the final implementation waits for the official WebView2 completion callback, reports failures/timeouts and prevents concurrent browser operations. Two direct Windows dependencies reuse exactly the already-locked Tauri package versions; no new resolved packages. Example-only missing icon and Chromium window-class shutdown warnings did not fail the native checks. No Phase 6 blocker remains. Automated publisher integration remains conditional on future permission evidence; GitHub CI, installer/clean-machine validation and backups remain in their later phases. Later-phase checkboxes were not changed.
+
+### Phase 6 follow-up — Authorized publisher adapters
+
+- [x] Implement adapters for Budget Bytes, Allrecipes, Spend With Pennies, RecipeTin Eats and NYT Cooking after the owner confirmed website agreements.
+- [x] Connect deliberate browser extraction to existing review, confirmation, duplicate handling and durable provenance; preserve manual fallback.
+- [x] Verify saved fixtures, gated/hidden-content rejection, remote IPC isolation and live previews from all five supplied recipe URLs.
+
+**Follow-up log (2026-10-11):** The owner's website agreements supersede the
+original manual-only decision for these five publishers. Added exact-host adapter
+selection, fixed bounded native DOM capture, versioned website import envelopes
+and **Read recipe from browser**. Visible ingredient amounts, current yield and
+instructions feed the existing Rust parser/review flow; JSON-LD contributes only
+attribution/times after visible content passes checks. Missing or hidden rows/steps,
+recognized access gateways, unexpected URLs and oversized payloads fail safely.
+Remote capabilities, session/reset policy and all database migrations are unchanged.
+ADR 0008 documents authorization, mechanism and limits; Cook Smarts remains manual.
+
+- Passed `npm run check` (format/lint/typecheck and 55 frontend tests),
+  `cargo fmt --all -- --check`,
+  `cargo clippy --workspace --all-targets --locked -- -D warnings`, and
+  `cargo test --workspace --locked` (47 unit tests and eight integration tests).
+  Saved synthetic HTML/JSON fixtures exercise all five adapters, hidden metadata,
+  access barriers, ambiguous fractions, unknown amounts, original provenance and
+  save/reopen persistence. UI coverage verifies capture errors retain manual input
+  and capture success does not skip review or write a meal. The restart parent
+  still executes its ignored child; the separate clipboard acceptance test was
+  not rerun because clipboard behavior is unchanged.
+- Passed `cargo run -p pantrypal --example adapter_sites --locked` on Windows
+  with actual production open/capture commands and isolated profile/SQLite storage:
+  Budget Bytes 14 ingredient lines, Allrecipes 19, Spend With Pennies 15,
+  RecipeTin Eats 22 and NYT Cooking 14. Each returned visible instructions and
+  denied the remote page's capture command at ACL; previewing saved zero meals.
+  Repeated after partial-hidden-step rejection was added. Results retain only
+  counts/flags under ignored `.verification/`; household data was not used.
+- Passed `npm run tauri build -- --debug --no-bundle` on Windows, including
+  TypeScript/Vite production compilation. Fixed initial lint configuration and
+  fixture-generation Unicode encoding failures; final checks passed. Native
+  example icon/window-class shutdown warnings did not affect acceptance results.
+- No adapter implementation blocker remains. Website layouts/access can change;
+  actual subscriber login/MFA is **not verified**. No access-control bypass or
+  credential extraction was attempted. Manual entry/session clearing remain
+  available. Phase 6 remains Complete; Phase 7 and later checkboxes were not changed.
 
 ## Phase 7 — Robustness and usability
 

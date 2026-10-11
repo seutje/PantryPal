@@ -44,6 +44,7 @@ describe('native permission boundary', () => {
     'confirm_recipe_import',
     'open_recipe_browser',
     'reset_recipe_browser',
+    'capture_recipe_browser',
   ];
   it('grants only named repository operations to the local main window', () => {
     expect(config.app.security.capabilities).toEqual(['main']);

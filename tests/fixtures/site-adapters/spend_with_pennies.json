@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "site": "spend_with_pennies",
+  "recipe": {
+    "@type": "Recipe",
+    "name": "Original fixture spend_with_pennies",
+    "recipeYield": "4",
+    "recipeIngredient": ["½ cup milk", "salt to taste"],
+    "recipeInstructions": [
+      "Original fixture preparation.",
+      "Original fixture cooking."
+    ],
+    "author": "PantryPal fixture author",
+    "prepTime": "PT5M",
+    "cookTime": "PT20M"
+  }
+}

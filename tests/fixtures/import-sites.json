@@ -1,22 +1,22 @@
 [
   {
     "url": "https://www.budgetbytes.com/chicken-noodle-soup/",
-    "message": "prohibits scraping"
+    "message": "adapter available"
   },
   {
     "url": "https://www.allrecipes.com/cowboy-mashed-potato-casserole-recipe-8760165",
-    "message": "No automated site adapter"
+    "message": "adapter available"
   },
   {
     "url": "https://www.spendwithpennies.com/philly-cheesesteak-casserole/",
-    "message": "No automated site adapter"
+    "message": "adapter available"
   },
   {
     "url": "https://www.recipetineats.com/oven-baked-barbecue-pork-ribs/",
-    "message": "No automated site adapter"
+    "message": "adapter available"
   },
   {
     "url": "https://cooking.nytimes.com/recipes/1767-beef-stew-with-prunes",
-    "message": "subscription"
+    "message": "adapter available"
   }
 ]

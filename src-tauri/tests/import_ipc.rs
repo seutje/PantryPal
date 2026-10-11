@@ -178,4 +178,64 @@ fn import_review_atomic_save_retry_duplicate_and_restart_use_real_acl_commands()
         )
         .unwrap();
     assert_eq!(payload, unchanged);
+    // Website captures use the same review/transaction/provenance contract as
+    // paste imports. Exercise every adapter against real SQLite after reopen.
+    let fixtures = [
+        (
+            "www.budgetbytes.com",
+            include_str!("../../tests/fixtures/site-adapters/budget_bytes.json"),
+        ),
+        (
+            "www.allrecipes.com",
+            include_str!("../../tests/fixtures/site-adapters/allrecipes.json"),
+        ),
+        (
+            "www.spendwithpennies.com",
+            include_str!("../../tests/fixtures/site-adapters/spend_with_pennies.json"),
+        ),
+        (
+            "www.recipetineats.com",
+            include_str!("../../tests/fixtures/site-adapters/recipe_tin_eats.json"),
+        ),
+        (
+            "cooking.nytimes.com",
+            include_str!("../../tests/fixtures/site-adapters/nyt_cooking.json"),
+        ),
+    ];
+    for (index, (host, payload)) in fixtures.into_iter().enumerate() {
+        let source = pantrypal_lib::importers::ImportInput {
+            source_url: format!("https://{host}/fixture"),
+            format: pantrypal_lib::importers::ImportFormat::Website,
+            payload: payload.into(),
+            permitted: true,
+        };
+        let mut preview = rt.block_on(reopened.preview_import(&source)).unwrap();
+        assert_eq!(
+            rt.block_on(reopened.status()).unwrap().meal_count,
+            index as i64 + 2
+        );
+        preview.meal.servings = "4".into();
+        let request = pantrypal_lib::persistence::imports::ConfirmImport {
+            action_id: format!("website-{index}"),
+            source,
+            reviewed: preview.meal,
+            confirmed: true,
+            allow_duplicate: false,
+        };
+        let saved = rt.block_on(reopened.confirm_import(request)).unwrap();
+        assert_eq!(saved.data.ingredients[0].raw_text, "½ cup milk");
+        let stored: String = rt
+            .block_on(
+                sqlx::query_scalar("SELECT provenance_json FROM import_record WHERE meal_id=?")
+                    .bind(&saved.id)
+                    .fetch_one(&sqlite),
+            )
+            .unwrap();
+        let provenance: Value = serde_json::from_str(&stored).unwrap();
+        assert_eq!(provenance["format"], "website");
+        assert_eq!(provenance["originalPayload"], payload);
+    }
+    drop(reopened);
+    let again = rt.block_on(Database::open(dir.path())).unwrap();
+    assert_eq!(rt.block_on(again.status()).unwrap().meal_count, 7);
 }

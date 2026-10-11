@@ -33,6 +33,11 @@ export const inspectRecipeUrl = (sourceUrl: string) =>
   invokeNative<string>('inspect_recipe_url', { sourceUrl });
 export const openRecipeBrowser = (sourceUrl: string) =>
   invokeNative<void>('open_recipe_browser', { sourceUrl });
+export const captureRecipeBrowser = (sourceUrl: string, permitted: boolean) =>
+  invokeNative<{ source: ImportInput; draft: ImportedRecipeDraft }>(
+    'capture_recipe_browser',
+    { sourceUrl, permitted },
+  );
 export const previewRecipeImport = (input: ImportInput) =>
   invokeNative<ImportedRecipeDraft>('preview_recipe_import', { input });
 export const confirmRecipeImport = (input: ConfirmImport) =>

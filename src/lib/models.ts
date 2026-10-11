@@ -341,7 +341,7 @@ export interface ShoppingMutation {
 }
 export interface ImportInput {
   sourceUrl: string;
-  format: 'json_ld' | 'manual';
+  format: 'json_ld' | 'manual' | 'website';
   payload: string;
   permitted: boolean;
 }

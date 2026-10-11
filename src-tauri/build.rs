@@ -62,6 +62,7 @@ fn main() {
             "confirm_recipe_import",
             "open_recipe_browser",
             "reset_recipe_browser",
+            "capture_recipe_browser",
         ]),
     ))
     .expect("failed to build PantryPal Tauri configuration");

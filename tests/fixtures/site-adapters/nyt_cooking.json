@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "site": "nyt_cooking",
+  "recipe": {
+    "@type": "Recipe",
+    "name": "Original fixture nyt_cooking",
+    "recipeYield": "Yield:4 servings",
+    "recipeIngredient": ["½ cup milk", "salt to taste"],
+    "recipeInstructions": [
+      "Original fixture preparation.",
+      "Original fixture cooking."
+    ],
+    "author": "PantryPal fixture author",
+    "prepTime": "PT5M",
+    "cookTime": "PT20M"
+  }
+}

@@ -1,5 +1,6 @@
 //! Pure adapters produce untrusted, reviewable drafts and never persist meals.
 mod json_ld;
+pub mod sites;
 #[cfg(test)]
 mod tests;
 pub mod url;
@@ -14,6 +15,7 @@ pub const MAX_PAYLOAD: usize = 262_144;
 pub enum ImportFormat {
     JsonLd,
     Manual,
+    Website,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -57,6 +59,7 @@ pub fn extract(input: &ImportInput) -> AppResult<ImportedRecipeDraft> {
     }
     match input.format {
         ImportFormat::JsonLd => json_ld::JsonLdImporter.extract(input),
+        ImportFormat::Website => sites::WebsiteImporter.extract(input),
         ImportFormat::Manual => {
             let manual: ManualRecipe = serde_json::from_str(&input.payload)
                 .map_err(|_| AppError::validation("Invalid manual recipe fields."))?;

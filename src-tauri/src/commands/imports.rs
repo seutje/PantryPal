@@ -4,10 +4,72 @@ use crate::{
     importers::{self, ImportInput, ImportedRecipeDraft},
     persistence::{imports::ConfirmImport, StorageState},
 };
+use serde::Serialize;
 use tauri::{
     webview::{NewWindowResponse, PermissionResponse},
     Manager, State, WebviewUrl,
 };
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BrowserRecipePreview {
+    pub source: ImportInput,
+    pub draft: ImportedRecipeDraft,
+}
+#[tauri::command]
+pub async fn capture_recipe_browser(
+    app: tauri::AppHandle,
+    storage: State<'_, StorageState>,
+    source_url: String,
+    permitted: bool,
+) -> AppResult<BrowserRecipePreview> {
+    if !permitted {
+        return Err(AppError::validation(
+            "Confirm permission to import this recipe content.",
+        ));
+    }
+    let expected = importers::url::validate(&source_url)?;
+    let script = importers::sites::capture_script(&source_url)?;
+    let state = app.state::<crate::services::browser::BrowserState>();
+    let _task = state.begin()?;
+    let window = app
+        .get_webview_window("recipe-browser")
+        .ok_or_else(|| AppError::validation("Open this recipe in the website browser first."))?;
+    let check_page = || -> AppResult<()> {
+        let current = window.url().map_err(|_| importers::sites::error())?;
+        if !importers::sites::same_page(&current, &expected) {
+            return Err(AppError::validation(
+                "The browser is on a different page. Open the requested recipe again.",
+            ));
+        }
+        Ok(())
+    };
+    check_page()?;
+    let (send, receive) = std::sync::mpsc::channel();
+    window
+        .eval_with_callback(script, move |value| {
+            let _ = send.send(value);
+        })
+        .map_err(|_| importers::sites::error())?;
+    let payload = tauri::async_runtime::spawn_blocking(move || {
+        receive.recv_timeout(std::time::Duration::from_secs(10))
+    })
+    .await
+    .map_err(|_| importers::sites::error())?
+    .map_err(|_| importers::sites::error())?;
+    check_page()?;
+    if payload.len() > importers::MAX_PAYLOAD {
+        return Err(importers::sites::error());
+    }
+    let source = ImportInput {
+        source_url,
+        format: importers::ImportFormat::Website,
+        payload,
+        permitted,
+    };
+    let draft = storage.database()?.preview_import(&source).await?;
+    Ok(BrowserRecipePreview { source, draft })
+}
 
 #[tauri::command]
 pub fn inspect_recipe_url(source_url: String) -> AppResult<String> {

@@ -2,7 +2,7 @@
 
 An offline-first Windows desktop meal planner for a Canadian household. Built with Rust, Tauri 2, React, TypeScript and, beginning in Phase 1, SQLite. See [DESIGN.md](DESIGN.md), [PLAN.md](PLAN.md) and [AGENTS.md](AGENTS.md) before changing behavior.
 
-Phases 0–5 supply the local SQLite foundation, ingredient editing, exact measurements, manual meal library and Monday-start weekly planner. Week supports repeated meals, independent fractional servings, dated/unscheduled occurrences, keyboard ordering and explicit planned/cooked/skipped actions. Cooking history supports backfill, confirmed date correction and undo, with last eaten derived only from actual records. Meals supports original amount wording, unknown quantities, six custom field kinds, typed filters and safe retirement. Ingredients supports aliases, categories, shopping sections, season months, notes, preferred units and optional conversion rules. Settings saves measurement preferences and converts temperatures. Shopping generates exact grouped quantities for the selected week, keeps incompatible and unknown lines visible, preserves manual items, overrides, checkmarks and exclusions on refresh, and copies plain text to the Windows clipboard. Stale source data requires explicit refresh before copying. Imports and backups remain in later phases.
+Phases 0–6 supply the local SQLite foundation, ingredient editing, exact measurements, manual meal library and Monday-start weekly planner. Week supports repeated meals, independent fractional servings, dated/unscheduled occurrences, keyboard ordering and explicit planned/cooked/skipped actions. Cooking history supports backfill, confirmed date correction and undo, with last eaten derived only from actual records. Meals supports original amount wording, unknown quantities, six custom field kinds, typed filters and safe retirement. Ingredients supports aliases, categories, shopping sections, season months, notes, preferred units and optional conversion rules. Settings saves measurement preferences and converts temperatures. Shopping generates exact grouped quantities for the selected week, keeps incompatible and unknown lines visible, preserves manual items, overrides, checkmarks and exclusions on refresh, and copies plain text to the Windows clipboard. Stale source data requires explicit refresh before copying. Imports support authorized website capture and JSON-LD/manual entry with review before saving. Backups remain Phase 7.
 
 ## Windows prerequisites
 
@@ -72,7 +72,7 @@ Commit both lockfiles. Use `npm ci` and Cargo's `--locked` option for repeatable
 - `src/lib/ipc.ts`: named typed operations and safe normalized errors.
 - `src-tauri/src/commands`: narrow IPC adapters; `domain` and `services` own business rules.
 - `src-tauri/src/persistence` and `src-tauri/migrations`: SQLx repositories and numbered embedded migrations in per-user app data.
-- `src-tauri/src/importers`: bounded, authorized JSON-LD/manual draft adapters and URL validation.
+- `src-tauri/src/importers`: bounded authorized website/JSON-LD/manual draft adapters and URL validation.
 
 ## Recipe importing and website sessions
 
@@ -83,9 +83,12 @@ Cross-origin redirects, popups, downloads and device permissions are blocked. If
 a login, MFA or page needs another origin, use your regular browser instead.
 Close the previous recipe window before opening a different recipe.
 
-Return to PantryPal and enter permitted recipe text, or paste an authorized
-schema.org Recipe JSON-LD export/object (without script tags). No website is
-automatically scraped. Preview, check servings, choose explicit regional units,
+For Budget Bytes, Allrecipes, Spend With Pennies, RecipeTin Eats and NYT Cooking,
+return to PantryPal once the recipe is visible, confirm permission and choose
+**Read recipe from browser**. The authorized adapter reads visible recipe text
+into a preview. Alternatively enter permitted recipe text, or paste an authorized
+schema.org Recipe JSON-LD export/object (without script tags).
+Check servings, choose explicit regional units,
 review canonical ingredient suggestions and confirm saving. Unknown quantities,
 ranges and package sizes retain their original wording. Imported HTML markup is
 inert text. The saved meal remains editable; its original import payload,
@@ -101,13 +104,15 @@ data in `%APPDATA%\ca.pantrypal.desktop\recipe-browser-profile`. Recipes and oth
 household data are unchanged. Clearing waits for WebView2 completion; an error
 does not claim success. Website passwords/tokens are never collected by the app.
 
-The five requested recipe URLs were visited in native Windows WebView2 and all
-loaded their recipe page titles. They currently use manual/browser-assisted
-import: Budget Bytes prohibits scraping; permission for automated integration
-with the other publishers was not established. A loaded title does not verify
-full recipe access or a subscription login. Cook Smarts automated importing is
-unsupported under the reviewed terms; no official integration was established.
-See [ADR 0007](docs/adr/0007-reviewed-imports-and-browser.md) for evidence and limits.
+The owner confirmed agreements for these five publishers. All five supplied URLs
+passed native recipe-preview checks, including denial of remote capture commands
+and zero meal writes before confirmation. Hidden/gated content is rejected even
+if recipe metadata exists; no login, paywall or anti-bot bypass is provided.
+Future site layout changes or cross-origin login prompts may require manual
+entry. Actual subscriber login/MFA was not verified. Cook Smarts remains manual;
+no authorized automated integration was established. See
+[ADR 0008](docs/adr/0008-authorized-website-adapters.md) for the adapter decision
+and [ADR 0007](docs/adr/0007-reviewed-imports-and-browser.md) for session isolation.
 
 Explicit Windows acceptance harnesses (each uses isolated fixture storage, never
 the household database):
@@ -117,6 +122,8 @@ the household database):
 cargo run -p pantrypal --example browser_spike --locked -- write
 cargo run -p pantrypal --example browser_spike --locked -- read
 cargo run -p pantrypal --example browser_spike --locked -- cleared
+# Live authorized recipe previews and remote capture denial, no meal saves:
+cargo run -p pantrypal --example adapter_sites --locked
 # Optional live compatibility visits, no recipe extraction:
 cargo run -p pantrypal --example recipe_sites --locked
 ```
@@ -126,7 +133,11 @@ remote application commands, reviewed local-IPC save, meal persistence after
 process restart, login-cookie/local-storage retention and the actual session reset
 command. Loopback HTTP is permitted only in this isolated test fixture. Results
 and disposable profiles are ignored under `.verification/`. The live site check
-records only load state and page title, not recipe content or credentials.
+`recipe_sites` records only load state and page title. `adapter_sites` exercises
+production open/capture commands, records only recipe counts and pass/fail,
+and verifies previewing leaves its isolated database empty. Neither logs
+credentials or saves publisher recipe text in the repository. Saved adapter
+fixtures use original synthetic recipe text and inspected publisher structures.
 
 Only the local `main` window can invoke the explicitly granted identity, storage-status, measurement, catalog/meal/field and planner/history and shopping operations. There are no generic filesystem, SQL, shell, HTTP, clipboard or remote-origin permissions. New commands must be included in the build-time command manifest and granted individually. See [ADR 0001](docs/adr/0001-foundation.md), [ADR 0002](docs/adr/0002-local-storage.md), [ADR 0003](docs/adr/0003-exact-measurements.md), [ADR 0004](docs/adr/0004-meal-library.md), [ADR 0005](docs/adr/0005-week-planner-history.md), [ADR 0006](docs/adr/0006-shopping-generation.md) and [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
 

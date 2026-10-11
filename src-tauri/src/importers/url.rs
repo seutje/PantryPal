@@ -37,6 +37,9 @@ pub fn validate(raw: &str) -> AppResult<tauri::Url> {
     Ok(url)
 }
 pub fn site_message(host: &str) -> &'static str {
+    if super::sites::site(host).is_some() {
+        return "Authorized website adapter available. Open the recipe, finish any website access prompts, then read the visible recipe for review. Cross-site login may require your regular browser.";
+    }
     let belongs = |domain: &str| host == domain || host.ends_with(&format!(".{domain}"));
     if belongs("budgetbytes.com") {
         "Budget Bytes prohibits scraping. Open the page for reference and enter permitted recipe text manually."
@@ -76,7 +79,7 @@ mod tests {
             "https://www.allrecipes.com/cowboy-mashed-potato-casserole-recipe-8760165"
         )
         .is_ok());
-        assert!(site_message("www.budgetbytes.com").contains("prohibits"));
-        assert!(!site_message("budgetbytes.com.evil.com").contains("prohibits"));
+        assert!(site_message("www.budgetbytes.com").contains("adapter available"));
+        assert!(!site_message("budgetbytes.com.evil.com").contains("adapter available"));
     }
 }

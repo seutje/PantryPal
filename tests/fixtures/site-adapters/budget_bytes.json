@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "site": "budget_bytes",
+  "recipe": {
+    "@type": "Recipe",
+    "name": "Original fixture budget_bytes",
+    "recipeYield": "4",
+    "recipeIngredient": ["½ cup milk", "salt to taste"],
+    "recipeInstructions": [
+      "Original fixture preparation.",
+      "Original fixture cooking."
+    ],
+    "author": "PantryPal fixture author",
+    "prepTime": "PT5M",
+    "cookTime": "PT20M"
+  }
+}

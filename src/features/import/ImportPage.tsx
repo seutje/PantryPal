@@ -6,6 +6,7 @@ import {
   previewRecipeImport,
   confirmRecipeImport,
   resetRecipeBrowser,
+  captureRecipeBrowser,
 } from '../../lib/ipc';
 import type {
   Catalog,
@@ -97,6 +98,18 @@ export function ImportPage({
       setPendingSave(null);
     },
   });
+  const capture = useMutation({
+    mutationFn: ({ url, permitted }: { url: string; permitted: boolean }) =>
+      captureRecipeBrowser(url, permitted),
+    onSuccess: (result, request) => {
+      if (request.url !== url) return;
+      setPreview(result);
+      setReviewed(false);
+      setDuplicate(false);
+      setActionId(crypto.randomUUID());
+      setPendingSave(null);
+    },
+  });
   const save = async (draft: MealDraft) => {
     if (!preview || !reviewed)
       throw new Error(
@@ -163,9 +176,9 @@ export function ImportPage({
           )}
           {browser.isSuccess && (
             <p>
-              Browse and sign in directly on the website. Then return here to
-              enter permitted content. If a redirect, MFA, popup or page is
-              blocked, use your regular browser. No automatic extraction runs.
+              Browse and sign in directly on the website. Once the recipe is
+              visible, return here to read it for review. If website access is
+              unavailable, use permitted manual content below.
             </p>
           )}
           <FormField label="Import method">
@@ -227,6 +240,18 @@ export function ImportPage({
             />
             I am permitted to import this supplied recipe content.
           </label>
+          <Button
+            disabled={
+              !permitted ||
+              !inspect.isSuccess ||
+              inspect.variables !== url ||
+              capture.isPending ||
+              prepare.isPending
+            }
+            onClick={() => capture.mutate({ url, permitted })}
+          >
+            {capture.isPending ? 'Reading recipe…' : 'Read recipe from browser'}
+          </Button>
           <p>
             Paste a single schema.org Recipe JSON object or graph, without
             script tags. Unknown amounts and ambiguous regional units stay
@@ -234,7 +259,7 @@ export function ImportPage({
             use manual entry.
           </p>
           <Button
-            disabled={!permitted || prepare.isPending}
+            disabled={!permitted || prepare.isPending || capture.isPending}
             onClick={() =>
               prepare.mutate({
                 sourceUrl: url,
@@ -256,7 +281,7 @@ export function ImportPage({
           >
             Preview recipe
           </Button>
-          {[inspect.error, browser.error, prepare.error]
+          {[inspect.error, browser.error, prepare.error, capture.error]
             .filter(Boolean)
             .map((error, index) => (
               <p role="alert" key={index}>

@@ -2,6 +2,11 @@
 
 Date: 2026-10-11. Status: Accepted.
 
+**Follow-up:** [ADR 0008](0008-authorized-website-adapters.md) supersedes the
+manual-only decision for the five supplied publishers after the owner confirmed
+website agreements. The evidence and constraints below describe the original
+Phase 6 decision; browser isolation, session handling and reviewed saves remain.
+
 ## Evidence before implementation
 
 Tauri 2.12.3 provides `WebviewWindowBuilder::data_directory`, navigation,
