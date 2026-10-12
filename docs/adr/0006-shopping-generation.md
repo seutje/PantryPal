@@ -2,6 +2,10 @@
 
 Date: 2026-10-11. Status: accepted.
 
+[ADR 0009](0009-practical-shopping-measures.md) refines shopping presentation
+with upward rounding and alternative measures. Exact generation, source data
+and preservation rules below continue to apply.
+
 ## Quantities and identity
 
 Rust generates a selected Monday week. Every planned or cooked occurrence,

@@ -159,6 +159,40 @@
 - Passed `npm run tauri build -- --debug --no-bundle`, including TypeScript/Vite compilation. Launched/reopened the final bundled executable; visually verified the native Shopping empty state and manual form. Read-only household checks confirm schema 8, 16 ingredients, zero test meals/plans/shopping lists, integrity `ok` and no foreign-key violations. All fixture writes use temporary databases. Native captures and the paste fixture are ignored under `.verification/`.
 - Resolved verification issues: updated migration expectations and new-query mocks, corrected a fixture section ID/unit symbol, fixed strict TypeScript indexing, wrapped the UUID lazy initializer, and corrected explicit null-unit restoration. A separate clipboard recheck encountered changed contents after its writer process exited; the final acceptance harness verifies another-process paste while the fixture writer remains alive and passes. No Phase 5 blocker remains. Unrelated catalog edits can conservatively request refresh; changed conversion group identities retain edits as review rows rather than guessing their reassignment. GitHub CI execution, actual remote-WebView isolation, release installer/clean-machine checks and backup workflows remain not verified or in their planned later phases. Later-phase checkboxes were not changed.
 
+### Phase 5 follow-up — Practical shopping measures
+
+- [x] Round shopping displays upward to readable quantities and scale large metric amounts to L/kg without changing exact stored totals.
+- [x] Show same-dimension alternative measures in both the UI and copied list, explicitly distinguishing US, metric and Imperial volumes.
+- [x] Verify upward-rounding invariants, the reported olive-oil fraction, unknown amounts, overrides, refresh and restart preservation.
+
+**Follow-up log (2026-10-12):** Added a Rust-only shopping display formatter
+with checked rational ceiling and registered same-dimension conversion factors.
+The reported exact oil total now reads `60 mL`; alternatives include `0.06 L`,
+`¼ US cup` and `2 US fl oz`. Metric small-unit/count displays use whole amounts,
+complex fractions use simple upward steps, and large metric amounts use L/kg.
+UI and backend clipboard text share the alternatives and rounding labels.
+Original totals, overrides, source quantities and unknown wording remain intact;
+no migration or regeneration is required. ADR 0009 documents the deliberate
+shopping precision policy and independently rounded alternatives. Other
+measurement/recipe displays retain their existing precision behavior.
+
+- Passed `npm run check` (format/lint/typecheck and 59 tests),
+  `cargo fmt --all -- --check`,
+  `cargo clippy --workspace --all-targets --locked -- -D warnings`,
+  `cargo test --workspace --locked` (51 unit tests and eight integration tests),
+  and `npm run tauri build -- --debug --no-bundle` on Windows.
+- Tests cover never rounding below the requirement across fraction/decimal
+  preferences and registered quantity units, zero/tiny/large values, regional
+  cup/fluid-ounce variants, metric thresholds, dimension rejection, retained
+  exact oil totals/overrides after refresh/reopen, copy-text formatting and
+  frontend alternative labels. The restart parent runs its ignored child;
+  the separate OS clipboard test was not rerun because the writer is unchanged.
+- Corrected the existing rounding-label expectation, a test-only parser bound
+  for large generated integers and Clippy test-module ordering. One frontend
+  flow timed out during simultaneous native compilation; a serial full check
+  passed without changing its timeout. No blockers remain. Phase 5 remains
+  Complete; later-phase status/checklists were not changed.
+
 ## Phase 6 — Recipe importing and secure browsing
 
 **Goal:** Import supported recipes where permitted without compromising desktop security.

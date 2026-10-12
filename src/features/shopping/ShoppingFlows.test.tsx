@@ -33,6 +33,7 @@ function row(): ShoppingItem {
     amountText: '',
     display: '500 g',
     rounded: false,
+    alternatives: [],
     section: 'Produce',
     approximate: true,
     warnings: ['Ingredient-specific approximation.'],
@@ -70,6 +71,22 @@ beforeEach(() => {
   vi.mocked(copyShopping).mockResolvedValue();
 });
 describe('shopping editing and copying', () => {
+  it('shows backend-provided readable quantities and regional alternatives in the shopping view', async () => {
+    const saved = fixture();
+    saved.items[0]!.label = 'Olive oil';
+    saved.items[0]!.display = '60 mL';
+    saved.items[0]!.rounded = true;
+    saved.items[0]!.alternatives = ['0.06 L', '¼ US cup', '2 US fl oz'];
+    vi.mocked(getShopping).mockResolvedValue(saved);
+    show();
+    expect(await screen.findByText('60 mL')).toBeVisible();
+    expect(screen.getByText('Rounded up')).toBeVisible();
+    expect(
+      screen.getByText(
+        'Alternatives (rounded up as needed): 0.06 L · ¼ US cup · 2 US fl oz',
+      ),
+    ).toBeVisible();
+  });
   it('preserves an explicit unknown override with no unit and requires confirmation to reset it', async () => {
     const user = userEvent.setup();
     const saved = fixture();

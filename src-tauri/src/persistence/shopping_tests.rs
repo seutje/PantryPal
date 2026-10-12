@@ -8,6 +8,71 @@ use crate::domain::{
 };
 const WEEK: &str = "2020-12-28";
 #[tokio::test]
+async fn practical_displays_and_copy_keep_exact_totals_overrides_and_restart_data() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = Database::open(dir.path()).await.unwrap();
+    let mut input = fixture();
+    input.base_servings = Amount {
+        numerator: 1,
+        denominator: 1,
+    };
+    input.ingredients = vec![line(
+        "oil",
+        Some("ingredient-oil"),
+        Some(1),
+        4,
+        Some("cup-us"),
+    )];
+    let meal = db.create_meal(input).await.unwrap();
+    add(&db, "oil-entry", &meal.id, "1").await;
+    let view = change(&db, ShoppingOperation::Refresh).await;
+    let oil = find(&view, "ingredient-oil");
+    assert_eq!(oil.display, "60 mL");
+    assert_eq!(oil.item.numerator.as_deref(), Some("473176473"));
+    assert_eq!(oil.item.denominator.as_deref(), Some("8000000"));
+    assert!(view.text.contains("Olive oil — 60 mL (rounded up)"));
+    assert!(view.text.contains("¼ US cup"));
+    let id = oil.item.id.clone();
+    let view = change(
+        &db,
+        ShoppingOperation::Adjust {
+            item_id: id.clone(),
+            amount: "59.2".into(),
+            unit_id: Some("ml".into()),
+        },
+    )
+    .await;
+    let oil = find(&view, "ingredient-oil");
+    assert_eq!(oil.display, "60 mL");
+    assert_eq!(oil.item.adjustment.as_ref().unwrap().amount, "59.2");
+    assert_eq!(oil.item.numerator.as_deref(), Some("473176473"));
+    let text = view.text.clone();
+    drop(db);
+    let db = Database::open(dir.path()).await.unwrap();
+    assert_eq!(db.get_shopping(WEEK).await.unwrap().text, text);
+    let refreshed = change(&db, ShoppingOperation::Refresh).await;
+    assert_eq!(
+        find(&refreshed, "ingredient-oil")
+            .item
+            .adjustment
+            .as_ref()
+            .unwrap()
+            .amount,
+        "59.2"
+    );
+    let unknown = change(
+        &db,
+        ShoppingOperation::Adjust {
+            item_id: id,
+            amount: "to taste".into(),
+            unit_id: None,
+        },
+    )
+    .await;
+    assert_eq!(find(&unknown, "ingredient-oil").display, "to taste");
+    assert!(find(&unknown, "ingredient-oil").alternatives.is_empty());
+}
+#[tokio::test]
 async fn missing_units_and_legacy_temperatures_remain_separate_without_temperature_scaling() {
     let dir = tempfile::tempdir().unwrap();
     let db = Database::open(dir.path()).await.unwrap();
@@ -719,7 +784,7 @@ async fn section_order_rounding_large_exact_totals_and_copy_text_are_determinist
     let view = change(&db, ShoppingOperation::Refresh).await;
     assert_eq!(view.items[0].section, "Household");
     assert!(view.text.contains("Soap Household"));
-    assert!(view.text.contains("(rounded)"));
+    assert!(view.text.contains("(rounded up)"));
     assert_eq!(view.text, db.get_shopping(WEEK).await.unwrap().text);
     db.close().await;
 }

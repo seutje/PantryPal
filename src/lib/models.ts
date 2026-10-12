@@ -292,6 +292,7 @@ export interface ShoppingItem {
   display: string;
   rounded: boolean;
   section: string;
+  alternatives: string[];
   approximate: boolean;
   warnings: string[];
   ruleIds: string[];

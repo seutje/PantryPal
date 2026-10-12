@@ -209,6 +209,12 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
                       <span>{item.label}</span>
                     </label>
                     <span className="font-medium">{item.display}</span>
+                    {item.alternatives.length > 0 && (
+                      <p className="text-sm text-stone-600">
+                        Alternatives (rounded up as needed):{' '}
+                        {item.alternatives.join(' · ')}
+                      </p>
+                    )}
                     {item.adjustment && item.key && (
                       <span className="text-sm">Amount overridden</span>
                     )}
@@ -219,9 +225,7 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
                       </span>
                     )}
                     {item.rounded && (
-                      <span className="text-sm text-amber-800">
-                        Rounded display
-                      </span>
+                      <span className="text-sm text-amber-800">Rounded up</span>
                     )}
                     {item.excluded && (
                       <span className="text-sm">Excluded from copy</span>

@@ -1,3 +1,4 @@
+mod display;
 mod generation;
 use super::{
     catalog::{Ingredient, Unit, Vocabulary},
@@ -86,6 +87,7 @@ pub struct DisplayItem {
     pub item: ShoppingItem,
     pub display: String,
     pub rounded: bool,
+    pub alternatives: Vec<String>,
     pub section: String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -213,41 +215,34 @@ pub fn view(
                 item.unit_id.as_ref(),
             )
         };
-        let (amount, rounded) = if let Some(q) = quantity {
-            if ctx.prefs.fractions {
-                (q.display_fraction(), false)
-            } else {
-                q.decimal(ctx.prefs.decimal_places)?
-            }
+        let selected_unit = unit_id.map(|id| unit(ctx, id)).transpose()?;
+        let (display, rounded, alternatives) = if let Some(q) = quantity {
+            display::format(q, selected_unit, ctx)?
         } else {
-            (
-                if raw.trim().is_empty() {
-                    "Unknown amount".into()
-                } else {
-                    raw
-                },
-                false,
-            )
+            let amount = if raw.trim().is_empty() {
+                "Unknown amount".into()
+            } else {
+                raw
+            };
+            let symbol = selected_unit.map(|u| u.symbol.as_str()).unwrap_or_default();
+            let display = if amount.eq_ignore_ascii_case(symbol) {
+                amount
+            } else {
+                format!("{amount} {symbol}").trim().into()
+            };
+            (display, false, vec![])
         };
-        let symbol = unit_id
-            .map(|id| unit(ctx, id).map(|u| u.symbol.clone()))
-            .transpose()?
-            .unwrap_or_default();
         let section = item
             .section_id
             .as_ref()
             .and_then(|id| ctx.sections.iter().find(|s| &s.id == id))
             .map(|s| s.name.clone())
             .unwrap_or_else(|| "Other".into());
-        let display = if amount.eq_ignore_ascii_case(&symbol) {
-            amount
-        } else {
-            format!("{amount} {symbol}").trim().into()
-        };
         items.push(DisplayItem {
             item,
             display,
             rounded,
+            alternatives,
             section,
         });
     }
@@ -285,13 +280,19 @@ pub fn view(
             } else {
                 ""
             },
-            if row.rounded { " (rounded)" } else { "" },
+            if row.rounded { " (rounded up)" } else { "" },
             if row.item.sources.iter().any(|s| s.line.optional) {
                 " (optional)"
             } else {
                 ""
             }
         ));
+        if !row.alternatives.is_empty() {
+            text.push_str(&format!(
+                " (alternatives, rounded up as needed: {})",
+                row.alternatives.join("; ")
+            ));
+        }
     }
     Ok(ShoppingView {
         week_start: week,
