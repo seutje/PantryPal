@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getStorageStatus, nativeAvailable } from '../../lib/ipc';
 import { MeasurementSettings } from './MeasurementSettings';
 import { BrowserReset } from '../import/ImportPage';
+import { DataSettings } from './DataSettings';
+import { UsabilitySettings } from './UsabilitySettings';
 
 export function SettingsPage() {
   const status = useQuery({
@@ -35,8 +37,11 @@ export function SettingsPage() {
       </section>
       {nativeAvailable() && <MeasurementSettings />}
       {nativeAvailable() && <BrowserReset />}
+      {nativeAvailable() && <UsabilitySettings />}
+      {nativeAvailable() && <DataSettings />}
       <EmptyState title="Made for your household">
-        Backups will be available in a later update.
+        Core planning and shopping work offline. Recipe websites require an
+        internet connection.
       </EmptyState>
     </>
   );

@@ -8,7 +8,9 @@ use crate::{
     persistence::{StorageState, StorageStatus},
 };
 use serde::Serialize;
+mod data;
 mod imports;
+pub use data::*;
 mod meals;
 pub use imports::*;
 mod planning;

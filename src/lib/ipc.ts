@@ -27,7 +27,34 @@ import type {
   ImportInput,
   ImportedRecipeDraft,
   ConfirmImport,
+  BackupInfo,
+  BackupResult,
+  RestoreMode,
+  RestorePreview,
+  UsabilityPreferences,
 } from './models';
+export const getBackupInfo = () => invokeNative<BackupInfo>('get_backup_info');
+export const exportBackup = () => invokeNative<BackupResult>('export_backup');
+export const previewRestore = (text: string, mode: RestoreMode) =>
+  invokeNative<RestorePreview>('preview_restore', { text, mode });
+export const restoreBackup = (
+  text: string,
+  mode: RestoreMode,
+  expectedState: string,
+  confirmed: boolean,
+) =>
+  invokeNative<BackupResult>('restore_backup', {
+    text,
+    mode,
+    expectedState,
+    confirmed,
+  });
+export const getUsabilityPreferences = () =>
+  invokeNative<UsabilityPreferences>('get_usability_preferences');
+export const saveUsabilityPreferences = (input: UsabilityPreferences) =>
+  invokeNative<void>('save_usability_preferences', { input });
+export const readRecipeClipboardUrl = () =>
+  invokeNative<string | null>('read_recipe_clipboard_url');
 
 export const inspectRecipeUrl = (sourceUrl: string) =>
   invokeNative<string>('inspect_recipe_url', { sourceUrl });

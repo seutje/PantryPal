@@ -538,7 +538,10 @@ async fn schema_six_upgrade_preserves_plans_events_and_shopping_adjustments() {
         .run(&pool)
         .await
         .unwrap();
-    let old = Database { pool };
+    let old = Database {
+        pool,
+        app_data: directory.path().into(),
+    };
     let meal = old
         .create_meal(
             serde_json::from_str(include_str!("../../../tests/fixtures/demo-meal.json")).unwrap(),

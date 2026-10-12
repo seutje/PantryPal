@@ -2,7 +2,7 @@
 
 An offline-first Windows desktop meal planner for a Canadian household. Built with Rust, Tauri 2, React, TypeScript and, beginning in Phase 1, SQLite. See [DESIGN.md](DESIGN.md), [PLAN.md](PLAN.md) and [AGENTS.md](AGENTS.md) before changing behavior.
 
-Phases 0–6 supply the local SQLite foundation, ingredient editing, exact measurements, manual meal library and Monday-start weekly planner. Week supports repeated meals, independent fractional servings, dated/unscheduled occurrences, keyboard ordering and explicit planned/cooked/skipped actions. Cooking history supports backfill, confirmed date correction and undo, with last eaten derived only from actual records. Meals supports original amount wording, unknown quantities, six custom field kinds, typed filters and safe retirement. Ingredients supports aliases, categories, shopping sections, season months, notes, preferred units and optional conversion rules. Settings saves measurement preferences and converts temperatures. Shopping generates exact grouped quantities for the selected week, keeps incompatible and unknown lines visible, preserves manual items, overrides, checkmarks and exclusions on refresh, and copies plain text to the Windows clipboard. Stale source data requires explicit refresh before copying. Imports support authorized website capture and JSON-LD/manual entry with review before saving. Backups remain Phase 7.
+Phases 0–7 supply the local SQLite foundation, ingredient editing, exact measurements, manual meal library and Monday-start weekly planner. Week supports repeated meals, independent fractional servings, dated/unscheduled occurrences, keyboard ordering and explicit planned/cooked/skipped actions. Cooking history supports backfill, confirmed date correction and undo, with last eaten derived only from actual records. Meals supports original amount wording, unknown quantities, six custom field kinds, typed filters and safe retirement. Ingredients supports aliases, categories, shopping sections, season months, notes, preferred units and optional conversion rules. Settings saves measurement preferences and converts temperatures. Shopping generates exact grouped quantities for the selected week, keeps incompatible and unknown lines visible, preserves manual items, overrides, checkmarks and exclusions on refresh, and copies plain text to the Windows clipboard. Stale source data requires explicit refresh before copying. Imports support authorized website capture and JSON-LD/manual entry with review before saving. Settings now provides reviewed JSON backup export/restore, aisle ordering and opt-in clipboard URL prefill.
 
 ## Windows prerequisites
 
@@ -172,14 +172,68 @@ and verifies previewing leaves its isolated database empty. Neither logs
 credentials or saves publisher recipe text in the repository. Saved adapter
 fixtures use original synthetic recipe text and inspected publisher structures.
 
-Only the local `main` window can invoke the explicitly granted identity, storage-status, measurement, catalog/meal/field and planner/history and shopping operations. There are no generic filesystem, SQL, shell, HTTP, clipboard or remote-origin permissions. New commands must be included in the build-time command manifest and granted individually. See [ADR 0001](docs/adr/0001-foundation.md), [ADR 0002](docs/adr/0002-local-storage.md), [ADR 0003](docs/adr/0003-exact-measurements.md), [ADR 0004](docs/adr/0004-meal-library.md), [ADR 0005](docs/adr/0005-week-planner-history.md), [ADR 0006](docs/adr/0006-shopping-generation.md) and [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
+Only the local `main` window can invoke the explicitly granted identity, storage-status, measurement, catalog/meal/field and planner/history, shopping, reviewed backup and preference operations. There are no generic filesystem, SQL, shell, HTTP, clipboard or remote-origin permissions. New commands must be included in the build-time command manifest and granted individually. See [ADR 0001](docs/adr/0001-foundation.md), [ADR 0002](docs/adr/0002-local-storage.md), [ADR 0003](docs/adr/0003-exact-measurements.md), [ADR 0004](docs/adr/0004-meal-library.md), [ADR 0005](docs/adr/0005-week-planner-history.md), [ADR 0006](docs/adr/0006-shopping-generation.md) and [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
+
+## Backups and everyday settings
+
+In **Settings → Backups and restore**, choose **Export JSON backup**. The
+completed path appears on screen. Files are stored under
+`%APPDATA%\ca.pantrypal.desktop\backups`; copy them elsewhere with Windows Explorer
+for off-device protection. They contain personal household data in plain JSON,
+including retired recipes, original quantities, custom fields, plans, cooking
+history, shopping adjustments/manual items, import provenance and preferences.
+Website profiles and login sessions are excluded. Files remain until you remove
+them; there is no automatic retention cleanup.
+
+To restore, choose a JSON file, select **Merge** or **Replace**, then **Review
+backup**. Merge adds new IDs and keeps identical records; conflicts in recipes,
+catalogs, settings or references stop the entire import. It does not overwrite
+or remap IDs. Replace restores the entire snapshot, removing current records
+absent from it. Review the counts and confirmation, then choose **Confirm merge**
+or **Confirm replacement**. Cancel leaves household data unchanged. A recovery
+JSON backup is saved before either mode writes; backup failure stops the import.
+If household data changes after review, review again before retrying.
+
+Only format 1 / schema 8 JSON backups are currently supported, up to 50 MiB and
+100,000 rows. Old/future or damaged files are rejected without resetting data.
+Use a matching application version for other schemas. To undo a successful
+restore, review and replace with its displayed recovery JSON file.
+
+Pending database upgrades automatically create a consistent
+`backups/before-migration-*.sqlite3` copy before migrating. These are native SQLite
+files, not JSON imports. For manual migration recovery: close every PantryPal
+process, preserve the current database and any WAL/SHM files in a separate safety
+folder, then put a copy of the chosen recovery file at `pantrypal.sqlite3` in the
+app-data directory with no old WAL/SHM companions. Open it with the matching
+application version. Never overwrite your only recovery copy. Ask for help if
+the compatible version or file is uncertain.
+
+Settings also saves measurement conventions/formatting, shopping aisle order
+(keyboard-accessible Up/Down controls), and website session clearing. Clipboard
+URL prefill is off by default. Enabling it reads a bounded public HTTPS URL only
+when **Import recipe** is clicked; it never monitors the clipboard or opens a
+website automatically. Invalid clipboard contents leave manual entry available.
+
+Offline Windows acceptance, using bundled assets and isolated fixture storage:
+
+```powershell
+npm run build
+. ./scripts/Enter-DevEnvironment.ps1
+cargo run -p pantrypal --example phase7_spike --features tauri/custom-protocol --locked
+```
+
+This verifies native planning/shopping, Settings labels/navigation, file review,
+explicit confirmation, export/restore, recovery and reopening. The shell CSP
+blocks remote fetches; only deliberate recipe browsing needs internet. See
+[ADR 0010](docs/adr/0010-backups-and-everyday-settings.md) and the
+[Phase 7 audit](docs/phase7-security-audit.md) for format and verification limits.
 
 ## Local data and fixtures
 
-The desktop app creates `%APPDATA%\ca.pantrypal.desktop\pantrypal.sqlite3` using Tauri's app-data resolver. Foreign keys and WAL are enabled. Seven additive migrations initialize schema, seed, preferences, original amount text and planner/history metadata exactly once; reopening preserves user edits and retirement. SQLite's `-wal` and `-shm` files may be present during use. This directory is outside the repository and contains personal data; do not commit it or delete it to repair a migration error.
+The desktop app creates `%APPDATA%\ca.pantrypal.desktop\pantrypal.sqlite3` using Tauri's app-data resolver. Foreign keys and WAL are enabled. Eight additive migrations initialize schema, seed, preferences, original amount text and planner/history metadata exactly once; reopening preserves user edits and retirement. SQLite's `-wal` and `-shm` files may be present during use. This directory is outside the repository and contains personal data; do not commit it or delete it to repair a migration error.
 
-Plan/history writes use revisions and durable action receipts, so a retry cannot repeat an add or cooking action, including after restart or undo. Cancelled cooking records and date-change audit data are retained. Removing a plan entry preserves its actual cooking history. Dates use the computer's local calendar; future cooking is rejected, and scheduled dates never imply actual cooking. Shopping generation remains Phase 5 and does not run from the current handoff screen.
+Plan/history writes use revisions and durable action receipts, so a retry cannot repeat an add or cooking action, including after restart or undo. Cancelled cooking records and date-change audit data are retained. Removing a plan entry preserves its actual cooking history. Dates use the computer's local calendar; future cooking is rejected, and scheduled dates never imply actual cooking. Shopping generates quantities through the week-aware handoff.
 
-If storage is unavailable or incompatible, Settings and Ingredients display an error and the app never silently resets data. Backups/export/restore are Phase 7 work. To make a manual safety copy before then, close all PantryPal processes and copy the database directory; do not copy only the main file while the app is writing. Website session data must not be included in future recipe backups.
+If storage is unavailable or incompatible, Settings and Ingredients display an error and the app never silently resets data. Use Settings to export and restore household JSON backups as described below. For a manual database safety copy, close all PantryPal processes and copy the database and any remaining WAL/SHM companions; do not copy only the main file while the app is writing. Keep website profiles separate from household backups.
 
 `tests/fixtures/demo-meal.json` provides a deterministic meal with an exact fractional amount, raw wording and an unknown/to-taste line. Rust and frontend tests use it without seeding production meals. Tests create isolated temporary databases and never use the household app-data database.

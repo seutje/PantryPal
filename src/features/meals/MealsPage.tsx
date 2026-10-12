@@ -5,7 +5,7 @@ import {
   useQueryClient,
   keepPreviousData,
 } from '@tanstack/react-query';
-import { searchMeals, retireMeal } from '../../lib/ipc';
+import { searchMeals, retireMeal, readRecipeClipboardUrl } from '../../lib/ipc';
 import type {
   Meal,
   MealSearch,
@@ -50,6 +50,12 @@ export function MealsPage({
     initialMeal ?? null,
   );
   const [retiring, setRetiring] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const importAction = useMutation({
+    mutationFn: () => readRecipeClipboardUrl(),
+    onSuccess: (url) => setImportUrl(url ?? ''),
+    onSettled: () => setView('import'),
+  });
   const library = useQuery({
     queryKey: ['meal-library', search],
     queryFn: () =>
@@ -117,19 +123,30 @@ export function MealsPage({
       {!onSelect && (
         <div className="mb-4 flex items-center gap-3">
           <Button
-            disabled={!data || view === 'import'}
-            onClick={() => setView('import')}
+            disabled={!data || view === 'import' || importAction.isPending}
+            onClick={() => importAction.mutate()}
           >
             Import recipe
           </Button>
         </div>
       )}
       {library.error && <p role="alert">{library.error.message}</p>}
+      {library.error && (
+        <Button onClick={() => void library.refetch()}>
+          Retry meal search
+        </Button>
+      )}
+      {importAction.error && (
+        <p role="alert">
+          Clipboard prefill is unavailable. Enter the recipe URL manually.
+        </p>
+      )}
       {library.isPending && <p role="status">Loading meals…</p>}
       {data && (
         <>
           {view === 'import' ? (
             <ImportPage
+              initialUrl={importUrl}
               catalog={data.catalog}
               fields={data.fields}
               onSaved={saved}

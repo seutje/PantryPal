@@ -8,6 +8,12 @@ import { getStorageStatus } from '../lib/ipc';
 
 vi.mock('../lib/ipc', () => ({
   nativeAvailable: () => true,
+  getBackupInfo: vi.fn(async () => ({ directory: 'test-backups' })),
+  getUsabilityPreferences: vi.fn(async () => ({
+    clipboardUrlPrefill: false,
+    sectionOrder: [],
+  })),
+  readRecipeClipboardUrl: vi.fn(async () => null),
   changeShopping: vi.fn(),
   copyShopping: vi.fn(),
   getShopping: vi.fn(async () => ({
@@ -134,5 +140,25 @@ describe('navigation shell', () => {
           screen.getByRole('button', { name: 'Import recipe' }),
         ).toBeEnabled();
     }
+  });
+  it('moves navigation focus with arrow keys, Home and End without activating a page', async () => {
+    const user = userEvent.setup();
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+    screen.getByRole('button', { name: 'Week' }).focus();
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('button', { name: 'Meals' })).toHaveFocus();
+    expect(
+      screen.getByRole('heading', { name: 'Week', level: 1 }),
+    ).toBeInTheDocument();
+    await user.keyboard('{End}');
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus();
+    await user.keyboard('{Home}');
+    expect(screen.getByRole('button', { name: 'Week' })).toHaveFocus();
+    await user.keyboard('{ArrowUp}');
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus();
   });
 });

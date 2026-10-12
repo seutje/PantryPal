@@ -44,6 +44,13 @@
     "allow-confirm-recipe-import",
     "allow-open-recipe-browser",
     "allow-reset-recipe-browser",
-    "allow-capture-recipe-browser"
+    "allow-capture-recipe-browser",
+    "allow-get-backup-info",
+    "allow-export-backup",
+    "allow-preview-restore",
+    "allow-restore-backup",
+    "allow-get-usability-preferences",
+    "allow-save-usability-preferences",
+    "allow-read-recipe-clipboard-url"
   ]
 }

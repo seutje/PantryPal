@@ -53,13 +53,15 @@ export function ImportPage({
   fields,
   onSaved,
   onCancel,
+  initialUrl = '',
 }: {
   catalog: Catalog;
   fields: FieldDefinition[];
   onSaved: (meal: Meal) => void;
   onCancel: () => void;
+  initialUrl?: string;
 }) {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState(initialUrl);
   const [format, setFormat] = useState<ImportInput['format']>('manual');
   const [payload, setPayload] = useState('');
   const [title, setTitle] = useState('');

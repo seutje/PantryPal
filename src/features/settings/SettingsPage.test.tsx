@@ -7,6 +7,11 @@ import { SettingsPage } from './SettingsPage';
 vi.mock('../../lib/ipc', () => ({
   getStorageStatus: vi.fn(),
   nativeAvailable: () => true,
+  getBackupInfo: vi.fn(async () => ({ directory: 'test-backups' })),
+  getUsabilityPreferences: vi.fn(async () => ({
+    clipboardUrlPrefill: false,
+    sectionOrder: [],
+  })),
   getMeasurementPreferences: vi.fn(async () => ({
     mode: 'mixed',
     cupConvention: null,

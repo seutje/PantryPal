@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-recipe-clipboard-url"
+description = "Enables the read_recipe_clipboard_url command without any pre-configured scope."
+commands.allow = ["read_recipe_clipboard_url"]
+
+[[permission]]
+identifier = "deny-read-recipe-clipboard-url"
+description = "Denies the read_recipe_clipboard_url command without any pre-configured scope."
+commands.deny = ["read_recipe_clipboard_url"]

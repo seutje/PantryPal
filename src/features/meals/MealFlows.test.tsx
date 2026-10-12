@@ -10,6 +10,7 @@ import { MealEditor } from './MealEditor';
 import demo from '../../../tests/fixtures/demo-meal.json';
 
 vi.mock('../../lib/ipc', () => ({
+  readRecipeClipboardUrl: vi.fn(async () => null),
   searchMeals: vi.fn(),
   getMealHistory: vi.fn(async () => ({
     mealId: 'meal-test',
@@ -39,6 +40,7 @@ const meal: Meal = {
 };
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(api.readRecipeClipboardUrl).mockResolvedValue(null);
   records = [];
   fields = [
     {
@@ -78,6 +80,23 @@ function open() {
   );
 }
 describe('meal library workflows', () => {
+  it('reads optional URL prefill only when Import recipe is deliberately activated', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.readRecipeClipboardUrl).mockResolvedValueOnce(
+      'https://example.com/owned',
+    );
+    open();
+    const button = await screen.findByRole('button', { name: 'Import recipe' });
+    expect(api.readRecipeClipboardUrl).not.toHaveBeenCalled();
+    await user.click(button);
+    expect(await screen.findByLabelText('Recipe URL (HTTPS)')).toHaveValue(
+      'https://example.com/owned',
+    );
+    expect(api.readRecipeClipboardUrl).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole('button', { name: 'Open recipe website' }),
+    ).toBeInTheDocument();
+  });
   it('opens a retired planned recipe with its historical ingredient labels', async () => {
     const retiredMeal = {
       ...meal,

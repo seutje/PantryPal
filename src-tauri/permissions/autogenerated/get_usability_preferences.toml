@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-usability-preferences"
+description = "Enables the get_usability_preferences command without any pre-configured scope."
+commands.allow = ["get_usability_preferences"]
+
+[[permission]]
+identifier = "deny-get-usability-preferences"
+description = "Denies the get_usability_preferences command without any pre-configured scope."
+commands.deny = ["get_usability_preferences"]

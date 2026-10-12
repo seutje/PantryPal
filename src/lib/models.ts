@@ -139,6 +139,23 @@ export interface CookedEvent {
   voided: boolean;
   revision: number;
 }
+export interface BackupInfo {
+  directory: string;
+}
+export interface BackupResult {
+  path: string;
+}
+export type RestoreMode = 'merge' | 'replace';
+export interface RestorePreview {
+  expectedState: string;
+  meals: number;
+  ingredients: number;
+  rows: number;
+}
+export interface UsabilityPreferences {
+  clipboardUrlPrefill: boolean;
+  sectionOrder: string[];
+}
 export interface PlanEntry {
   id: string;
   mealId: string;

@@ -65,7 +65,14 @@ pub fn run() {
             commands::confirm_recipe_import,
             commands::open_recipe_browser,
             commands::reset_recipe_browser,
-            commands::capture_recipe_browser
+            commands::capture_recipe_browser,
+            commands::get_backup_info,
+            commands::export_backup,
+            commands::preview_restore,
+            commands::restore_backup,
+            commands::get_usability_preferences,
+            commands::save_usability_preferences,
+            commands::read_recipe_clipboard_url
         ])
         .run(tauri::generate_context!())
         .expect("failed to run PantryPal");

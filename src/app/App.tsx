@@ -80,6 +80,39 @@ export function App() {
         <nav
           aria-label="Main navigation"
           className="flex flex-wrap gap-1 self-start md:flex-col"
+          onKeyDown={(event) => {
+            if (
+              ![
+                'ArrowDown',
+                'ArrowUp',
+                'ArrowLeft',
+                'ArrowRight',
+                'Home',
+                'End',
+              ].includes(event.key)
+            )
+              return;
+            const buttons = Array.from(
+              event.currentTarget.querySelectorAll<HTMLButtonElement>('button'),
+            );
+            const index = buttons.indexOf(
+              document.activeElement as HTMLButtonElement,
+            );
+            if (index < 0) return;
+            event.preventDefault();
+            const next =
+              event.key === 'Home'
+                ? 0
+                : event.key === 'End'
+                  ? buttons.length - 1
+                  : (index +
+                      (['ArrowDown', 'ArrowRight'].includes(event.key)
+                        ? 1
+                        : -1) +
+                      buttons.length) %
+                    buttons.length;
+            buttons[next]?.focus();
+          }}
         >
           {sections.map((name) => (
             <button

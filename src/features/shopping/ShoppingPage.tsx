@@ -128,7 +128,7 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
       <p className="text-sm text-stone-600">
         Planned and cooked meals count once per occurrence, including the
         unscheduled pool. Skipped meals are excluded. Refresh preserves your
-        edits. Change section order in Ingredients.
+        edits. Change section order in Settings.
       </p>
       {selected && <p>Week of {selected}</p>}
       {(week.isError || shopping.isError) && (

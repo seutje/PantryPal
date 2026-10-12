@@ -13,7 +13,7 @@
 | 4     | Weekly planner, cooking history                       | Complete    |
 | 5     | Shopping list engine and copy/edit UX                 | Complete    |
 | 6     | Authenticated browser feasibility and import pipeline | Complete    |
-| 7     | Backup, preferences, security and polish              | Not started |
+| 7     | Backup, preferences, security and polish              | Complete    |
 | 8     | End-to-end validation and Windows release             | Not started |
 
 > **Rule:** Update this dashboard and checkboxes in the same commit as completed work. Do not mark a phase complete until its acceptance gate passes.
@@ -393,19 +393,77 @@ status changes.
 
 **Goal:** Safe, polished everyday operation.
 
-- [ ] Implement versioned JSON export/import with validation and clear merge/replace behavior.
-- [ ] Implement backup before risky migrations/imports; document backup location and restore process.
-- [ ] Add settings for measurement conventions, formatting, aisle order and browser data reset.
-- [ ] Improve Windows keyboard navigation, focus, contrast, labels, error states and empty states.
-- [ ] Add optional clipboard URL prefill on deliberate Import action (not continuous clipboard monitoring).
-- [ ] Confirm app works offline apart from deliberate recipe website visits.
-- [ ] Audit URL handling, Tauri capabilities, stored browser profiles, third-party dependencies and log redaction.
-- [ ] Test resilience to malformed import data, interrupted writes and corrupted/old backups.
-- [ ] Add reasonable performance tests with a realistic personal dataset.
+- [x] Implement versioned JSON export/import with validation and clear merge/replace behavior.
+- [x] Implement backup before risky migrations/imports; document backup location and restore process.
+- [x] Add settings for measurement conventions, formatting, aisle order and browser data reset.
+- [x] Improve Windows keyboard navigation, focus, contrast, labels, error states and empty states.
+- [x] Add optional clipboard URL prefill on deliberate Import action (not continuous clipboard monitoring).
+- [x] Confirm app works offline apart from deliberate recipe website visits.
+- [x] Audit URL handling, Tauri capabilities, stored browser profiles, third-party dependencies and log redaction.
+- [x] Test resilience to malformed import data, interrupted writes and corrupted/old backups.
+- [x] Add reasonable performance tests with a realistic personal dataset.
 
 **Acceptance gate:** Data can be exported, restored and used offline; security and accessibility smoke checks pass.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-13):** Phase 7 acceptance gate passed on Windows x64.
+Settings exports versioned household JSON, reviews Merge/Replace, requires
+explicit confirmation and shows pre-change recovery files. Restore validates
+bounded input in isolated migrated SQLite before transactionally replacing
+household tables, checking stale reviews and preserving original quantities,
+legacy temperature warnings, typed false/null values, history, receipts and
+shopping adjustments/manual items. Merge rejects conflicts and keeps identical
+records, ignoring creation/update timestamps when comparing. Pending upgrades
+first save a consistent SQLite recovery copy. Backup failures stop writes.
+Added durable aisle ordering, opt-in bounded URL prefill only on deliberate
+Import, navigation Arrow/Home/End focus and meal-search retry. Existing
+measurement preferences, session clearing, labels, focus styles and empty states
+remain available. README documents backup location, retention and recovery;
+ADR 0010 and `docs/phase7-security-audit.md` record decisions and audit limits.
+No project dependencies, lockfiles or migrations were changed.
+
+- Passed `npm run check`: formatting, lint, strict type checking and 68 frontend
+  tests. New flows cover export/review/confirmation/cancel, failed import review,
+  keyboard aisle ordering, draft retention and deliberate clipboard prefill.
+- Passed `cargo fmt --all -- --check`,
+  `cargo clippy --workspace --all-targets --locked -- -D warnings`, and
+  `cargo test --workspace --locked` (58 unit tests and nine integration tests).
+  The restart parent executes its ignored child in separate processes. New tests
+  cover exact export/restore/reopen, profile-cookie exclusion, merge conflicts,
+  stale previews, malformed/oversized/old/future backups, bad references and
+  typed values, numeric coercion, legacy preservation, failed recovery creation
+  and injected mid-restore rollback. Migration recovery preserves schema-1
+  household data; failed backup prevents upgrade. A 200-recipe/21-occurrence
+  search/generation/export/validation smoke test met its 20-second budget.
+- Passed explicit Windows clipboard acceptance:
+  `cargo test -p pantrypal --lib windows_clipboard_roundtrip --locked -- --ignored --exact services::clipboard::windows::tests::windows_clipboard_roundtrip`.
+  It verifies grocery paste, valid URL reading, credential/local/text rejection
+  and size bounds using fixture contents. Bounded test-only retries handle
+  temporary Windows clipboard listener contention; product errors remain visible.
+- Passed `npm run tauri build -- --debug --no-bundle` after importing the Visual
+  Studio SDK environment. Passed
+  `cargo run -p pantrypal --example phase7_spike --features tauri/custom-protocol --locked`
+  using bundled React, production IPC and isolated data/profile: offline
+  planning/shopping, Settings labels/navigation, export, native file review,
+  required confirmation, replacement/recovery and reopen. Resource URLs were
+  local and the shell CSP blocked an explicit remote fetch. Household data was
+  not used. New remote-command denials pass real Tauri ACL integration with the
+  OS runtime mocked; the reviewed capability manifest remains local-only.
+- `npm audit --json` passed with zero vulnerabilities. `cargo-audit 0.22.2 audit
+--json` exited 1 for RUSTSEC-2023-0071 (`rsa 0.9.10`), with informational
+  RUSTSEC-2024-0429 (`glib 0.18.5`). Windows dependency trees, including bundled
+  protocol features, confirm neither affected package is compiled. Findings and
+  re-audit obligations are documented; no blanket advisory ignore was added.
+- Resolved verification failures: initial fixture identity/merge expectations,
+  one UI label mismatch, missing SDK environment on an initial build, a Rust
+  async iterator lifetime error, Windows clipboard contention, sandbox native
+  launch restrictions, shared WebView2 profile conflict and missing bundled
+  assets in the first example run. Final checks passed. Example-only icon and
+  Chromium shutdown warnings did not affect acceptance.
+- No Phase 7 blocker remains. Backups currently require matching format/schema,
+  are unencrypted and retained until manually removed. Fault injection verifies
+  rollback, not physical power loss. This is an accessibility smoke check, not a
+  complete screen-reader audit. Installer, clean-machine, signing, GitHub CI and
+  final release acceptance remain unverified Phase 8 work; its checklist is unchanged.
 
 ## Phase 8 — Validation and distribution
 

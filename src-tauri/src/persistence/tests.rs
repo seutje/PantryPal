@@ -121,9 +121,38 @@ async fn migration_from_existing_catalog_preserves_household_rows() {
         .await
         .unwrap();
     pool.close().await;
+    // Failure to save the pre-migration snapshot must leave schema 1 intact.
+    std::fs::write(directory.path().join("backups"), "blocked folder").unwrap();
+    assert!(Database::open(directory.path()).await.is_err());
+    std::fs::remove_file(directory.path().join("backups")).unwrap();
     let upgraded = Database::open(directory.path()).await.unwrap();
     assert_eq!(upgraded.status().await.unwrap().schema_version, 8);
     assert_eq!(upgraded.status().await.unwrap().ingredient_count, 17);
+    let files: Vec<_> = std::fs::read_dir(directory.path().join("backups"))
+        .unwrap()
+        .map(|f| f.unwrap().path())
+        .collect();
+    assert_eq!(files.len(), 1);
+    let saved = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect_with(
+            SqliteConnectOptions::new()
+                .filename(&files[0])
+                .read_only(true),
+        )
+        .await
+        .unwrap();
+    let version: i64 = sqlx::query_scalar("SELECT max(version) FROM _sqlx_migrations")
+        .fetch_one(&saved)
+        .await
+        .unwrap();
+    assert_eq!(version, 1);
+    let note: String = sqlx::query_scalar("SELECT notes FROM ingredient WHERE id='household-herb'")
+        .fetch_one(&saved)
+        .await
+        .unwrap();
+    assert_eq!(note, "Keep my data");
+    saved.close().await;
     assert_eq!(
         upgraded
             .ingredient("household-herb")
@@ -697,7 +726,10 @@ async fn seed_upgrade_preserves_existing_meals_fields_and_shopping_edits() {
         .run(&pool)
         .await
         .unwrap();
-    let prior = Database { pool };
+    let prior = Database {
+        pool,
+        app_data: directory.path().into(),
+    };
     sqlx::query("INSERT INTO unit(id,label,symbol,dimension,system,factor_numerator,factor_denominator,offset_numerator,offset_denominator) VALUES ('legacy-g','Legacy gram','g','mass','metric',1,1,0,1)").execute(&prior.pool).await.unwrap();
     let herb = prior
         .create_ingredient(IngredientInput {

@@ -1,4 +1,4 @@
-//! Narrow UTF-16 Windows writer. No clipboard read API is exposed to IPC.
+//! Narrow UTF-16 Windows writer and bounded opt-in recipe URL reader.
 //! Ownership follows Microsoft's Open/Empty/Set/CloseClipboard contract.
 #[cfg(windows)]
 mod windows {
@@ -10,6 +10,7 @@ mod windows {
         fn EmptyClipboard() -> i32;
         fn SetClipboardData(format: u32, memory: *mut c_void) -> *mut c_void;
         fn CloseClipboard() -> i32;
+        fn GetClipboardData(format: u32) -> *mut c_void;
     }
     #[link(name = "kernel32")]
     extern "system" {
@@ -17,6 +18,7 @@ mod windows {
         fn GlobalLock(memory: *mut c_void) -> *mut c_void;
         fn GlobalUnlock(memory: *mut c_void) -> i32;
         fn GlobalFree(memory: *mut c_void) -> *mut c_void;
+        fn GlobalSize(memory: *mut c_void) -> usize;
     }
     struct Clipboard;
     impl Drop for Clipboard {
@@ -24,6 +26,42 @@ mod windows {
             unsafe {
                 CloseClipboard();
             }
+        }
+    }
+    /// Opt-in caller receives only a validated public recipe URL, never arbitrary
+    /// clipboard text. The read is bounded while the clipboard remains open.
+    pub fn recipe_url(owner: isize) -> AppResult<Option<String>> {
+        if owner == 0 {
+            return Err(AppError::storage());
+        }
+        unsafe {
+            if OpenClipboard(owner) == 0 {
+                return Ok(None);
+            }
+            let _clipboard = Clipboard;
+            let handle = GetClipboardData(13);
+            if handle.is_null() {
+                return Ok(None);
+            }
+            let bytes = GlobalSize(handle);
+            if bytes == 0 || bytes > 8192 || !bytes.is_multiple_of(2) {
+                return Ok(None);
+            }
+            let pointer = GlobalLock(handle).cast::<u16>();
+            if pointer.is_null() {
+                return Ok(None);
+            }
+            let data = std::slice::from_raw_parts(pointer, bytes / 2);
+            let text = data
+                .iter()
+                .position(|c| *c == 0)
+                .and_then(|end| String::from_utf16(&data[..end]).ok());
+            GlobalUnlock(handle);
+            Ok(text.and_then(|s| {
+                crate::importers::url::validate(s.trim())
+                    .ok()
+                    .map(|u| u.to_string())
+            }))
         }
     }
     struct Memory(*mut c_void);
@@ -80,6 +118,18 @@ mod windows {
             fn GetDesktopWindow() -> isize;
             fn GetClipboardData(format: u32) -> *mut c_void;
         }
+        fn fixture_write(owner: isize, text: &str) {
+            // Windows clipboard listeners may briefly hold the clipboard after
+            // each change. Only the explicit fixture test retries; product UI
+            // still reports contention and offers a deliberate retry.
+            for _ in 0..40 {
+                if write(owner, text).is_ok() {
+                    return;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(50));
+            }
+            panic!("Fixture could not obtain the Windows clipboard");
+        }
         #[test]
         #[ignore = "Explicit Windows acceptance check writes fixture text to the clipboard"]
         fn windows_clipboard_roundtrip() {
@@ -103,7 +153,7 @@ mod windows {
             std::fs::create_dir_all(&verification).unwrap();
             std::fs::write(verification.join("phase5-clipboard-expected.txt"), &fixture).unwrap();
             unsafe {
-                write(GetDesktopWindow(), &fixture).unwrap();
+                fixture_write(GetDesktopWindow(), &fixture);
                 assert_ne!(OpenClipboard(GetDesktopWindow()), 0);
                 let _clipboard = Clipboard;
                 let handle = GetClipboardData(13);
@@ -129,8 +179,24 @@ mod windows {
                 "Separate Windows paste failed: {}",
                 String::from_utf8_lossy(&paste.stderr)
             );
+            unsafe {
+                let owner = GetDesktopWindow();
+                for (text, expected) in [
+                    ("https://www.budgetbytes.com/chicken-noodle-soup/", true),
+                    ("https://user:secret@example.com/recipe", false),
+                    ("http://127.0.0.1/recipe", false),
+                    ("ordinary clipboard text", false),
+                ] {
+                    fixture_write(owner, text);
+                    assert_eq!(recipe_url(owner).unwrap().is_some(), expected);
+                }
+                fixture_write(owner, &"x".repeat(5000));
+                assert!(recipe_url(owner).unwrap().is_none());
+            }
         }
     }
 }
+#[cfg(windows)]
+pub use windows::recipe_url;
 #[cfg(windows)]
 pub use windows::write;
