@@ -162,6 +162,35 @@ README documents the base-servings default and separate-occurrence behavior.
   and native visual inspection were not rerun for this UI-only change. No
   blockers; phase dashboard and later-phase checkboxes remain unchanged.
 
+### Phase 4 follow-up — Occurrence servings and scaled ingredients
+
+- [x] Expose Edit servings directly on Week meal cards without changing recipe base servings or other occurrences.
+- [x] Show backend-derived ingredient amounts for the occurrence's saved servings, preserving units, unknowns and original recipe data.
+- [x] Verify fractional scaling, independent repeated occurrences, unchanged recipes after reopen and shopping totals after explicit refresh.
+
+**Follow-up log (2026-10-12):** Planned servings were already separate from
+recipe base servings and used by Shopping. Added a dedicated servings-only
+action reusing the validated plan edit, plus expandable ingredient amounts on
+each Week card. Rust builds view-only quantity strings with checked rational
+scaling, source units and configured fraction/decimal formatting. Unknown
+amounts remain unknown; temperatures are not scaled. Recipe editing and
+occurrence scheduling remain separate actions. No migration or regeneration
+policy change; README and ADR 0005 document the display and refresh behavior.
+
+- Passed `npm run check` (format/lint/typecheck and 63 frontend tests),
+  `cargo test --workspace --locked` (53 unit plus eight integration tests),
+  `cargo clippy --workspace --all-targets --locked -- -D warnings`,
+  `cargo fmt --all -- --check` and
+  `npm run tauri build -- --debug --no-bundle` on Windows.
+- New database coverage changes one of two dated occurrences, checks exact
+  fractional ingredient displays and combined shopping totals, verifies stale
+  shopping detection, and reopens to confirm independent servings and unchanged
+  recipe/source quantities. UI coverage verifies the direct action, saved scaled
+  ingredients and cancellation. Fixed an initial test query that matched the
+  unknown ingredient in both occurrences by scoping it to the expanded one.
+  Native visual/clipboard acceptance was not rerun. No blockers; phase dashboard
+  and later-phase checklists remain unchanged.
+
 ## Phase 5 — Grocery generation
 
 **Goal:** A trustworthy, editable and copyable list for the selected week.

@@ -145,6 +145,7 @@ export interface PlanEntry {
   localDate: string | null;
   servings: Amount;
   servingsText: string;
+  quantityDisplays: (string | null)[];
   status: PlanStatus;
   sortOrder: number;
   cookedEvent: CookedEvent | null;

@@ -20,7 +20,7 @@ impl Database {
             .checked_add_days(Days::new(7))
             .map(|d| d.format("%Y-%m-%d").to_string())
             .filter(|d| validate_week(d).is_ok());
-        let (revision, entries) = self.week_entries(&days[0]).await?;
+        let (revision, mut entries) = self.week_entries(&days[0]).await?;
         let mut library = self
             .search_meals(MealSearch {
                 text: String::new(),
@@ -71,6 +71,54 @@ impl Database {
                     quantity_displays,
                 });
             }
+        }
+        for entry in &mut entries {
+            let record = library
+                .meals
+                .iter()
+                .find(|m| m.meal.id == entry.meal_id)
+                .ok_or_else(crate::error::AppError::storage)?;
+            let scale = Rational::new(
+                entry.servings.numerator.into(),
+                entry.servings.denominator.into(),
+            )?
+            .checked_div(Rational::new(
+                record.meal.data.base_servings.numerator.into(),
+                record.meal.data.base_servings.denominator.into(),
+            )?)?;
+            entry.quantity_displays = record
+                .meal
+                .data
+                .ingredients
+                .iter()
+                .map(|line| {
+                    line.quantity
+                        .as_ref()
+                        .map(|amount| {
+                            let original =
+                                Rational::new(amount.numerator.into(), amount.denominator.into())?;
+                            let temperature = library.catalog.units.iter().any(|u| {
+                                Some(&u.id) == line.unit_id.as_ref() && u.dimension == "temperature"
+                            });
+                            let q = if temperature {
+                                original
+                            } else {
+                                original.checked_mul(scale)?
+                            };
+                            if prefs.fractions {
+                                Ok(q.display_fraction())
+                            } else {
+                                let (text, rounded) = q.decimal(prefs.decimal_places)?;
+                                Ok(if rounded {
+                                    format!("{text} (rounded; exact {})", q.fraction())
+                                } else {
+                                    text
+                                })
+                            }
+                        })
+                        .transpose()
+                })
+                .collect::<AppResult<_>>()?;
         }
         Ok(WeekView {
             week_start: days[0].clone(),

@@ -58,6 +58,120 @@ fn local_monday_weeks_and_serving_boundaries() {
     assert_eq!(servings("1 ½").unwrap().denominator, 2);
 }
 #[tokio::test]
+async fn occurrence_servings_scale_week_and_shopping_without_changing_recipe_after_restart() {
+    use crate::domain::shopping::{ShoppingMutation, ShoppingOperation};
+    let dir = tempfile::tempdir().unwrap();
+    let db = Database::open(dir.path()).await.unwrap();
+    let meal = db
+        .create_meal(
+            serde_json::from_str(include_str!("../../../tests/fixtures/demo-meal.json")).unwrap(),
+        )
+        .await
+        .unwrap();
+    let original = serde_json::to_value(&meal).unwrap();
+    let week = db.get_week("2027-01-01").await.unwrap();
+    let week = db
+        .apply_plan(mutation(
+            &week,
+            add("one", &meal.id, Some("2027-01-01"), "4"),
+        ))
+        .await
+        .unwrap();
+    let week = db
+        .apply_plan(mutation(
+            &week,
+            add("two", &meal.id, Some("2027-01-01"), "4"),
+        ))
+        .await
+        .unwrap();
+    let shopping = db
+        .change_shopping(ShoppingMutation {
+            action_id: "refresh-before".into(),
+            week_start: week.week_start.clone(),
+            expected_revision: 0,
+            operation: ShoppingOperation::Refresh,
+        })
+        .await
+        .unwrap();
+    let week = db
+        .apply_plan(mutation(
+            &week,
+            PlanOperation::Edit {
+                entry_id: "one".into(),
+                local_date: Some("2027-01-01".into()),
+                servings: "2".into(),
+            },
+        ))
+        .await
+        .unwrap();
+    assert_eq!(
+        week.entries[0].quantity_displays,
+        [Some("⅙".into()), Some("250".into()), None]
+    );
+    assert_eq!(
+        week.entries[1].quantity_displays,
+        [Some("⅓".into()), Some("500".into()), None]
+    );
+    assert_eq!(
+        serde_json::to_value(db.meal(&meal.id).await.unwrap()).unwrap(),
+        original
+    );
+    assert!(db.get_shopping(&week.week_start).await.unwrap().stale);
+    let shopping = db
+        .change_shopping(ShoppingMutation {
+            action_id: "refresh-after".into(),
+            week_start: week.week_start.clone(),
+            expected_revision: shopping.revision,
+            operation: ShoppingOperation::Refresh,
+        })
+        .await
+        .unwrap();
+    let broccoli = shopping
+        .items
+        .iter()
+        .find(|i| i.item.ingredient_id.as_deref() == Some("ingredient-broccoli"))
+        .unwrap();
+    assert_eq!(broccoli.item.numerator.as_deref(), Some("750"));
+    assert_eq!(broccoli.item.denominator.as_deref(), Some("1"));
+    assert_eq!(broccoli.item.sources.len(), 2);
+    let week = db
+        .apply_plan(mutation(
+            &week,
+            PlanOperation::Edit {
+                entry_id: "one".into(),
+                local_date: Some("2027-01-01".into()),
+                servings: "1 ½".into(),
+            },
+        ))
+        .await
+        .unwrap();
+    assert_eq!(
+        week.entries[0].quantity_displays,
+        [Some("⅛".into()), Some("187½".into()), None]
+    );
+    assert_eq!(week.entries[1].servings_text, "4");
+    let mut prefs = db.measurement_preferences().await.unwrap();
+    prefs.fractions = false;
+    prefs.decimal_places = 2;
+    db.save_measurement_preferences(prefs).await.unwrap();
+    drop(db);
+    let db = Database::open(dir.path()).await.unwrap();
+    let week = db.get_week("2027-01-01").await.unwrap();
+    assert_eq!(week.entries[0].servings_text, "1 ½");
+    assert_eq!(
+        week.entries[0].quantity_displays[0].as_deref(),
+        Some("0.13 (rounded; exact 1/8)")
+    );
+    assert_eq!(
+        week.entries[0].quantity_displays[1].as_deref(),
+        Some("187.5")
+    );
+    assert_eq!(
+        serde_json::to_value(db.meal(&meal.id).await.unwrap()).unwrap(),
+        original
+    );
+}
+#[tokio::test]
 async fn duplicate_entries_exact_actions_reordering_and_atomic_rejection() {
     let dir = tempfile::tempdir().unwrap();
     let db = Database::open(dir.path()).await.unwrap();

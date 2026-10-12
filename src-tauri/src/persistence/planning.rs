@@ -87,6 +87,7 @@ pub(crate) async fn load_entry(
             .try_get::<Option<String>, _>("servings_text")?
             .unwrap_or_else(|| amount_text(&amount)),
         servings: amount,
+        quantity_displays: vec![],
         status,
         sort_order: row.try_get("sort_order")?,
         cooked_event,

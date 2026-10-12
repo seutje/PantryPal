@@ -135,11 +135,13 @@ export function EditPlanForm({
   days,
   onApply,
   onCancel,
+  servingsOnly = false,
 }: {
   entry: PlanEntry;
   days: string[];
   onApply: (op: PlanOperation) => void;
   onCancel: () => void;
+  servingsOnly?: boolean;
 }) {
   const [date, setDate] = useState(entry.localDate);
   const [servings, setServings] = useState(entry.servingsText);
@@ -151,7 +153,9 @@ export function EditPlanForm({
         onApply({ kind: 'edit', entryId: entry.id, localDate: date, servings });
       }}
     >
-      <DayChooser days={days} value={date} onChange={setDate} />
+      {!servingsOnly && (
+        <DayChooser days={days} value={date} onChange={setDate} />
+      )}
       <FormField label="Planned servings">
         <input
           required
@@ -160,11 +164,16 @@ export function EditPlanForm({
         />
       </FormField>
       <p className="text-sm text-stone-600">
-        Changing the schedule does not change the date actually cooked.
+        These servings apply only to this planned meal. Its ingredient amounts
+        scale accordingly; the recipe's base servings stay unchanged.
       </p>
       <div className="flex gap-2">
-        <Button type="submit">Save planned occurrence</Button>
-        <Button onClick={onCancel}>Cancel occurrence edit</Button>
+        <Button type="submit">
+          {servingsOnly ? 'Save servings' : 'Save planned occurrence'}
+        </Button>
+        <Button onClick={onCancel}>
+          {servingsOnly ? 'Cancel servings edit' : 'Cancel occurrence edit'}
+        </Button>
       </div>
     </form>
   );

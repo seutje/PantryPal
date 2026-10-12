@@ -81,7 +81,10 @@ filters in a modal; click a meal card or activate it with the keyboard to add it
 to that day. The picker closes after saving. Each selection creates a separate
 planned occurrence, so a day can contain multiple meals or repeated meals.
 Servings start at the recipe's base servings and can be changed with **Edit
-occurrence**. Escape or Cancel closes the picker without adding a meal; failed
+servings** on the planned meal. This changes only that occurrence. Expand
+**Ingredients for … servings** to see its scaled amounts; the saved recipe and
+other occurrences retain their servings. Refresh Shopping to use the new totals.
+**Edit occurrence** also allows changing the day. Escape or Cancel closes the picker without adding a meal; failed
 saves retain the search and offer the same-action retry.
 
 ## Shopping quantity displays

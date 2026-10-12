@@ -18,6 +18,18 @@ Undo voids the event instead of deleting it. Last eaten is the maximum date of n
 
 The planner opens recipe detail in Meals and passes its canonical Monday to Shopping. The generation action's week selection and navigation are implemented here; grocery calculations and generated items belong to Phase 5. The Shopping screen explicitly explains their current availability. No Phase 5 calculation or regeneration behavior is claimed.
 
+## Occurrence ingredient displays
+
+Follow-up (2026-10-12): Week cards expose **Edit servings** and an expandable
+ingredient view for the occurrence. Rust derives each numeric amount using
+exact `quantity × planned servings ÷ recipe base servings`, preserving the
+source unit and unknown amounts; temperatures remain unscaled. Decimal views
+identify rounding and retain the exact fraction. These view-only strings are
+returned alongside plan entries, never written to recipes or the database.
+Changing servings uses the existing plan edit action and Shopping's existing
+explicit refresh policy. Recipe base servings, ingredient quantities and other
+occurrences remain unchanged; no migration is needed.
+
 ## Verification
 
 Rust tests cover repeated occurrences, exact/unknown/invalid servings, order and day membership, stale writes, action retries after undo/removal and restart, status changes, actual last-eaten dates, corrections, void audit and preserved detached history. Migration coverage upgrades an existing schema 6 plan/history/manual shopping adjustment without loss. Command integration uses actual Tauri deserialization, capabilities and temporary SQLite with the OS runtime mocked; remote-origin planner/history calls are rejected. A separate-process restart test retains repeated plans and cooking and safely retries the original action. React tests cover forms, keyboard ordering, statuses/confirmation, backfill/correction/undo, failed-input retention and the same-action retry, recipe navigation and week-aware Shopping handoff. Windows debug build/native startup and calendar navigation are verified separately; release installation and external-WebView isolation remain in their assigned phases.

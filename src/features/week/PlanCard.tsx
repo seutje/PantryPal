@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type {
   FieldDefinition,
+  Catalog,
   MealRecord,
   PlanEntry,
   PlanOperation,
@@ -13,6 +14,7 @@ export function PlanCard({
   entry,
   meal,
   fields,
+  catalog,
   days,
   busy,
   onApply,
@@ -24,6 +26,7 @@ export function PlanCard({
   entry: PlanEntry;
   meal: MealRecord;
   fields: FieldDefinition[];
+  catalog: Catalog;
   days: string[];
   busy: boolean;
   onApply: (operation: PlanOperation) => void;
@@ -33,7 +36,7 @@ export function PlanCard({
   last: boolean;
 }) {
   const [mode, setMode] = useState<
-    'view' | 'edit' | 'cook' | 'remove' | 'undo'
+    'view' | 'edit' | 'servings' | 'cook' | 'remove' | 'undo'
   >('view');
   const notable = meal.meal.customFields
     .filter((v) => v.value !== null)
@@ -82,12 +85,36 @@ export function PlanCard({
               </p>
             ),
         )}
-        {mode === 'edit' ? (
+        <details className="rounded-lg border border-stone-200 p-3">
+          <summary className="cursor-pointer font-semibold">
+            Ingredients for {entry.servingsText} servings
+          </summary>
+          <p className="mt-2 text-sm text-stone-600">
+            Recipe base: {meal.servingsDisplay} servings. Shopping uses these
+            planned amounts after refresh.
+          </p>
+          <ul className="mt-2 space-y-2">
+            {meal.meal.ingredients.map((line, index) => (
+              <li key={line.id}>
+                {entry.quantityDisplays[index] ??
+                  (line.amountText || 'Unknown amount')}{' '}
+                {catalog.units.find((u) => u.id === line.unitId)?.symbol ?? ''}{' '}
+                —{' '}
+                {catalog.ingredients.find((i) => i.id === line.ingredientId)
+                  ?.name ?? 'Unresolved ingredient'}
+                {line.optional ? ' (optional)' : ''}
+                {line.note ? ` · ${line.note}` : ''}
+              </li>
+            ))}
+          </ul>
+        </details>
+        {mode === 'edit' || mode === 'servings' ? (
           <EditPlanForm
             entry={entry}
             days={days}
             onApply={onApply}
             onCancel={() => setMode('view')}
+            servingsOnly={mode === 'servings'}
           />
         ) : mode === 'cook' ? (
           <RecordCookedForm
@@ -135,6 +162,7 @@ export function PlanCard({
           <>
             <div className="flex flex-wrap gap-2">
               <Button onClick={onOpen}>Open recipe</Button>
+              <Button onClick={() => setMode('servings')}>Edit servings</Button>
               <Button onClick={() => setMode('edit')}>Edit occurrence</Button>
               <Button onClick={() => setMode('remove')}>
                 Remove occurrence

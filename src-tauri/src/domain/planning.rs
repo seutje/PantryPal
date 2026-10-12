@@ -143,6 +143,8 @@ pub struct PlanEntry {
     pub local_date: Option<String>,
     pub servings: Amount,
     pub servings_text: String,
+    /// Derived for this occurrence; never persisted into the recipe.
+    pub quantity_displays: Vec<Option<String>>,
     pub status: PlanStatus,
     pub sort_order: i64,
     pub cooked_event: Option<CookedEvent>,

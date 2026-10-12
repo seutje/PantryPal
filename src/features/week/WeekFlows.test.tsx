@@ -27,6 +27,7 @@ const entry = (id: string): PlanEntry => ({
   localDate: null,
   servings: { numerator: 4, denominator: 1 },
   servingsText: '4',
+  quantityDisplays: ['⅓', '500', null],
   status: 'planned',
   sortOrder: 0,
   cookedEvent: null,
@@ -98,6 +99,80 @@ function open(props: Parameters<typeof WeekPage>[0] = { date: '2027-01-01' }) {
   );
 }
 describe('weekly planning flows', () => {
+  it('edits only occurrence servings and shows the backend-scaled ingredients', async () => {
+    const user = userEvent.setup();
+    saved.entries = [entry('one'), entry('two')].map((e) => ({
+      ...e,
+      localDate: '2027-01-01',
+    }));
+    const original = structuredClone(saved.library.meals[0]!.meal);
+    open();
+    const region = await screen.findByRole('region', {
+      name: dateLabel('2027-01-01'),
+    });
+    await user.click(
+      within(region).getAllByRole('button', { name: 'Edit servings' })[0]!,
+    );
+    expect(
+      within(region).queryByLabelText('Plan date'),
+    ).not.toBeInTheDocument();
+    expect(
+      within(region).getByText(/recipe's base servings stay unchanged/),
+    ).toBeVisible();
+    await user.clear(within(region).getByLabelText('Planned servings'));
+    await user.type(within(region).getByLabelText('Planned servings'), '2');
+    const response = structuredClone(saved);
+    response.revision++;
+    response.entries[0] = {
+      ...response.entries[0]!,
+      servings: { numerator: 2, denominator: 1 },
+      servingsText: '2',
+      quantityDisplays: ['⅙', '250', null],
+    };
+    vi.mocked(api.applyPlan).mockResolvedValueOnce(response);
+    await user.click(
+      within(region).getByRole('button', { name: 'Save servings' }),
+    );
+    await waitFor(() =>
+      expect(api.applyPlan).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operation: {
+            kind: 'edit',
+            entryId: 'one',
+            localDate: '2027-01-01',
+            servings: '2',
+          },
+        }),
+      ),
+    );
+    await user.click(
+      await within(region).findByText('Ingredients for 2 servings', {
+        selector: 'summary',
+      }),
+    );
+    expect(within(region).getByText(/250 g/)).toBeVisible();
+    expect(within(region).getByText(/⅙ US cup/)).toBeVisible();
+    const ingredients = within(region)
+      .getByText('Ingredients for 2 servings', { selector: 'summary' })
+      .closest('details')!;
+    expect(within(ingredients).getByText(/Unknown amount/)).toBeVisible();
+    expect(
+      within(region).getByText('Ingredients for 4 servings'),
+    ).toBeInTheDocument();
+    expect(response.library.meals[0]!.meal).toEqual(original);
+    await user.click(
+      within(region).getAllByRole('button', { name: 'Edit servings' })[0]!,
+    );
+    await user.clear(within(region).getByLabelText('Planned servings'));
+    await user.type(within(region).getByLabelText('Planned servings'), '99');
+    await user.click(
+      within(region).getByRole('button', { name: 'Cancel servings edit' }),
+    );
+    expect(api.applyPlan).toHaveBeenCalledTimes(1);
+    expect(
+      within(region).getByText('Ingredients for 2 servings'),
+    ).toBeInTheDocument();
+  });
   it('blocks repeat selection and dismissal while adding a meal', async () => {
     const user = userEvent.setup();
     let finish!: (value: WeekView) => void;

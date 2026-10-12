@@ -222,6 +222,7 @@ export function WeekPage({
                               entry={entry}
                               meal={meal}
                               fields={data.library.fields}
+                              catalog={data.library.catalog}
                               days={data.days}
                               busy={busy}
                               first={index === 0}
