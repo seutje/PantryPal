@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/Button';
 import { FormField } from '../../components/ui/FormField';
@@ -40,11 +40,17 @@ export function IngredientEditor({
   catalog,
   onClose,
   onSelect,
+  onSaved,
+  onBusyChange,
+  selectExisting = false,
 }: {
   ingredient: Ingredient | null;
   catalog: Catalog;
   onClose: () => void;
   onSelect: (ingredient: Ingredient) => void;
+  onSaved?: (ingredient: Ingredient) => void;
+  onBusyChange?: (busy: boolean) => void;
+  selectExisting?: boolean;
 }) {
   const [input, setInput] = useState<IngredientInput>(ingredient ?? blank);
   const [aliases, setAliases] = useState(ingredient?.aliases.join('\n') ?? '');
@@ -55,6 +61,7 @@ export function IngredientEditor({
     await Promise.all([
       client.invalidateQueries({ queryKey: ['catalog'] }),
       client.invalidateQueries({ queryKey: ['storage-status'] }),
+      client.invalidateQueries({ queryKey: ['meal-library'] }),
     ]);
   };
   const save = useMutation({
@@ -86,7 +93,8 @@ export function IngredientEditor({
         setCandidates(result.matches);
       } else {
         await refresh();
-        onClose();
+        if (onSaved) onSaved(result.saved);
+        else onClose();
       }
     },
   });
@@ -106,6 +114,9 @@ export function IngredientEditor({
     save.reset();
   };
   const pending = save.isPending || retire.isPending;
+  useEffect(() => {
+    onBusyChange?.(pending);
+  }, [pending, onBusyChange]);
   return (
     <section
       aria-label={ingredient ? 'Edit ingredient' : 'New ingredient'}
@@ -117,6 +128,7 @@ export function IngredientEditor({
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           setCandidates([]);
           save.mutate();
         }}
@@ -242,7 +254,7 @@ export function IngredientEditor({
           <div role="alert" className="rounded-lg bg-amber-50 p-3">
             <p>
               A name or alias already belongs to an ingredient. Choose another
-              name, or open the existing ingredient.
+              name, or choose the existing ingredient.
             </p>
             {candidates.map((match) => (
               <div key={match.id} className="mt-2">
@@ -253,7 +265,8 @@ export function IngredientEditor({
                   </p>
                 ) : (
                   <Button onClick={() => onSelect(match)}>
-                    Open existing {match.name}
+                    {selectExisting ? 'Use existing' : 'Open existing'}{' '}
+                    {match.name}
                   </Button>
                 )}
               </div>

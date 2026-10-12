@@ -238,6 +238,35 @@ ADR 0008 documents authorization, mechanism and limits; Cook Smarts remains manu
   credential extraction was attempted. Manual entry/session clearing remain
   available. Phase 6 remains Complete; Phase 7 and later checkboxes were not changed.
 
+### Phase 6 follow-up — Ingredient creation during recipe review
+
+- [x] Show ingredient creation in a modal from the Ingredients page and recipe ingredient lines, including scraped recipe review.
+- [x] Select a newly saved ingredient on the requested line without losing recipe quantities, original wording or import provenance; require explicit selection of existing duplicates.
+- [x] Verify initial/return focus, Escape/cancellation, failed-save retention, duplicate choice and separate ingredient/recipe saves.
+
+**Follow-up log (2026-10-12):** Added a shared native HTML modal dialog rendered
+through a portal, reusing the validated ingredient commands/editor. Native modal
+behavior supplies the inert background and focus containment; Escape and Cancel
+restore focus and cannot dismiss an in-progress save. Recipe editors maintain
+their current draft, immediately include newly created catalog IDs in their
+selectors and select only the chosen line. Catalog and meal-library queries are
+refreshed. Existing duplicates require an explicit choice; ingredient saving
+does not save the recipe. The modal and README explain that a saved catalog
+ingredient remains if the recipe is later cancelled. No Rust, schema, capability
+or importer-extraction change was needed; later phases remain unstarted.
+
+- Passed `npm run check`: formatting, lint, strict type checking and 58 frontend
+  tests. New flows cover modal focus/cancel, scraped review creation, rejected
+  save/retry, original amount/unit/wording and source retention, duplicate choice,
+  unchanged sibling lines and confirmation before recipe writes.
+- Passed `npm run tauri build -- --debug --no-bundle` on Windows, including
+  TypeScript/Vite compilation. Visually verified the rebuilt native dialog,
+  initial name focus, dimmed/inert background and cancellation to the catalog.
+  No test data was saved in household storage; captures remain ignored under
+  `.verification/`. Native recipe creation writes are covered by the UI mocks
+  and the existing Rust persistence contracts; those unchanged Rust tests were
+  not rerun in this UI-only slice. No blocker remains; Phase 6 remains Complete.
+
 ## Phase 7 — Robustness and usability
 
 **Goal:** Safe, polished everyday operation.

@@ -94,6 +94,14 @@ ranges and package sizes retain their original wording. Imported HTML markup is
 inert text. The saved meal remains editable; its original import payload,
 attribution, source and timestamp remain in a durable import record.
 
+For a missing ingredient, choose **Add ingredient** beside its ingredient
+selector in recipe review. The modal saves the ingredient to your catalog and
+selects it on that recipe line, retaining quantities and original wording.
+Existing name/alias matches require an explicit **Use existing** choice.
+Ingredients saved this way remain in the catalog even if you later cancel the
+recipe. The Ingredients page's **Add ingredient** uses the same modal; Cancel
+or Escape closes it and restores focus when no save is in progress.
+
 Duplicate source URLs require an explicit **Save another meal** choice and never
 overwrite an existing recipe. Failed saves retain the draft; identical retries
 reuse the original action ID. Cancel/discard does not create a meal.

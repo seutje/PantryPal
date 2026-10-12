@@ -1,4 +1,10 @@
-import { render, screen, within, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppProviders } from '../../app/providers';
@@ -42,6 +48,19 @@ function open() {
   );
 }
 describe('ingredient editing workflows', () => {
+  it('opens a modal and returns focus to Add ingredient on Escape without saving', async () => {
+    const user = userEvent.setup();
+    open();
+    const add = await screen.findByRole('button', { name: 'Add ingredient' });
+    await user.click(add);
+    const dialog = screen.getByRole('dialog', { name: 'Add ingredient' });
+    expect(dialog).toHaveAttribute('open');
+    expect(within(dialog).getByLabelText('Ingredient name')).toHaveFocus();
+    fireEvent(dialog, new Event('cancel', { cancelable: true }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(add).toHaveFocus();
+    expect(api.createIngredient).not.toHaveBeenCalled();
+  });
   it('creates, searches by alias, edits and retires with explicit confirmation', async () => {
     const user = userEvent.setup();
     vi.mocked(api.createIngredient).mockImplementation(async (input) => {

@@ -6,6 +6,7 @@ import { FormField } from '../../components/ui/FormField';
 import { getCatalog, nativeAvailable } from '../../lib/ipc';
 import type { Ingredient } from '../../lib/models';
 import { IngredientEditor } from './IngredientEditor';
+import { IngredientDialog } from './IngredientDialog';
 import { VocabularyManager } from './VocabularyManager';
 import { ConversionControl } from './ConversionControl';
 
@@ -47,7 +48,14 @@ export function IngredientsPage() {
   );
   return (
     <>
-      {editing !== undefined && (
+      {editing === null && (
+        <IngredientDialog
+          catalog={data}
+          onClose={close}
+          onSelect={setEditing}
+        />
+      )}
+      {editing && (
         <IngredientEditor
           key={editing?.id ?? 'new'}
           ingredient={editing}
