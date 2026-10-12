@@ -77,12 +77,13 @@ Commit both lockfiles. Use `npm ci` and Cargo's `--locked` option for repeatable
 ## Shopping quantity displays
 
 Shopping quantities round upward to readable measures while keeping their exact
-calculated totals and overrides. Large metric amounts use L/kg; volume rows also
+calculated totals and overrides. Each row uses just one metric scale: g/mL below
+one kilogram/litre, kg/L at or above it. Volume rows also
 show clearly labelled US, metric and Imperial cup/fluid-ounce alternatives.
 Copied grocery text includes the same alternatives. Unknown amounts remain
 unknown, and alternatives never assume an ingredient density. For example, an
 exact `59 1176473/8000000 mL` requirement displays as **60 mL**, with alternatives
-including **0.06 L**, **¼ US cup** and **2 US fl oz**. See
+including **¼ US cup** and **2 US fl oz**. See
 [ADR 0009](docs/adr/0009-practical-shopping-measures.md) for the rounding policy.
 
 ## Recipe importing and website sessions

@@ -288,10 +288,7 @@ pub fn view(
             }
         ));
         if !row.alternatives.is_empty() {
-            text.push_str(&format!(
-                " (alternatives, rounded up as needed: {})",
-                row.alternatives.join("; ")
-            ));
+            text.push_str(&format!(" ({})", row.alternatives.join("; ")));
         }
     }
     Ok(ShoppingView {

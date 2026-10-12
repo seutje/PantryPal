@@ -32,6 +32,9 @@ async fn practical_displays_and_copy_keep_exact_totals_overrides_and_restart_dat
     assert_eq!(oil.item.denominator.as_deref(), Some("8000000"));
     assert!(view.text.contains("Olive oil — 60 mL (rounded up)"));
     assert!(view.text.contains("¼ US cup"));
+    assert!(!view.text.contains("alternatives"));
+    assert!(!view.text.contains("rounded up as needed"));
+    assert!(!view.text.contains("0.06 L"));
     let id = oil.item.id.clone();
     let view = change(
         &db,
@@ -589,7 +592,7 @@ async fn ingredient_rules_display_preferences_no_chaining_and_ambiguity_are_expl
     add(&db, "entry", &meal.id, "4").await;
     let view = change(&db, ShoppingOperation::Refresh).await;
     assert_eq!(view.items.len(), 1);
-    assert_eq!(view.items[0].display, "½ kg");
+    assert_eq!(view.items[0].display, "500 g");
     assert!(view.items[0].item.approximate);
     assert_eq!(view.items[0].item.rule_ids.len(), 1);
     let mut prefs = db.measurement_preferences().await.unwrap();

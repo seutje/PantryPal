@@ -76,16 +76,15 @@ describe('shopping editing and copying', () => {
     saved.items[0]!.label = 'Olive oil';
     saved.items[0]!.display = '60 mL';
     saved.items[0]!.rounded = true;
-    saved.items[0]!.alternatives = ['0.06 L', '¼ US cup', '2 US fl oz'];
+    saved.items[0]!.alternatives = ['¼ US cup', '2 US fl oz'];
     vi.mocked(getShopping).mockResolvedValue(saved);
     show();
     expect(await screen.findByText('60 mL')).toBeVisible();
     expect(screen.getByText('Rounded up')).toBeVisible();
+    expect(screen.getByText('¼ US cup · 2 US fl oz')).toBeVisible();
     expect(
-      screen.getByText(
-        'Alternatives (rounded up as needed): 0.06 L · ¼ US cup · 2 US fl oz',
-      ),
-    ).toBeVisible();
+      screen.queryByText(/alternatives|rounded up as needed/i),
+    ).not.toBeInTheDocument();
   });
   it('preserves an explicit unknown override with no unit and requires confirmation to reset it', async () => {
     const user = userEvent.setup();

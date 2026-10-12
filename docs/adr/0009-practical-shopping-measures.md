@@ -10,7 +10,8 @@ and clipboard text; no schema migration or regeneration is required.
 
 - Whole mL, g, mg and count amounts round upward to the next whole unit.
   Counts are not converted into mass or volume.
-- At one litre/kilogram or more, metric mL/g displays use L/kg. Other chosen
+- At one litre/kilogram or more, metric displays use L/kg; below it they use
+  mL/g, including when the stored/preferred unit is L/kg. Other chosen
   units remain selected. Litres use decimals; kilograms retain simple exact
   fractions when preferred, otherwise decimals.
 - Preserve simple exact fractions with denominators 1, 2, 3, 4, 5, 6, 8, 12 or
@@ -24,16 +25,19 @@ and clipboard text; no schema migration or regeneration is required.
 - Volume alternatives include L/mL, explicitly named US/metric/Imperial cups
   and US/Imperial fluid ounces. Mass alternatives use g/kg/oz/lb. Only registered
   same-dimension universal factors are used: never infer density or package size.
-  Avoid redundant large mL/g alternatives when the primary display uses L/kg.
+  Include exactly one metric scale across the primary and alternatives, choosing
+  mL/g below one litre/kilogram and L/kg at or above it from the exact requirement.
 - Each alternative is converted from the exact effective requirement (including
   an override), then independently rounded upward. These are alternative ways
   to measure the requirement, not amounts to add together or exact equalities
-  between the rounded displays. UI and copied text label this rounding.
+  between the rounded displays. The primary retains its rounded-up indication;
+  alternative values appear directly without an explanatory heading, as requested
+  by the owner in the follow-up.
 - Unknown/to-taste amounts retain their wording and have no fabricated numeric
   alternatives. Original values remain available in source details and editors.
 
 For the reported quantity the primary display is `60 mL`; alternatives include
-`0.06 L`, `¼ US cup` and `2 US fl oz`. Tests cover this regression, regional
+`¼ US cup` and `2 US fl oz`, with no redundant litre measure. Tests cover this regression, regional
 variants, upward-rounding invariants across preferences/units, zero/tiny/large
 amounts, metric scale boundaries, incompatible dimensions, retained exact totals,
 manual overrides, refresh/restart and the same backend formatting in copied text.

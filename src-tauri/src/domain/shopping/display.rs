@@ -78,20 +78,36 @@ pub(super) fn format(
 ) -> AppResult<(String, bool, Vec<String>)> {
     let mut primary = source;
     let mut primary_q = q;
-    if let Some(from) = source {
-        let larger = match from.id.as_str() {
-            "ml" => Some("l"),
-            "g" => Some("kg"),
-            _ => None,
+    let metric = if let Some(from) = source.filter(|u| {
+        matches!(u.dimension.as_str(), "volume" | "mass") && u.factor_numerator.is_some()
+    }) {
+        let (small, large) = if from.dimension == "volume" {
+            ("ml", "l")
+        } else {
+            ("g", "kg")
         };
-        if let Some(to) = larger.and_then(|id| ctx.units.iter().find(|u| u.id == id)) {
-            let converted = convert(q, from, to)?;
-            if converted.n >= converted.d {
-                primary = Some(to);
-                primary_q = converted;
+        let large_unit = ctx.units.iter().find(|u| u.id == large);
+        if let Some(large_unit) = large_unit {
+            let converted = convert(q, from, large_unit)?;
+            let id = if converted.n >= converted.d {
+                large
+            } else {
+                small
+            };
+            let chosen = ctx.units.iter().find(|u| u.id == id);
+            if matches!(from.id.as_str(), "ml" | "l" | "g" | "kg") {
+                if let Some(to) = chosen {
+                    primary = Some(to);
+                    primary_q = convert(q, from, to)?;
+                }
             }
+            chosen
+        } else {
+            None
         }
-    }
+    } else {
+        None
+    };
     let (display, rounded) = measurement(primary_q, primary, ctx)?;
     let mut alternatives = vec![];
     if let Some(from) = source.filter(|u| {
@@ -117,9 +133,9 @@ pub(super) fn format(
             if primary.is_some_and(|u| u.id == to.id) {
                 continue;
             }
-            // Do not provide a second enormous metric number beside kg/L.
-            if primary.is_some_and(|u| matches!(u.id.as_str(), "kg" | "l"))
-                && matches!(to.id.as_str(), "g" | "ml")
+            // Show exactly one metric scale, even when the primary uses another system.
+            if matches!(to.id.as_str(), "g" | "kg" | "ml" | "l")
+                && metric.is_none_or(|u| u.id != to.id)
             {
                 continue;
             }
@@ -156,12 +172,43 @@ mod tests {
         let (shown, rounded, alternatives) = format(q, Some(ml), &ctx).unwrap();
         assert_eq!(shown, "60 mL");
         assert!(rounded);
-        assert!(alternatives.contains(&"0.06 L".into()));
+        assert!(!alternatives.iter().any(|s| s.ends_with(" L")));
         assert!(alternatives.contains(&"¼ US cup".into()));
         assert!(alternatives.contains(&"¼ metric cup".into()));
         assert!(alternatives.contains(&"¼ Imperial cup".into()));
         assert!(alternatives.contains(&"2 US fl oz".into()));
         assert!(alternatives.contains(&"2⅛ Imperial fl oz".into()));
+    }
+    #[tokio::test]
+    async fn each_metric_family_uses_one_scale_for_primary_and_alternatives() {
+        let ctx = context().await;
+        for (small, large, other, small_symbol, large_symbol) in [
+            ("ml", "l", "cup-us", " mL", " L"),
+            ("g", "kg", "lb", " g", " kg"),
+        ] {
+            for (n, d, expected) in [
+                (999, 1, small_symbol),
+                (1000, 1, large_symbol),
+                (1500, 1, large_symbol),
+            ] {
+                let basis = ctx.units.iter().find(|u| u.id == small).unwrap();
+                let q = Rational::new(n, d).unwrap();
+                for source_id in [small, large, other] {
+                    let source = ctx.units.iter().find(|u| u.id == source_id).unwrap();
+                    let source_q = convert(q, basis, source).unwrap();
+                    let (shown, _, alternatives) = format(source_q, Some(source), &ctx).unwrap();
+                    let measures: Vec<_> = std::iter::once(&shown)
+                        .chain(alternatives.iter())
+                        .filter(|s| s.ends_with(small_symbol) || s.ends_with(large_symbol))
+                        .collect();
+                    assert_eq!(measures.len(), 1, "{source_id}: {shown}, {alternatives:?}");
+                    assert!(measures[0].ends_with(expected));
+                }
+            }
+            let source = ctx.units.iter().find(|u| u.id == large).unwrap();
+            let (shown, _, _) = format(Rational::new(1, 2).unwrap(), Some(source), &ctx).unwrap();
+            assert_eq!(shown, format!("500{small_symbol}"));
+        }
     }
     #[tokio::test]
     async fn rounding_never_understates_quantities_across_preferences_and_units() {

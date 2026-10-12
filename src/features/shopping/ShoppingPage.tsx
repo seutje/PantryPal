@@ -211,7 +211,6 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
                     <span className="font-medium">{item.display}</span>
                     {item.alternatives.length > 0 && (
                       <p className="text-sm text-stone-600">
-                        Alternatives (rounded up as needed):{' '}
                         {item.alternatives.join(' · ')}
                       </p>
                     )}

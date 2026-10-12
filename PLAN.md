@@ -193,6 +193,27 @@ measurement/recipe displays retain their existing precision behavior.
   passed without changing its timeout. No blockers remain. Phase 5 remains
   Complete; later-phase status/checklists were not changed.
 
+- [x] Show only one metric scale per shopping row and remove the explanatory alternatives heading from the UI and copied text.
+
+**Display refinement (2026-10-12):** Rust selects g/mL below one kilogram/litre
+and kg/L at or above it from the exact effective quantity, including when a
+preferred L/kg unit contains a small amount or the primary uses another system.
+Cup/fluid-ounce and other customary alternatives remain; the redundant metric
+measure and “alternatives, rounded up as needed” heading are removed. Exact
+stored totals, overrides and regeneration behavior remain unchanged. Updated
+README and ADR 0009 to document the owner's requested refinement.
+
+- Passed `npm run check` (format/lint/typecheck and 59 frontend tests),
+  `cargo test --workspace --locked` (52 unit and eight integration tests),
+  `cargo clippy --workspace --all-targets --locked -- -D warnings`,
+  `cargo fmt --all -- --check` and
+  `npm run tauri build -- --debug --no-bundle` on Windows.
+- Added metric-scale coverage below/at/above the threshold for metric and
+  customary primary units; UI/copy tests verify removal of the heading.
+  Updated the old preferred-unit expectation from `½ kg` to `500 g` after its
+  initial failure; the final suite passes. Native clipboard acceptance and
+  visual inspection were not rerun. No blockers; phase dashboard unchanged.
+
 ## Phase 6 — Recipe importing and secure browsing
 
 **Goal:** Import supported recipes where permitted without compromising desktop security.
