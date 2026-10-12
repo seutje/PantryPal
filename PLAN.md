@@ -133,6 +133,35 @@
 - Passed `npm run tauri build -- --debug --no-bundle`, including TypeScript/Vite production compilation. Native Windows inspection verified local current-week defaults, repeated next-week navigation to 28 December 2026–3 January 2027, and Shopping receiving the exact Monday `2026-12-28`. Read-only household database checks show seven applied migrations, 16 ingredients, zero test meals/plans/history, integrity `ok` and no foreign-key violations. Writes and history corrections are verified with isolated command/database tests and UI flows; no disposable records were added to household data.
 - Initial verification issues were resolved: removed an unused Rust import, fixed historical migration fixture filenames, and made the date-label UI test respect local display order rather than assuming US month/day ordering. Final checks pass. No Phase 4 blocker remains. The Shopping action carries week context to the generation screen; calculation/regeneration/clipboard functionality stays in Phase 5. GitHub CI execution, release packaging and actual external-WebView isolation remain not verified. Later-phase checkboxes were not changed.
 
+### Phase 4 follow-up — Meal picker for each day
+
+- [x] Add an Add meal action to each dated day, opening the existing Meals search and filters in a modal.
+- [x] Add the selected recipe as a separate occurrence on that day, using base servings and preserving multiple/repeated meals.
+- [x] Verify keyboard selection, focus restoration, cancellation, pending-save protection and identical-action retry after failure.
+
+**Follow-up log (2026-10-12):** Added a selection mode to MealsPage and a native
+modal dialog in Week. Search, ingredient/tag/custom-field/history filters and
+clear filters share the existing library query and Rust validation; selecting
+the full meal card uses the existing revision-checked, durable plan mutation.
+The modal closes only after successful saving and restores the day's button
+focus; Escape/Cancel cannot dismiss an in-progress save. Failure keeps the
+search and exposes retry/reload inside the modal. The unscheduled form and
+occurrence editing remain available. Multiple meals per day were already
+supported; no Rust, migration, capability or data-rule change was needed.
+README documents the base-servings default and separate-occurrence behavior.
+
+- Passed focused `npm test -- src/features/week/WeekFlows.test.tsx src/features/meals/MealFlows.test.tsx`
+  (12 tests before the additional pending-save test), then `npm run check`
+  (format/lint/typecheck and all 62 tests) and
+  `npm run tauri build -- --debug --no-bundle` on Windows.
+- Tests cover all seven day buttons, shared filter/search payloads, two distinct
+  meals on the same day, fractional base servings, unique occurrence IDs,
+  keyboard activation, focus, Escape/Cancel, unchanged cooking status, repeat
+  selection/dismissal prevention while saving and identical retry. Corrected
+  the initial test's ingredient ID to use the actual catalog fixture. Rust tests
+  and native visual inspection were not rerun for this UI-only change. No
+  blockers; phase dashboard and later-phase checkboxes remain unchanged.
+
 ## Phase 5 — Grocery generation
 
 **Goal:** A trustworthy, editable and copyable list for the selected week.

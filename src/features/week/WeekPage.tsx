@@ -18,6 +18,7 @@ import { FormField } from '../../components/ui/FormField';
 import { AddPlanForm } from './PlanForms';
 import { PlanCard } from './PlanCard';
 import { MealDetail } from '../meals/MealDetail';
+import { MealPickerDialog } from './MealPickerDialog';
 
 export function WeekPage({
   date,
@@ -33,6 +34,7 @@ export function WeekPage({
   const client = useQueryClient();
   const [anchor, setAnchor] = useState(localToday);
   const [adding, setAdding] = useState(false);
+  const [pickerDay, setPickerDay] = useState<string | null>(null);
   const [detail, setDetail] = useState<MealRecord | null>(null);
   const [pending, setPending] = useState<PlanMutation | null>(null);
   const selectedDate = date ?? anchor;
@@ -48,6 +50,7 @@ export function WeekPage({
       void client.invalidateQueries({ queryKey: ['meal-library'] });
       void client.invalidateQueries({ queryKey: ['meal-history'] });
       setAdding(false);
+      setPickerDay(null);
       setPending(null);
     },
   });
@@ -60,6 +63,7 @@ export function WeekPage({
     setAnchor(next);
     onDateChange?.(next);
     setAdding(false);
+    setPickerDay(null);
     setDetail(null);
   }
   function apply(operation: PlanOperation) {
@@ -73,6 +77,34 @@ export function WeekPage({
     setPending(input);
     mutation.mutate(input);
   }
+  const planError = mutation.error && (
+    <div role="alert">
+      <p>
+        {mutation.error.message} Your inputs are kept. Retry uses the same
+        action; reload if another edit changed this week.
+      </p>
+      {pending && (
+        <>
+          <Button
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate(pending)}
+          >
+            Retry plan action
+          </Button>
+          <Button
+            disabled={mutation.isPending}
+            onClick={() => {
+              setPending(null);
+              mutation.reset();
+              void week.refetch();
+            }}
+          >
+            Reload week
+          </Button>
+        </>
+      )}
+    </div>
+  );
   const data = week.data;
   return (
     <div className="space-y-4">
@@ -159,9 +191,22 @@ export function WeekPage({
                       day ? dateLabel(day) : 'This week (unscheduled)'
                     }
                   >
-                    <h2 className="text-lg font-semibold">
-                      {day ? dateLabel(day) : 'This week (unscheduled)'}
-                    </h2>
+                    <div className="flex items-center justify-between gap-3">
+                      <h2 className="text-lg font-semibold">
+                        {day ? dateLabel(day) : 'This week (unscheduled)'}
+                      </h2>
+                      {day && (
+                        <Button
+                          disabled={busy}
+                          onClick={() => {
+                            setAdding(false);
+                            setPickerDay(day);
+                          }}
+                        >
+                          Add meal
+                        </Button>
+                      )}
+                    </div>
                     {entries.length === 0 && (
                       <p className="text-stone-600">No meals planned.</p>
                     )}
@@ -211,34 +256,29 @@ export function WeekPage({
           )}
         </>
       )}
-      {mutation.error && (
-        <div role="alert">
-          <p>
-            {mutation.error.message} Your inputs are kept. Retry uses the same
-            action; reload if another edit changed this week.
-          </p>
-          {pending && (
-            <>
-              <Button
-                disabled={mutation.isPending}
-                onClick={() => mutation.mutate(pending)}
-              >
-                Retry plan action
-              </Button>
-              <Button
-                disabled={mutation.isPending}
-                onClick={() => {
-                  setPending(null);
-                  mutation.reset();
-                  void week.refetch();
-                }}
-              >
-                Reload week
-              </Button>
-            </>
-          )}
-        </div>
+      {pickerDay && data && (
+        <MealPickerDialog
+          day={pickerDay}
+          library={data.library}
+          busy={busy}
+          saving={mutation.isPending}
+          onClose={() => setPickerDay(null)}
+          onSelect={(record) =>
+            apply({
+              kind: 'add',
+              entryId: crypto.randomUUID(),
+              mealId: record.meal.id,
+              localDate: pickerDay,
+              servings:
+                record.meal.baseServingsText ||
+                `${record.meal.baseServings.numerator}/${record.meal.baseServings.denominator}`,
+            })
+          }
+        >
+          {planError}
+        </MealPickerDialog>
       )}
+      {!pickerDay && planError}
     </div>
   );
 }

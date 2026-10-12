@@ -17,6 +17,8 @@ vi.mock('../../lib/ipc', () => ({
   getWeek: vi.fn(),
   applyPlan: vi.fn(),
   getMealHistory: vi.fn(),
+  searchMeals: vi.fn(),
+  retireMeal: vi.fn(),
 }));
 let saved: WeekView;
 const entry = (id: string): PlanEntry => ({
@@ -32,6 +34,7 @@ const entry = (id: string): PlanEntry => ({
 beforeEach(() => {
   vi.clearAllMocks();
   saved = structuredClone(weekFixture);
+  vi.mocked(api.searchMeals).mockResolvedValue(structuredClone(saved.library));
   vi.mocked(api.getWeek).mockImplementation(async () => structuredClone(saved));
   vi.mocked(api.getMealHistory).mockResolvedValue({
     mealId: 'meal-planner',
@@ -43,6 +46,7 @@ beforeEach(() => {
     if (op.kind === 'add')
       saved.entries.push({
         ...entry(op.entryId),
+        mealId: op.mealId,
         localDate: op.localDate,
         servingsText: op.servings,
       });
@@ -94,6 +98,201 @@ function open(props: Parameters<typeof WeekPage>[0] = { date: '2027-01-01' }) {
   );
 }
 describe('weekly planning flows', () => {
+  it('blocks repeat selection and dismissal while adding a meal', async () => {
+    const user = userEvent.setup();
+    let finish!: (value: WeekView) => void;
+    vi.mocked(api.applyPlan).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    open();
+    const region = await screen.findByRole('region', {
+      name: dateLabel('2026-12-29'),
+    });
+    await user.click(within(region).getByRole('button', { name: 'Add meal' }));
+    const dialog = screen.getByRole('dialog');
+    const choice = await within(dialog).findByRole('button', {
+      name: 'Add Broccoli and rice',
+    });
+    await waitFor(() => expect(choice).toBeEnabled());
+    await user.click(choice);
+    expect(choice).toBeDisabled();
+    expect(
+      within(dialog).getByRole('button', { name: 'Cancel adding meal' }),
+    ).toBeDisabled();
+    fireEvent(dialog, new Event('cancel', { cancelable: true }));
+    await user.click(choice);
+    expect(dialog).toBeInTheDocument();
+    expect(api.applyPlan).toHaveBeenCalledTimes(1);
+    finish(structuredClone(saved));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+  });
+  it('opens the library filters for each day and adds separate meals with keyboard selection', async () => {
+    const user = userEvent.setup();
+    const other = structuredClone(saved.library.meals[0]!);
+    other.meal.id = 'meal-other';
+    other.meal.title = 'Soup';
+    other.meal.baseServingsText = '1 ½';
+    other.meal.baseServings = { numerator: 3, denominator: 2 };
+    saved.library.meals.push(other);
+    vi.mocked(api.searchMeals).mockImplementation(async (search) => ({
+      ...structuredClone(saved.library),
+      meals: saved.library.meals.filter((m) =>
+        m.meal.title.toLowerCase().includes(search.text.toLowerCase()),
+      ),
+    }));
+    open();
+    await screen.findByRole('button', { name: 'Add meal to week' });
+    for (const day of saved.days) {
+      expect(
+        within(screen.getByRole('region', { name: dateLabel(day) })).getByRole(
+          'button',
+          { name: 'Add meal' },
+        ),
+      ).toBeEnabled();
+    }
+    const day = saved.days[0]!;
+    const region = screen.getByRole('region', { name: dateLabel(day) });
+    const opener = within(region).getByRole('button', { name: 'Add meal' });
+    await user.click(opener);
+    let dialog = await screen.findByRole('dialog', {
+      name: `Add meal to ${dateLabel(day)}`,
+    });
+    expect(within(dialog).getByLabelText('Search meals')).toHaveFocus();
+    expect(
+      within(dialog).queryByRole('button', { name: 'New meal' }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      within(dialog).getByText('Filters', { selector: 'summary' }),
+    );
+    await user.selectOptions(
+      within(dialog).getByLabelText('Contains ingredient'),
+      'ingredient-onion',
+    );
+    await user.type(within(dialog).getByLabelText('Tag'), 'quick');
+    await user.selectOptions(
+      within(dialog).getByLabelText('Cooked history'),
+      'never',
+    );
+    await waitFor(() =>
+      expect(api.searchMeals).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          ingredientId: 'ingredient-onion',
+          tag: 'quick',
+          cooked: 'never',
+        }),
+      ),
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Clear filters' }),
+    );
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole('button', { name: 'Add Broccoli and rice' }),
+      ).toBeEnabled(),
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Add Broccoli and rice' }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+    expect(opener).toHaveFocus();
+    expect(api.applyPlan).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        expectedRevision: 0,
+        operation: expect.objectContaining({
+          kind: 'add',
+          mealId: 'meal-planner',
+          localDate: day,
+          servings: '4',
+        }),
+      }),
+    );
+    await user.click(opener);
+    dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Search meals'), 'Soup');
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole('button', { name: 'Add Soup' }),
+      ).toBeEnabled(),
+    );
+    within(dialog).getByRole('button', { name: 'Add Soup' }).focus();
+    await user.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+    expect(api.applyPlan).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        expectedRevision: 1,
+        operation: expect.objectContaining({
+          mealId: 'meal-other',
+          localDate: day,
+          servings: '1 ½',
+        }),
+      }),
+    );
+    expect(
+      within(region).getAllByRole('button', { name: 'Edit occurrence' }),
+    ).toHaveLength(2);
+    expect(saved.entries[0]!.id).not.toBe(saved.entries[1]!.id);
+    expect(
+      saved.entries.every(
+        (e) => e.status === 'planned' && e.cookedEvent === null,
+      ),
+    ).toBe(true);
+  });
+  it('cancels without planning and keeps search and identical retry after a failed day add', async () => {
+    const user = userEvent.setup();
+    open();
+    const region = await screen.findByRole('region', {
+      name: dateLabel('2027-01-03'),
+    });
+    const opener = within(region).getByRole('button', { name: 'Add meal' });
+    await user.click(opener);
+    fireEvent(
+      screen.getByRole('dialog'),
+      new Event('cancel', { cancelable: true }),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
+    expect(api.applyPlan).not.toHaveBeenCalled();
+    await user.click(opener);
+    let dialog = screen.getByRole('dialog');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Cancel adding meal' }),
+    );
+    expect(api.applyPlan).not.toHaveBeenCalled();
+    vi.mocked(api.applyPlan).mockRejectedValueOnce(new Error('Try again.'));
+    await user.click(opener);
+    dialog = screen.getByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Search meals'), 'rice');
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole('button', { name: 'Add Broccoli and rice' }),
+      ).toBeEnabled(),
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Add Broccoli and rice' }),
+    );
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Try again.',
+    );
+    expect(within(dialog).getByLabelText('Search meals')).toHaveValue('rice');
+    const first = vi.mocked(api.applyPlan).mock.calls[0]![0];
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Retry plan action' }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+    expect(api.applyPlan).toHaveBeenLastCalledWith(first);
+    expect(saved.entries).toHaveLength(1);
+  });
   it('plans repeated meals with individual servings, date/pool moves and keyboard ordering', async () => {
     const user = userEvent.setup();
     open();

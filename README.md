@@ -74,6 +74,16 @@ Commit both lockfiles. Use `npm ci` and Cargo's `--locked` option for repeatable
 - `src-tauri/src/persistence` and `src-tauri/migrations`: SQLx repositories and numbered embedded migrations in per-user app data.
 - `src-tauri/src/importers`: bounded authorized website/JSON-LD/manual draft adapters and URL validation.
 
+## Adding meals to a day
+
+In Week, each day has an **Add meal** button. It opens the Meals search and
+filters in a modal; click a meal card or activate it with the keyboard to add it
+to that day. The picker closes after saving. Each selection creates a separate
+planned occurrence, so a day can contain multiple meals or repeated meals.
+Servings start at the recipe's base servings and can be changed with **Edit
+occurrence**. Escape or Cancel closes the picker without adding a meal; failed
+saves retain the search and offer the same-action retry.
+
 ## Shopping quantity displays
 
 Shopping quantities round upward to readable measures while keeping their exact
