@@ -306,23 +306,6 @@ export function ImportPage({
               save another meal.
             </p>
           )}
-          <label className="flex gap-2">
-            <input
-              type="checkbox"
-              checked={reviewed}
-              onChange={(e) => setReviewed(e.target.checked)}
-            />
-            I reviewed servings, quantities, regional units and ingredient
-            matches.
-          </label>
-          <label className="flex gap-2">
-            <input
-              type="checkbox"
-              checked={duplicate}
-              onChange={(e) => setDuplicate(e.target.checked)}
-            />
-            Save another meal if this source already exists.
-          </label>
           <MealEditor
             initialDraft={preview.draft.meal}
             catalog={catalog}
@@ -330,6 +313,27 @@ export function ImportPage({
             onSaved={onSaved}
             onCancel={onCancel}
             submitDraft={save}
+            beforeActions={
+              <div className="space-y-3">
+                <label className="flex gap-2">
+                  <input
+                    type="checkbox"
+                    checked={reviewed}
+                    onChange={(e) => setReviewed(e.target.checked)}
+                  />
+                  I reviewed servings, quantities, regional units and ingredient
+                  matches.
+                </label>
+                <label className="flex gap-2">
+                  <input
+                    type="checkbox"
+                    checked={duplicate}
+                    onChange={(e) => setDuplicate(e.target.checked)}
+                  />
+                  Save another meal if this source already exists.
+                </label>
+              </div>
+            }
           />
         </>
       )}

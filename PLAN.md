@@ -267,6 +267,15 @@ or importer-extraction change was needed; later phases remain unstarted.
   and the existing Rust persistence contracts; those unchanged Rust tests were
   not rerun in this UI-only slice. No blocker remains; Phase 6 remains Complete.
 
+- [x] Place import review and duplicate-save checkboxes immediately above Save meal and Cancel editing.
+
+**Layout follow-up (2026-10-12):** Moved both import confirmations into the meal
+editor immediately before its action buttons, retaining the existing review and
+duplicate-save state/validation. Passed `npm run check` (formatting, lint, type
+checking and 58 tests) and `npm run tauri build -- --debug --no-bundle` on Windows.
+Rust logic is unchanged and its tests were not rerun. No blockers or later-phase
+status changes.
+
 ## Phase 7 — Robustness and usability
 
 **Goal:** Safe, polished everyday operation.

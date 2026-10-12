@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import type {
   Amount,
@@ -66,6 +66,7 @@ export function MealEditor({
   onCancel,
   initialDraft,
   submitDraft,
+  beforeActions,
 }: {
   meal?: Meal | undefined;
   catalog: Catalog;
@@ -74,6 +75,7 @@ export function MealEditor({
   onCancel: () => void;
   initialDraft?: MealDraft;
   submitDraft?: (draft: MealDraft) => Promise<Meal>;
+  beforeActions?: ReactNode;
 }) {
   const [draft, setDraft] = useState(() => initialDraft ?? mealDraft(meal));
   const [tags, setTags] = useState(draft.tags.join('\n'));
@@ -435,6 +437,7 @@ export function MealEditor({
             changed this meal, cancel and reopen it to load the saved version.
           </p>
         )}
+        {beforeActions}
         <div className="flex gap-2">
           <Button type="submit" disabled={save.isPending}>
             Save meal
