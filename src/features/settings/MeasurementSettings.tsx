@@ -1,3 +1,4 @@
+import { useDraftGuard } from '../../lib/drafts';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/Button';
@@ -7,10 +8,23 @@ import {
   getMeasurementPreferences,
   saveMeasurementPreferences,
 } from '../../lib/ipc';
-import type { MeasurementPreferences } from '../../lib/models';
+import type { MeasurementPreferences, Unit } from '../../lib/models';
 import { ConversionControl } from '../ingredients/ConversionControl';
 
-function PreferenceForm({ initial }: { initial: MeasurementPreferences }) {
+function PreferenceForm({
+  initial,
+  units,
+}: {
+  initial: MeasurementPreferences;
+  units: Unit[];
+}) {
+  const cups = ['metric', 'us', 'imperial']
+    .map((system) => units.find((unit) => unit.id === `cup-${system}`))
+    .filter((unit): unit is Unit => !!unit);
+  const cupLabel = (unit: Unit) =>
+    unit.factorNumerator !== null && unit.factorDenominator
+      ? `${unit.label}: ${(unit.factorNumerator / unit.factorDenominator).toLocaleString('en-CA', { maximumFractionDigits: 3 })} mL`
+      : unit.label;
   const [input, setInput] = useState(initial);
   const client = useQueryClient();
   const save = useMutation({
@@ -20,6 +34,10 @@ function PreferenceForm({ initial }: { initial: MeasurementPreferences }) {
       client.setQueryData(['measurement-preferences'], data);
     },
   });
+  useDraftGuard(
+    JSON.stringify(input) !== JSON.stringify(initial),
+    save.isPending,
+  );
   return (
     <form
       onSubmit={(e) => {
@@ -28,85 +46,110 @@ function PreferenceForm({ initial }: { initial: MeasurementPreferences }) {
       }}
       className="space-y-4"
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="Measurement mode">
-          <select
-            value={input.mode}
-            onChange={(e) => {
-              setInput({
-                ...input,
-                mode: e.target.value as MeasurementPreferences['mode'],
-              });
-              save.reset();
-            }}
-          >
-            <option value="mixed">Mixed / ingredient-specific</option>
-            <option value="metric">Metric</option>
-            <option value="us">US customary</option>
-          </select>
-        </FormField>
-        <FormField label="Ambiguous cup review preference">
-          <select
-            value={input.cupConvention ?? ''}
-            onChange={(e) => {
-              setInput({
-                ...input,
-                cupConvention: (e.target.value ||
-                  null) as MeasurementPreferences['cupConvention'],
-              });
-              save.reset();
-            }}
-          >
-            <option value="">Always ask</option>
-            <option value="metric">Metric cup — 250 mL</option>
-            <option value="us">US cup — about 236.588 mL</option>
-            <option value="imperial">Imperial cup — about 284.131 mL</option>
-          </select>
-        </FormField>
-        <FormField label="Decimal places">
+      <fieldset disabled={save.isPending} className="space-y-4">
+        <legend className="sr-only">Measurement display preferences</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField label="Measurement mode">
+            <select
+              value={input.mode}
+              onChange={(e) => {
+                setInput({
+                  ...input,
+                  mode: e.target.value as MeasurementPreferences['mode'],
+                });
+                save.reset();
+              }}
+            >
+              <option value="mixed">Mixed / ingredient-specific</option>
+              <option value="metric">Metric</option>
+              <option value="us">US customary</option>
+            </select>
+          </FormField>
+          <FormField label="Ambiguous cup review preference">
+            <select
+              value={input.cupConvention ?? ''}
+              onChange={(e) => {
+                setInput({
+                  ...input,
+                  cupConvention: (e.target.value ||
+                    null) as MeasurementPreferences['cupConvention'],
+                });
+                save.reset();
+              }}
+            >
+              <option value="">Always ask</option>
+              <option value="metric">
+                {cups.find((u) => u.system === 'metric')
+                  ? cupLabel(cups.find((u) => u.system === 'metric')!)
+                  : 'Metric cup'}
+              </option>
+              <option value="us">
+                {cups.find((u) => u.system === 'us')
+                  ? cupLabel(cups.find((u) => u.system === 'us')!)
+                  : 'US cup'}
+              </option>
+              <option value="imperial">
+                {cups.find((u) => u.system === 'imperial')
+                  ? cupLabel(cups.find((u) => u.system === 'imperial')!)
+                  : 'Imperial cup'}
+              </option>
+            </select>
+          </FormField>
+          <FormField label="Decimal places">
+            <input
+              type="number"
+              min={0}
+              max={6}
+              required
+              value={input.decimalPlaces}
+              onChange={(e) => {
+                setInput({ ...input, decimalPlaces: Number(e.target.value) });
+                save.reset();
+              }}
+            />
+          </FormField>
+        </div>
+        <label className="flex items-center gap-2">
           <input
-            type="number"
-            min={0}
-            max={6}
-            required
-            value={input.decimalPlaces}
+            type="checkbox"
+            checked={input.fractions}
             onChange={(e) => {
-              setInput({ ...input, decimalPlaces: Number(e.target.value) });
+              setInput({ ...input, fractions: e.target.checked });
               save.reset();
             }}
           />
-        </FormField>
-      </div>
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={input.fractions}
-          onChange={(e) => {
-            setInput({ ...input, fractions: e.target.checked });
-            save.reset();
-          }}
-        />
-        Display exact fractions
-      </label>
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={input.aggregateCompatible}
-          onChange={(e) => {
-            setInput({ ...input, aggregateCompatible: e.target.checked });
-            save.reset();
-          }}
-        />
-        Combine compatible shopping quantities when grocery generation is
-        available
-      </label>
-      <p className="text-sm text-stone-600">
-        These are display and review preferences. An unspecified cup still
-        requires an explicit choice; source units are preserved.
-      </p>
-      <Button type="submit" disabled={save.isPending}>
-        Save measurement preferences
-      </Button>
+          Display exact fractions
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={input.aggregateCompatible}
+            onChange={(e) => {
+              setInput({ ...input, aggregateCompatible: e.target.checked });
+              save.reset();
+            }}
+          />
+          Combine compatible shopping quantities
+        </label>
+        <p className="text-sm text-stone-600">
+          These are display and review preferences. An unspecified cup still
+          requires an explicit choice; source units are preserved.
+        </p>
+        <div className="pp-panel text-sm">
+          <h3 className="font-semibold mb-2">Cup reference</h3>
+          <ul>
+            {cups.map((cup) => (
+              <li key={cup.id}>{cupLabel(cup)}</li>
+            ))}
+          </ul>
+          <p className="pp-muted">
+            An unspecified cup still needs an explicit choice.
+          </p>
+        </div>
+        <Button type="submit" disabled={save.isPending}>
+          Save measurement preferences
+        </Button>
+      </fieldset>
       {save.isError && <p role="alert">{save.error.message}</p>}
       {save.isSuccess && <p role="status">Measurement preferences saved.</p>}
     </form>
@@ -130,13 +173,19 @@ export function MeasurementSettings() {
           PantryPal.
         </p>
       ) : prefs.data ? (
-        <PreferenceForm initial={prefs.data} />
+        <PreferenceForm
+          initial={prefs.data}
+          units={catalog.data?.units ?? []}
+        />
       ) : (
         <p role="status">Loading measurement preferences…</p>
       )}
-      {catalog.data && (
-        <ConversionControl units={catalog.data.units} temperature />
-      )}
+      <details className="mt-5">
+        <summary className="font-semibold">Temperature conversion</summary>
+        {catalog.data && (
+          <ConversionControl units={catalog.data.units} temperature />
+        )}
+      </details>
     </section>
   );
 }

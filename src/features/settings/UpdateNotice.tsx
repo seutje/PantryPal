@@ -182,7 +182,7 @@ function UpdateDialog({
         <Button autoFocus disabled={busy} onClick={onClose}>
           Not now
         </Button>
-        <Button disabled={busy} onClick={onInstall}>
+        <Button variant="primary" disabled={busy} onClick={onInstall}>
           {busy ? 'Preparing update…' : 'Download and install'}
         </Button>
       </div>

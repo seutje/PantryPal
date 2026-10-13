@@ -599,6 +599,37 @@ session error; Node supplied the completed artifact check instead. Rust tests,
 native build and live UI checks were not run for this artifact-only change.
 Release acceptance checkboxes and the phase dashboard remain unchanged.
 
+**Approved UX/UI implementation (2026-10-13):** The owner approved the design
+review and requested implementation. Completed the shared shell and all approved
+screen families in React/CSS, keeping Rust quantity/data rules and native security
+boundaries. ADR 0012 records explicit planner confirmation, mounted settings drafts,
+progressive disclosure and the intentional correction of stale measurement copy.
+
+- [x] Apply the approved visual hierarchy across Week, Meals, Shopping, Ingredients
+      and Settings, including recipe/import editors and supporting management flows.
+- [x] Preserve source wording, regional units, unknown/false values, aliases,
+      shopping adjustments, warnings, history and existing confirmation semantics.
+- [x] Require explicit planner Add and protect unsaved edits when navigating/cancelling;
+      retain settings drafts between task panels and block leaving pending writes.
+- [x] Verify automated UI flows and disclosure keyboard behavior; inspect the native
+      Windows UI at default and minimum sizes with isolated sample data.
+- [x] Save actual implemented-screen captures and verification notes in
+      `design/implementation/index.html`, linked from the original proposal gallery.
+
+Passed `npm run check` (78 tests/20 files), `npm run build`,
+`cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`,
+`cargo test --workspace --features tauri/custom-protocol --locked`
+(59 unit/11 integration passed; two existing opt-in tests ignored),
+`npm run tauri build -- --debug --no-bundle`,
+`cargo build --example ui_review --features tauri/custom-protocol --locked`,
+local gallery link/PNG checks and `git diff --check`. Windows initially locked
+an example executable during a test rebuild; stopping only the isolated review
+runner resolved it and the rerun passed. Browser discovery had no available
+surface; native WebView2 screenshots provided visual review. Full screen-reader
+and every-state/DPI coverage, and native-close draft protection are not verified.
+No release was published. Release acceptance checkboxes/dashboard remain unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

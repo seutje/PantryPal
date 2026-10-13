@@ -33,7 +33,7 @@ const entry = (id: string): PlanEntry => ({
   cookedEvent: null,
 });
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   saved = structuredClone(weekFixture);
   vi.mocked(api.searchMeals).mockResolvedValue(structuredClone(saved.library));
   vi.mocked(api.getWeek).mockImplementation(async () => structuredClone(saved));
@@ -111,6 +111,11 @@ describe('weekly planning flows', () => {
       name: dateLabel('2027-01-01'),
     });
     await user.click(
+      within(region).getAllByText('More occurrence actions', {
+        selector: 'summary',
+      })[0]!,
+    );
+    await user.click(
       within(region).getAllByRole('button', { name: 'Edit servings' })[0]!,
     );
     expect(
@@ -161,10 +166,16 @@ describe('weekly planning flows', () => {
     ).toBeInTheDocument();
     expect(response.library.meals[0]!.meal).toEqual(original);
     await user.click(
+      within(region).getAllByText('More occurrence actions', {
+        selector: 'summary',
+      })[0]!,
+    );
+    await user.click(
       within(region).getAllByRole('button', { name: 'Edit servings' })[0]!,
     );
     await user.clear(within(region).getByLabelText('Planned servings'));
     await user.type(within(region).getByLabelText('Planned servings'), '99');
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(true);
     await user.click(
       within(region).getByRole('button', { name: 'Cancel servings edit' }),
     );
@@ -189,10 +200,14 @@ describe('weekly planning flows', () => {
     await user.click(within(region).getByRole('button', { name: 'Add meal' }));
     const dialog = screen.getByRole('dialog');
     const choice = await within(dialog).findByRole('button', {
-      name: 'Add Broccoli and rice',
+      name: 'Choose Broccoli and rice',
     });
     await waitFor(() => expect(choice).toBeEnabled());
     await user.click(choice);
+    expect(api.applyPlan).not.toHaveBeenCalled();
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Add planned meal' }),
+    );
     expect(choice).toBeDisabled();
     expect(
       within(dialog).getByRole('button', { name: 'Cancel adding meal' }),
@@ -267,11 +282,16 @@ describe('weekly planning flows', () => {
     );
     await waitFor(() =>
       expect(
-        within(dialog).getByRole('button', { name: 'Add Broccoli and rice' }),
+        within(dialog).getByRole('button', {
+          name: 'Choose Broccoli and rice',
+        }),
       ).toBeEnabled(),
     );
     await user.click(
-      within(dialog).getByRole('button', { name: 'Add Broccoli and rice' }),
+      within(dialog).getByRole('button', { name: 'Choose Broccoli and rice' }),
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Add planned meal' }),
     );
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
@@ -293,10 +313,13 @@ describe('weekly planning flows', () => {
     await user.type(within(dialog).getByLabelText('Search meals'), 'Soup');
     await waitFor(() =>
       expect(
-        within(dialog).getByRole('button', { name: 'Add Soup' }),
+        within(dialog).getByRole('button', { name: 'Choose Soup' }),
       ).toBeEnabled(),
     );
-    within(dialog).getByRole('button', { name: 'Add Soup' }).focus();
+    within(dialog).getByRole('button', { name: 'Choose Soup' }).focus();
+    await user.keyboard('{Enter}');
+    expect(api.applyPlan).toHaveBeenCalledTimes(1);
+    within(dialog).getByRole('button', { name: 'Add planned meal' }).focus();
     await user.keyboard('{Enter}');
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
@@ -312,7 +335,10 @@ describe('weekly planning flows', () => {
       }),
     );
     expect(
-      within(region).getAllByRole('button', { name: 'Edit occurrence' }),
+      within(region).getAllByRole('button', {
+        name: 'Edit occurrence',
+        hidden: true,
+      }),
     ).toHaveLength(2);
     expect(saved.entries[0]!.id).not.toBe(saved.entries[1]!.id);
     expect(
@@ -348,11 +374,16 @@ describe('weekly planning flows', () => {
     await user.type(within(dialog).getByLabelText('Search meals'), 'rice');
     await waitFor(() =>
       expect(
-        within(dialog).getByRole('button', { name: 'Add Broccoli and rice' }),
+        within(dialog).getByRole('button', {
+          name: 'Choose Broccoli and rice',
+        }),
       ).toBeEnabled(),
     );
     await user.click(
-      within(dialog).getByRole('button', { name: 'Add Broccoli and rice' }),
+      within(dialog).getByRole('button', { name: 'Choose Broccoli and rice' }),
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Add planned meal' }),
     );
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(
       'Try again.',
@@ -374,9 +405,8 @@ describe('weekly planning flows', () => {
     await user.click(
       await screen.findByRole('button', { name: 'Add meal to week' }),
     );
-    await user.selectOptions(
-      screen.getByLabelText('Meal to plan'),
-      'meal-planner',
+    await user.click(
+      await screen.findByRole('button', { name: 'Choose Broccoli and rice' }),
     );
     await user.clear(screen.getByLabelText('Planned servings'));
     await user.type(screen.getByLabelText('Planned servings'), '1 ½');
@@ -398,18 +428,25 @@ describe('weekly planning flows', () => {
     await user.click(
       await screen.findByRole('button', { name: 'Add meal to week' }),
     );
-    await user.selectOptions(
-      screen.getByLabelText('Meal to plan'),
-      'meal-planner',
+    await user.click(
+      await screen.findByRole('button', { name: 'Choose Broccoli and rice' }),
     );
     await user.click(screen.getByRole('button', { name: 'Add planned meal' }));
     await waitFor(() =>
       expect(
-        screen.getAllByRole('button', { name: 'Edit occurrence' }),
+        screen.getAllByRole('button', {
+          name: 'Edit occurrence',
+          hidden: true,
+        }),
       ).toHaveLength(2),
     );
     const ids = saved.entries.map((e) => e.id);
     expect(ids[0]).not.toBe(ids[1]);
+    await user.click(
+      screen.getAllByText('More occurrence actions', {
+        selector: 'summary',
+      })[0]!,
+    );
     screen.getAllByRole('button', { name: 'Move down' })[0]!.focus();
     await user.keyboard('{Enter}');
     await waitFor(() =>
@@ -422,6 +459,11 @@ describe('weekly planning flows', () => {
           },
         }),
       ),
+    );
+    await user.click(
+      screen.getAllByText('More occurrence actions', {
+        selector: 'summary',
+      })[0]!,
     );
     await user.click(
       screen.getAllByRole('button', { name: 'Edit occurrence' })[0]!,
@@ -451,6 +493,11 @@ describe('weekly planning flows', () => {
     saved.entries = [entry('one')];
     open();
     await user.click(
+      await screen.findByText('More occurrence actions', {
+        selector: 'summary',
+      }),
+    );
+    await user.click(
       await screen.findByRole('button', { name: 'Skip occurrence' }),
     );
     await waitFor(() =>
@@ -465,6 +512,9 @@ describe('weekly planning flows', () => {
           },
         }),
       ),
+    );
+    await user.click(
+      screen.getByText('More occurrence actions', { selector: 'summary' }),
     );
     await user.click(screen.getByRole('button', { name: 'Return to planned' }));
     await user.click(
@@ -494,6 +544,9 @@ describe('weekly planning flows', () => {
       screen.getByRole('button', { name: 'Confirm cooking undo' }),
     );
     await screen.findByRole('button', { name: 'Mark cooked' });
+    await user.click(
+      screen.getByText('More occurrence actions', { selector: 'summary' }),
+    );
     await user.click(screen.getByRole('button', { name: 'Remove occurrence' }));
     expect(api.applyPlan).toHaveBeenCalledTimes(4);
     await user.click(
@@ -501,7 +554,7 @@ describe('weekly planning flows', () => {
     );
     await waitFor(() =>
       expect(
-        screen.queryByRole('button', { name: 'Edit occurrence' }),
+        screen.queryByRole('button', { name: 'Edit occurrence', hidden: true }),
       ).not.toBeInTheDocument(),
     );
   });
@@ -512,9 +565,8 @@ describe('weekly planning flows', () => {
     await user.click(
       await screen.findByRole('button', { name: 'Add meal to week' }),
     );
-    await user.selectOptions(
-      screen.getByLabelText('Meal to plan'),
-      'meal-planner',
+    await user.click(
+      await screen.findByRole('button', { name: 'Choose Broccoli and rice' }),
     );
     await user.type(screen.getByLabelText('Planned servings'), ' ½');
     await user.click(screen.getByRole('button', { name: 'Add planned meal' }));

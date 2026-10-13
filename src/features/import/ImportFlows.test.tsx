@@ -147,8 +147,7 @@ it('reviews a supplied draft, resolves cups and identity, and retries an identic
     line.getByLabelText('Ingredient'),
     catalogFixture.ingredients[0]!.id,
   );
-  await user.click(screen.getByRole('button', { name: 'Save meal' }));
-  await screen.findByRole('alert');
+  expect(screen.getByRole('button', { name: 'Save meal' })).toBeDisabled();
   expect(api.confirmRecipeImport).not.toHaveBeenCalled();
   await user.click(
     screen.getByLabelText(

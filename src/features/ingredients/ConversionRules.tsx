@@ -1,3 +1,4 @@
+import { useDraftGuard } from '../../lib/drafts';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/Button';
@@ -33,6 +34,7 @@ function RuleEditor({
     approximate: rule?.approximate ?? true,
     notes: rule?.notes ?? '',
   });
+  const [baseline] = useState(() => JSON.stringify(input));
   const [confirmed, setConfirmed] = useState(false);
   const client = useQueryClient();
   const done = async () => {
@@ -50,6 +52,7 @@ function RuleEditor({
     onSuccess: done,
   });
   const pending = save.isPending || retire.isPending;
+  const canDiscard = useDraftGuard(JSON.stringify(input) !== baseline, pending);
   return (
     <form
       onSubmit={(e) => {
@@ -132,7 +135,12 @@ function RuleEditor({
         <Button type="submit" disabled={pending}>
           Save conversion rule
         </Button>
-        <Button disabled={pending} onClick={onClose}>
+        <Button
+          disabled={pending}
+          onClick={() => {
+            if (canDiscard()) onClose();
+          }}
+        >
           Cancel rule
         </Button>
       </div>
@@ -147,6 +155,7 @@ function RuleEditor({
             Confirm retirement of this rule
           </label>
           <Button
+            variant="danger"
             disabled={!confirmed || pending}
             onClick={() => retire.mutate()}
           >
@@ -203,8 +212,15 @@ export function ConversionRules({
                   {units.find((u) => u.id === rule.toUnitId)?.symbol} —{' '}
                   {rule.notes}
                 </span>
-                <Button onClick={() => setEditing(rule)}>
-                  Edit rule {rule.id.slice(0, 8)}
+                <Button
+                  aria-label={`Edit conversion rule ${rule.originalFromText || 'amount'} ${units.find((u) => u.id === rule.fromUnitId)?.symbol ?? ''}`}
+                  variant="quiet"
+                  disabled={editing !== undefined}
+                  onClick={() => {
+                    setEditing(rule);
+                  }}
+                >
+                  Edit rule
                 </Button>
               </li>
             ))}

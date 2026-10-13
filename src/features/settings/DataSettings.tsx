@@ -48,14 +48,21 @@ export function DataSettings() {
         cookies and login sessions are excluded.
       </p>
       {info.data && (
-        <p className="break-all">Backup folder: {info.data.directory}</p>
+        <details>
+          <summary className="pp-muted">Backup location</summary>
+          <p className="break-all mt-2">Backup folder: {info.data.directory}</p>
+        </details>
       )}
       {info.error && <p role="alert">{info.error.message}</p>}
       <p className="text-sm text-stone-600">
         Backups are kept until you remove them. Copy exported JSON files to
         another location for protection if this computer fails.
       </p>
-      <Button disabled={busy} onClick={() => exporting.mutate()}>
+      <Button
+        variant="primary"
+        disabled={busy}
+        onClick={() => exporting.mutate()}
+      >
         Export JSON backup
       </Button>
       {exporting.data && (
@@ -64,7 +71,7 @@ export function DataSettings() {
         </p>
       )}
       <fieldset disabled={busy} className="space-y-3">
-        <legend className="font-semibold">Import a JSON backup</legend>
+        <legend className="font-semibold">Restore from a JSON backup</legend>
         <FormField label="Backup file">
           <input
             type="file"
@@ -129,7 +136,7 @@ export function DataSettings() {
           <div
             role="group"
             aria-label="Confirm backup import"
-            className="space-y-3"
+            className="pp-panel space-y-3"
           >
             <p>
               Result: {review.meals} recipes · {review.ingredients} ingredients
@@ -153,6 +160,7 @@ export function DataSettings() {
               />
             </FormField>
             <Button
+              variant={mode === 'replace' ? 'danger' : 'primary'}
               disabled={!confirmed || busy}
               onClick={() => restore.mutate()}
             >

@@ -1,5 +1,7 @@
+import { ShoppingRow } from './ShoppingRow';
 import { ShoppingForm } from './ShoppingForm';
-import { useState } from 'react';
+import { DraftContext, useDraftGuard } from '../../lib/drafts';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getWeek,
@@ -15,10 +17,19 @@ import { FormField } from '../../components/ui/FormField';
 import { EmptyState } from '../../components/EmptyState';
 
 export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
+  const drafts = useContext(DraftContext);
+  const editOpener = useRef<HTMLElement | null>(null);
+  const endEdit = () => {
+    setEditing(null);
+    editOpener.current?.focus();
+  };
   const client = useQueryClient();
   const [date, setDate] = useState(weekStart ?? localToday);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  useEffect(() => {
+    if (!editing && !adding) editOpener.current?.focus();
+  }, [editing, adding]);
   const [pending, setPending] = useState<ShoppingMutation | null>(null);
   const [copied, setCopied] = useState(false);
   const week = useQuery({
@@ -50,6 +61,7 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
     onSuccess: () => setCopied(true),
   });
   const busy = mutation.isPending || !!pending;
+  useDraftGuard(!!pending, mutation.isPending);
   const run = (operation: ShoppingOperation) => {
     if (!shopping.data || busy) return;
     const input = {
@@ -62,6 +74,7 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
     mutation.mutate(input);
   };
   const reload = () => {
+    if (!drafts.canLeave()) return;
     setPending(null);
     mutation.reset();
     copy.reset();
@@ -73,11 +86,17 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
   };
   const data = shopping.data;
   const groups = data
-    ? [...new Set(data.items.map((item) => item.section))]
+    ? [
+        ...new Set(
+          data.items
+            .filter((item) => !item.excluded && !item.orphaned)
+            .map((item) => item.section),
+        ),
+      ]
     : [];
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="pp-toolbar">
         <FormField label="Shopping week">
           <input
             type="date"
@@ -100,11 +119,15 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
         </Button>
         <Button
           disabled={!data || busy || adding || !!editing}
-          onClick={() => setAdding(true)}
+          onClick={() => {
+            editOpener.current = document.activeElement as HTMLElement;
+            setAdding(true);
+          }}
         >
           Add manual item
         </Button>
         <Button
+          variant="primary"
           disabled={
             !data ||
             data.stale ||
@@ -121,7 +144,7 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
         >
           Copy list
         </Button>
-        <Button disabled={mutation.isPending} onClick={reload}>
+        <Button variant="quiet" disabled={mutation.isPending} onClick={reload}>
           Reload
         </Button>
       </div>
@@ -146,7 +169,7 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
           className="rounded-lg border border-amber-400 bg-amber-50 p-3"
         >
           Shopping list needs refresh. Meals, plans or measurement settings have
-          changed.
+          changed. Refresh before copying; your edits and checkmarks are kept.
         </p>
       )}
       {mutation.isError && (
@@ -181,138 +204,84 @@ export function ShoppingPage({ weekStart }: { weekStart?: string | null }) {
           Add meals to this week and select Generate list, or add a manual item.
         </EmptyState>
       )}
-      {data &&
-        groups.map((section) => (
-          <section key={section} aria-label={section} className="space-y-3">
-            <h2 className="text-xl font-semibold">{section}</h2>
-            {data.items
-              .filter((item) => item.section === section)
-              .map((item) => (
-                <article
-                  key={item.id}
-                  className="rounded-xl border border-stone-200 bg-white p-4 space-y-2"
-                >
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={item.checked}
-                        disabled={busy || adding || !!editing}
-                        onChange={(event) =>
-                          run({
-                            kind: 'check',
-                            itemId: item.id,
-                            checked: event.target.checked,
-                          })
-                        }
-                      />
-                      <span>{item.label}</span>
-                    </label>
-                    <span className="font-medium">{item.display}</span>
-                    {item.alternatives.length > 0 && (
-                      <p className="text-sm text-stone-600">
-                        {item.alternatives.join(' · ')}
-                      </p>
-                    )}
-                    {item.adjustment && item.key && (
-                      <span className="text-sm">Amount overridden</span>
-                    )}
-                    {!item.key && <span className="text-sm">Manual item</span>}
-                    {item.approximate && (
-                      <span className="text-sm text-amber-800">
-                        Approximate
-                      </span>
-                    )}
-                    {item.rounded && (
-                      <span className="text-sm text-amber-800">Rounded up</span>
-                    )}
-                    {item.excluded && (
-                      <span className="text-sm">Excluded from copy</span>
-                    )}
-                    {item.orphaned && (
-                      <span className="text-sm text-amber-800">
-                        Source no longer present; retained for review and
-                        omitted from copy
-                      </span>
-                    )}
-                  </div>
-                  {item.warnings.map((warning) => (
-                    <p key={warning} className="text-sm text-amber-800">
-                      {warning}
-                    </p>
-                  ))}
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      disabled={busy || adding || !!editing}
-                      onClick={() => setEditing(item.id)}
-                    >
-                      Edit amount for {item.label}
-                    </Button>
-                    <Button
-                      disabled={busy || adding || !!editing}
-                      onClick={() =>
-                        run({
-                          kind: 'exclude',
-                          itemId: item.id,
-                          excluded: !item.excluded,
-                        })
-                      }
-                    >
-                      {item.excluded ? 'Include' : 'Exclude'} {item.label}
-                    </Button>
-                    {item.adjustment && item.key && (
-                      <Button
-                        disabled={busy || adding || !!editing}
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              'Reset this amount to the generated quantity?',
-                            )
-                          )
-                            run({
-                              kind: 'reset',
-                              itemId: item.id,
-                              confirmed: true,
-                            });
-                        }}
-                      >
-                        Reset amount for {item.label}
-                      </Button>
-                    )}
-                  </div>
-                  {editing === item.id && (
-                    <ShoppingForm
+      {data && (
+        <div className={editing ? 'pp-catalog-layout' : undefined}>
+          <div className="space-y-5">
+            {groups.map((section) => (
+              <section
+                key={section}
+                aria-label={section}
+                className="overflow-visible rounded-lg border border-stone-200"
+              >
+                <h2 className="bg-stone-100 px-4 py-3 font-semibold">
+                  {section}
+                </h2>
+                {data.items
+                  .filter(
+                    (item) =>
+                      item.section === section &&
+                      !item.excluded &&
+                      !item.orphaned,
+                  )
+                  .map((item) => (
+                    <ShoppingRow
                       key={item.id}
                       item={item}
-                      view={data}
-                      busy={busy}
-                      onCancel={() => setEditing(null)}
-                      onSave={run}
+                      disabled={busy || adding || !!editing}
+                      onEdit={() => {
+                        editOpener.current =
+                          document.activeElement as HTMLElement;
+                        setEditing(item.id);
+                      }}
+                      onApply={run}
                     />
-                  )}
-                  {item.sources.length > 0 && (
-                    <details>
-                      <summary>
-                        Recipe quantities ({item.sources.length})
-                      </summary>
-                      <ul className="list-disc pl-5">
-                        {item.sources.map((source) => (
-                          <li key={`${source.entryId}:${source.line.id}`}>
-                            {source.mealTitle}: {source.line.rawText} · planned{' '}
-                            {source.plannedServings.numerator}/
-                            {source.plannedServings.denominator} servings, base{' '}
-                            {source.baseServings.numerator}/
-                            {source.baseServings.denominator}
-                            {source.line.optional ? ' · optional' : ''}
-                          </li>
-                        ))}
-                      </ul>
-                    </details>
-                  )}
-                </article>
-              ))}
-          </section>
-        ))}
+                  ))}
+              </section>
+            ))}
+            {data.items.some((item) => item.excluded || item.orphaned) && (
+              <details className="pp-panel">
+                <summary className="font-semibold">
+                  Excluded and retained items (
+                  {
+                    data.items.filter((item) => item.excluded || item.orphaned)
+                      .length
+                  }
+                  )
+                </summary>
+                <div className="mt-3">
+                  {data.items
+                    .filter((item) => item.excluded || item.orphaned)
+                    .map((item) => (
+                      <ShoppingRow
+                        key={item.id}
+                        item={item}
+                        disabled={busy || adding || !!editing}
+                        onEdit={() => {
+                          editOpener.current =
+                            document.activeElement as HTMLElement;
+                          setEditing(item.id);
+                        }}
+                        onApply={run}
+                      />
+                    ))}
+                </div>
+              </details>
+            )}
+          </div>
+          {editing && data.items.find((item) => item.id === editing) && (
+            <aside className="pp-catalog-editor">
+              <ShoppingForm
+                key={editing}
+                item={data.items.find((item) => item.id === editing)!}
+                view={data}
+                busy={busy}
+                onCancel={endEdit}
+                onSave={run}
+              />
+            </aside>
+          )}
+        </div>
+      )}
       {data && data.items.some((item) => !item.excluded && !item.orphaned) && (
         <details>
           <summary>Copy preview</summary>

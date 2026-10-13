@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PantryPal implemented design</title>
+    <style>
+      body {
+        margin: 0;
+        background: #f7f6f2;
+        color: #282923;
+        font:
+          16px/1.55 'Segoe UI',
+          sans-serif;
+      }
+      header,
+      main {
+        max-width: 1240px;
+        margin: auto;
+        padding: 32px;
+      }
+      header {
+        background: #e6eee9;
+        border-bottom: 1px solid #bdcfc4;
+      }
+      h1 {
+        font-size: 34px;
+        margin: 8px 0;
+      }
+      h2 {
+        font-size: 22px;
+        margin: 0;
+      }
+      a {
+        color: #205f4c;
+        text-underline-offset: 3px;
+      }
+      a:focus-visible {
+        outline: 3px solid #205f4c;
+        outline-offset: 4px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+        gap: 24px;
+      }
+      article {
+        background: white;
+        border: 1px solid #d8ded8;
+        border-radius: 12px;
+        padding: 20px;
+      }
+      img {
+        width: 100%;
+        height: auto;
+        border: 1px solid #e1e1dc;
+      }
+      small {
+        display: block;
+      }
+      p {
+        margin: 12px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <small>IMPLEMENTED / 13 OCTOBER 2026</small>
+      <h1>PantryPal approved design</h1>
+      <p>
+        Actual screenshots of the redesigned Windows app using disposable sample
+        data. Click any screenshot to inspect it at full resolution.
+      </p>
+      <p>
+        <a href="../index.html">Approved proposals and full screen inventory</a>
+        &middot;
+        <a href="verification.txt">Changes, checks and review limits</a>
+      </p>
+      <p>
+        The app uses local fonts and code-native icons. These captures include
+        the development review window title; core usage stays offline.
+      </p>
+    </header>
+    <main>
+      <div class="grid">
+        <article>
+          <h2>Week agenda</h2>
+          <p>Compact daily occurrences, cooked status and secondary actions.</p>
+          <a href="week.png"
+            ><img
+              src="week.png"
+              alt="Implemented PantryPal week agenda"
+              loading="lazy"
+          /></a>
+          <p><a href="week.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Choose a meal</h2>
+          <p>
+            Search and filter inside a native modal. Choosing a meal does not
+            save it.
+          </p>
+          <a href="picker.png"
+            ><img
+              src="picker.png"
+              alt="Implemented PantryPal choose a meal"
+              loading="lazy"
+          /></a>
+          <p><a href="picker.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Confirm the planned occurrence</h2>
+          <p>Review destination and text servings, then explicitly Add.</p>
+          <a href="picker-selected.png"
+            ><img
+              src="picker-selected.png"
+              alt="Implemented PantryPal confirm the planned occurrence"
+              loading="lazy"
+          /></a>
+          <p>
+            <a href="picker-selected.png">Open full-resolution screenshot</a>
+          </p>
+        </article>
+        <article>
+          <h2>Meal catalogue</h2>
+          <p>Prominent Import, readable cards and accurate active filters.</p>
+          <a href="meals.png"
+            ><img
+              src="meals.png"
+              alt="Implemented PantryPal meal catalogue"
+              loading="lazy"
+          /></a>
+          <p><a href="meals.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Recipe detail</h2>
+          <p>
+            Ingredients beside instructions, with original wording and history
+            available.
+          </p>
+          <a href="detail.png"
+            ><img
+              src="detail.png"
+              alt="Implemented PantryPal recipe detail"
+              loading="lazy"
+          /></a>
+          <p><a href="detail.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Recipe editor</h2>
+          <p>
+            Grouped ingredient controls and a persistent Save/Cancel footer.
+          </p>
+          <a href="editor.png"
+            ><img
+              src="editor.png"
+              alt="Implemented PantryPal recipe editor"
+              loading="lazy"
+          /></a>
+          <p><a href="editor.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Shopping list</h2>
+          <p>Aisle groups, quantities beside names and visible warnings.</p>
+          <a href="shopping.png"
+            ><img
+              src="shopping.png"
+              alt="Implemented PantryPal shopping list"
+              loading="lazy"
+          /></a>
+          <p><a href="shopping.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Ingredients</h2>
+          <p>Aliases and preferred units remain visible in the catalogue.</p>
+          <a href="ingredients.png"
+            ><img
+              src="ingredients.png"
+              alt="Implemented PantryPal ingredients"
+              loading="lazy"
+          /></a>
+          <p><a href="ingredients.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Household fields</h2>
+          <p>
+            Typed definitions, understandable labels and historical-value
+            protection.
+          </p>
+          <a href="fields.png"
+            ><img
+              src="fields.png"
+              alt="Implemented PantryPal household fields"
+              loading="lazy"
+          /></a>
+          <p><a href="fields.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Measurement settings</h2>
+          <p>
+            Explicit regional conventions and references from the unit
+            catalogue.
+          </p>
+          <a href="settings.png"
+            ><img
+              src="settings.png"
+              alt="Implemented PantryPal measurement settings"
+              loading="lazy"
+          /></a>
+          <p><a href="settings.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Backups and restore</h2>
+          <p>Export and staged review before a confirmed restore.</p>
+          <a href="backups.png"
+            ><img
+              src="backups.png"
+              alt="Implemented PantryPal backups and restore"
+              loading="lazy"
+          /></a>
+          <p><a href="backups.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Recipe import</h2>
+          <p>Source, Review and Save with permission and manual fallback.</p>
+          <a href="import.png"
+            ><img
+              src="import.png"
+              alt="Implemented PantryPal recipe import"
+              loading="lazy"
+          /></a>
+          <p><a href="import.png">Open full-resolution screenshot</a></p>
+        </article>
+        <article>
+          <h2>Minimum-size editor</h2>
+          <p>
+            640 by 480 logical client area at Windows 200% scaling; navigation
+            wraps and forms scroll.
+          </p>
+          <a href="narrow.png"
+            ><img
+              src="narrow.png"
+              alt="Implemented PantryPal minimum-size editor"
+              loading="lazy"
+          /></a>
+          <p><a href="narrow.png">Open full-resolution screenshot</a></p>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

@@ -41,7 +41,10 @@ export function IngredientDialog({
       className="m-auto max-h-[90vh] w-[min(48rem,95vw)] overflow-y-auto rounded-xl bg-white p-0 shadow-xl backdrop:bg-black/40"
       onCancel={(event) => {
         event.preventDefault();
-        if (!busy) onClose();
+        if (!busy)
+          dialog.current
+            ?.querySelector<HTMLButtonElement>('[data-cancel-editor]')
+            ?.click();
       }}
     >
       {selectExisting && (

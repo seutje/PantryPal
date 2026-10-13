@@ -133,7 +133,9 @@ describe('meal library workflows', () => {
     );
     expect(await screen.findByText(/⅓.*Retired onion/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Edit meal' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Retire meal' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Retire meal', hidden: true }),
+    ).toBeDisabled();
   });
   it('keeps invalid date filters available for correction', async () => {
     const user = userEvent.setup();
@@ -151,7 +153,7 @@ describe('meal library workflows', () => {
       });
     });
     open();
-    await screen.findByRole('button', { name: 'New meal' });
+    await screen.findByLabelText('Search meals');
     await user.click(screen.getByText('Filters'));
     const { fireEvent } = await import('@testing-library/react');
     fireEvent.change(screen.getByLabelText('Last cooked from'), {
@@ -200,6 +202,9 @@ describe('meal library workflows', () => {
       screen.getByLabelText('Instructions'),
       '<script>Stay text</script>\nSimmer',
     );
+    await user.click(
+      screen.getByText('Household fields', { selector: 'summary' }),
+    );
     await user.selectOptions(screen.getByLabelText('Freezes well'), 'false');
     await user.click(
       screen.getByRole('button', { name: 'Add ingredient line' }),
@@ -211,6 +216,11 @@ describe('meal library workflows', () => {
       within(line).getByLabelText('Ingredient'),
       'ingredient-onion',
     );
+    await user.click(
+      within(line).getByText('Original wording, preparation and ordering', {
+        selector: 'summary',
+      }),
+    );
     await user.type(
       within(line).getByLabelText('Original wording'),
       '⅓ US cup onions',
@@ -220,6 +230,11 @@ describe('meal library workflows', () => {
     );
     line = screen.getByRole('group', { name: 'Ingredient 2' });
     await user.type(within(line).getByLabelText('Amount'), 'to taste');
+    await user.click(
+      within(line).getByText('Original wording, preparation and ordering', {
+        selector: 'summary',
+      }),
+    );
     await user.type(
       within(line).getByLabelText('Original wording'),
       'family seasoning to taste',
@@ -263,6 +278,9 @@ describe('meal library workflows', () => {
     expect(screen.getByText('No')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Edit meal' }));
     expect(screen.getAllByLabelText('Amount')[0]).toHaveValue('⅓');
+    await user.click(
+      screen.getByText('Notes, tags and source', { selector: 'summary' }),
+    );
     await user.type(screen.getByLabelText('Notes'), 'Edited after reopening');
     await user.click(screen.getByRole('button', { name: 'Save meal' }));
     await waitFor(() =>
@@ -281,7 +299,7 @@ describe('meal library workflows', () => {
   it('keeps filters keyboard accessible and sends typed false separately from unknown', async () => {
     const user = userEvent.setup();
     open();
-    await screen.findByRole('button', { name: 'New meal' });
+    await screen.findByLabelText('Search meals');
     const search = screen.getByLabelText('Search meals');
     await user.type(search, 'onions');
     expect(search).toHaveFocus();
@@ -425,6 +443,11 @@ describe('meal library workflows', () => {
     await user.type(screen.getByLabelText('Field label'), 'Preferred season');
     await user.click(screen.getByRole('button', { name: 'Save field' }));
     await user.click(
+      await screen.findByText('More actions for Preferred season', {
+        selector: 'summary',
+      }),
+    );
+    await user.click(
       await screen.findByRole('button', { name: 'Retire Preferred season' }),
     );
     expect(api.retireField).not.toHaveBeenCalled();
@@ -434,8 +457,10 @@ describe('meal library workflows', () => {
     await waitFor(() =>
       expect(api.retireField).toHaveBeenCalledWith('choice', true),
     );
-    expect(
-      await screen.findByText('Preferred season · select · retired'),
-    ).toBeInTheDocument();
+    const retiredRow = await screen.findByRole('row', {
+      name: /Preferred season.*Retired.*Choice/,
+    });
+    expect(retiredRow).toBeInTheDocument();
+    expect(within(retiredRow).queryByRole('button')).not.toBeInTheDocument();
   });
 });

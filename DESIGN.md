@@ -91,6 +91,20 @@ PantryPal is a small, personal Windows desktop app for turning a household's fav
 - Import settings should explain what browser site data is stored locally.
 
 ## 3. Custom meal fields
+### Approved UI refinement (2026-10-13)
+
+The owner approved the proposals and behavioral notes in `design/index.html`.
+Implement a compact forest-green sidebar, task headers, primary/secondary/quiet
+actions, agenda day rows, compact aisle checklists, grouped recipe editing,
+contextual ingredient editing, task-based settings and guided import review.
+The gallery's written notes take precedence over generated artwork errors.
+All domain, persistence and remote-origin security rules below remain unchanged.
+Meal picking now collects the chosen meal, exact servings and destination before
+an explicit Add action; selecting a result alone does not write a plan entry.
+Settings sections retain mounted drafts when switching tasks. Original quantity
+wording and advanced recipe controls stay available through disclosures.
+See ADR 0012 for implementation boundaries and keyboard behavior.
+
 
 Field definitions have a stable ID, label, kind, optional description/default, options (for `select`), and presentation order. Field kinds:
 

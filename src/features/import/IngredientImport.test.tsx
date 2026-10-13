@@ -112,6 +112,9 @@ it('creates and selects a missing ingredient during review, retaining failed/can
   await user.clear(screen.getByLabelText('Title'));
   await user.type(screen.getByLabelText('Title'), 'Keep reviewed title');
   const line = within(screen.getByRole('group', { name: 'Ingredient 1' }));
+  await user.click(
+    line.getByText('Find or add ingredient', { selector: 'summary' }),
+  );
   const add = line.getByRole('button', { name: 'Add ingredient' });
   await user.click(add);
   let modal = screen.getByRole('dialog', { name: 'Add ingredient' });
@@ -120,7 +123,17 @@ it('creates and selects a missing ingredient during review, retaining failed/can
     within(modal).getByLabelText('Ingredient name'),
     'Discarded name',
   );
+  const discard = vi
+    .spyOn(window, 'confirm')
+    .mockReturnValueOnce(false)
+    .mockReturnValueOnce(true);
   fireEvent(modal, new Event('cancel', { cancelable: true }));
+  expect(modal).toBeInTheDocument();
+  expect(within(modal).getByLabelText('Ingredient name')).toHaveValue(
+    'Discarded name',
+  );
+  fireEvent(modal, new Event('cancel', { cancelable: true }));
+  discard.mockRestore();
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(add).toHaveFocus();
   expect(line.getByLabelText('Ingredient')).toHaveValue('');

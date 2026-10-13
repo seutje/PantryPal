@@ -141,6 +141,32 @@ describe('navigation shell', () => {
         ).toBeEnabled();
     }
   });
+  it('keeps recipe edits when leaving is cancelled and confirms deliberate discard', async () => {
+    const user = userEvent.setup();
+    const confirm = vi
+      .spyOn(window, 'confirm')
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Meals' }));
+    await screen.findByLabelText('Search meals');
+    await user.click(screen.getByRole('button', { name: 'New meal' }));
+    await user.type(screen.getByLabelText('Title'), 'Unsaved soup');
+    await user.click(screen.getByRole('button', { name: 'Shopping' }));
+    expect(screen.getByLabelText('Title')).toHaveValue('Unsaved soup');
+    expect(
+      screen.getByRole('heading', { name: 'Meals', level: 1 }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Shopping' }));
+    expect(
+      screen.getByRole('heading', { name: 'Shopping', level: 1 }),
+    ).toHaveFocus();
+    expect(confirm).toHaveBeenCalledTimes(2);
+  });
   it('moves navigation focus with arrow keys, Home and End without activating a page', async () => {
     const user = userEvent.setup();
     render(

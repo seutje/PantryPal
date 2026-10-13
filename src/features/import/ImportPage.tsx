@@ -1,3 +1,4 @@
+import { useDraftGuard } from '../../lib/drafts';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
@@ -36,8 +37,15 @@ export function BrowserReset() {
       <Button onClick={() => setConfirm(true)}>Clear website sessions</Button>
       {confirm && (
         <div role="group" aria-label="Confirm session reset">
-          <p>Clear all recipe website cookies, local storage and cache?</p>
-          <Button disabled={reset.isPending} onClick={() => reset.mutate()}>
+          <p>
+            Clear all recipe website cookies, local storage and cache? This
+            signs you out of recipe websites. Household data stays saved.
+          </p>
+          <Button
+            variant="danger"
+            disabled={reset.isPending}
+            onClick={() => reset.mutate()}
+          >
             Confirm clear sessions
           </Button>
           <Button onClick={() => setConfirm(false)}>Keep sessions</Button>
@@ -139,9 +147,25 @@ export function ImportPage({
     setActionId(next.actionId);
     return confirmRecipeImport(next);
   };
+  useDraftGuard(
+    !!preview ||
+      !!title ||
+      !!servings ||
+      !!ingredients ||
+      !!instructions ||
+      !!payload ||
+      url !== initialUrl,
+  );
   return (
     <section className="space-y-4" aria-label="Import recipe">
-      <h2 className="text-xl font-semibold">Import and review recipe</h2>
+      <h2 className="text-xl font-semibold">
+        {preview ? 'Review import' : 'Import recipe'}
+      </h2>
+      <ol aria-label="Import progress" className="pp-stepper">
+        <li aria-current={!preview ? 'step' : undefined}>1 / Source</li>
+        <li aria-current={preview ? 'step' : undefined}>2 / Review</li>
+        <li>3 / Save</li>
+      </ol>
       {!preview ? (
         <>
           <FormField label="Recipe URL (HTTPS)">
@@ -157,6 +181,7 @@ export function ImportPage({
           </FormField>
           <div className="flex gap-2">
             <Button
+              variant="primary"
               disabled={inspect.isPending}
               onClick={() => inspect.mutate(url)}
             >
@@ -183,57 +208,6 @@ export function ImportPage({
               unavailable, use permitted manual content below.
             </p>
           )}
-          <FormField label="Import method">
-            <select
-              value={format}
-              onChange={(e) =>
-                setFormat(e.target.value as ImportInput['format'])
-              }
-            >
-              <option value="manual">Manual recipe text</option>
-              <option value="json_ld">Authorized JSON-LD</option>
-            </select>
-          </FormField>
-          {format === 'json_ld' ? (
-            <FormField label="Recipe JSON-LD">
-              <textarea
-                rows={8}
-                maxLength={262144}
-                value={payload}
-                onChange={(e) => setPayload(e.target.value)}
-              />
-            </FormField>
-          ) : (
-            <>
-              <FormField label="Recipe title">
-                <input
-                  value={title}
-                  maxLength={200}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </FormField>
-              <FormField label="Recipe servings">
-                <input
-                  value={servings}
-                  onChange={(e) => setServings(e.target.value)}
-                />
-              </FormField>
-              <FormField label="Recipe ingredients (one per line)">
-                <textarea
-                  rows={6}
-                  value={ingredients}
-                  onChange={(e) => setIngredients(e.target.value)}
-                />
-              </FormField>
-              <FormField label="Recipe instructions">
-                <textarea
-                  rows={6}
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                />
-              </FormField>
-            </>
-          )}
           <label className="flex gap-2">
             <input
               type="checkbox"
@@ -254,35 +228,94 @@ export function ImportPage({
           >
             {capture.isPending ? 'Reading recipe…' : 'Read recipe from browser'}
           </Button>
-          <p>
-            Paste a single schema.org Recipe JSON object or graph, without
-            script tags. Unknown amounts and ambiguous regional units stay
-            available for review. Login failures and unavailable metadata can
-            use manual entry.
-          </p>
-          <Button
-            disabled={!permitted || prepare.isPending || capture.isPending}
-            onClick={() =>
-              prepare.mutate({
-                sourceUrl: url,
-                format,
-                permitted,
-                payload:
-                  format === 'json_ld'
-                    ? payload
-                    : JSON.stringify({
-                        title,
-                        servings,
-                        ingredients: ingredients
-                          .split('\n')
-                          .filter((s) => s.trim()),
-                        instructions,
-                      }),
-              })
-            }
-          >
-            Preview recipe
-          </Button>
+
+          <details className="pp-panel" open>
+            <summary className="font-semibold">
+              Use manual entry or authorized JSON-LD
+            </summary>
+            <div className="space-y-4 mt-4">
+              <FormField label="Import method">
+                <select
+                  value={format}
+                  onChange={(e) =>
+                    setFormat(e.target.value as ImportInput['format'])
+                  }
+                >
+                  <option value="manual">Manual recipe text</option>
+                  <option value="json_ld">Authorized JSON-LD</option>
+                </select>
+              </FormField>
+              {format === 'json_ld' ? (
+                <FormField label="Recipe JSON-LD">
+                  <textarea
+                    rows={8}
+                    maxLength={262144}
+                    value={payload}
+                    onChange={(e) => setPayload(e.target.value)}
+                  />
+                </FormField>
+              ) : (
+                <>
+                  <FormField label="Recipe title">
+                    <input
+                      value={title}
+                      maxLength={200}
+                      onChange={(e) => setTitle(e.target.value)}
+                    />
+                  </FormField>
+                  <FormField label="Recipe servings">
+                    <input
+                      value={servings}
+                      onChange={(e) => setServings(e.target.value)}
+                    />
+                  </FormField>
+                  <FormField label="Recipe ingredients (one per line)">
+                    <textarea
+                      rows={6}
+                      value={ingredients}
+                      onChange={(e) => setIngredients(e.target.value)}
+                    />
+                  </FormField>
+                  <FormField label="Recipe instructions">
+                    <textarea
+                      rows={6}
+                      value={instructions}
+                      onChange={(e) => setInstructions(e.target.value)}
+                    />
+                  </FormField>
+                </>
+              )}
+              <p>
+                Paste a single schema.org Recipe JSON object or graph, without
+                script tags. Unknown amounts and ambiguous regional units stay
+                available for review. Login failures and unavailable metadata
+                can use manual entry.
+              </p>
+              <Button
+                disabled={!permitted || prepare.isPending || capture.isPending}
+                onClick={() =>
+                  prepare.mutate({
+                    sourceUrl: url,
+                    format,
+                    permitted,
+                    payload:
+                      format === 'json_ld'
+                        ? payload
+                        : JSON.stringify({
+                            title,
+                            servings,
+                            ingredients: ingredients
+                              .split('\n')
+                              .filter((s) => s.trim()),
+                            instructions,
+                          }),
+                  })
+                }
+              >
+                Preview recipe
+              </Button>
+            </div>
+          </details>
           {[inspect.error, browser.error, prepare.error, capture.error]
             .filter(Boolean)
             .map((error, index) => (
@@ -293,14 +326,24 @@ export function ImportPage({
         </>
       ) : (
         <>
-          <p>Source: {preview.source.sourceUrl}</p>
-          <p>
-            Original yield: {preview.draft.originalYield || 'Unknown'} ·
-            Attribution: {preview.draft.attribution || 'Not provided'}
-          </p>
-          {preview.draft.warnings.map((warning, index) => (
-            <p key={index}>{warning}</p>
-          ))}
+          <div className="pp-panel">
+            <p className="break-all">Source: {preview.source.sourceUrl}</p>
+            <p>
+              Original yield: {preview.draft.originalYield || 'Unknown'} ·
+              Attribution: {preview.draft.attribution || 'Not provided'}
+            </p>
+            <div className="rounded-lg bg-amber-50 p-3 my-3">
+              <h3 className="font-semibold">
+                Review quantities and ingredient matches
+              </h3>
+              <a href="#recipe-ingredients" className="underline">
+                Go to ingredient review
+              </a>
+              {preview.draft.warnings.map((warning, index) => (
+                <p key={index}>{warning}</p>
+              ))}
+            </div>
+          </div>
           {preview.draft.duplicateTitles.length > 0 && (
             <p role="status">
               Already saved from this source:{' '}
@@ -310,6 +353,10 @@ export function ImportPage({
           )}
           <MealEditor
             initialDraft={preview.draft.meal}
+            submitDisabled={
+              !reviewed ||
+              (preview.draft.duplicateTitles.length > 0 && !duplicate)
+            }
             catalog={catalog}
             fields={fields}
             onSaved={onSaved}
@@ -349,7 +396,13 @@ export function ImportPage({
               <Button onClick={() => setDiscard(false)}>Keep importing</Button>
             </div>
           )}
-          <BrowserReset />
+          <details className="pp-panel">
+            <summary>Recipe website sessions</summary>
+            <p className="pp-muted mt-3">
+              You can also manage website sessions in Settings.
+            </p>
+            <BrowserReset />
+          </details>
         </>
       )}
     </section>

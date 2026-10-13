@@ -1,3 +1,4 @@
+import { useDraftGuard } from '../../lib/drafts';
 import { useState } from 'react';
 import type {
   ShoppingItem,
@@ -31,10 +32,17 @@ export function ShoppingForm({
     item?.adjustment ? (item.adjustment.unitId ?? '') : (item?.unitId ?? ''),
   );
   const [sectionId, setSectionId] = useState('');
+  const [baseline] = useState(() =>
+    JSON.stringify([label, amount, unitId, sectionId]),
+  );
+  const canDiscard = useDraftGuard(
+    JSON.stringify([label, amount, unitId, sectionId]) !== baseline,
+    busy,
+  );
   const [itemId] = useState(() => crypto.randomUUID());
   return (
     <form
-      className="space-y-3 rounded-lg border border-stone-300 p-4"
+      className="pp-panel space-y-3"
       aria-label={item ? `Edit ${item.label}` : 'Manual shopping item'}
       onSubmit={(event) => {
         event.preventDefault();
@@ -57,9 +65,31 @@ export function ShoppingForm({
         );
       }}
     >
+      <h2 className="text-lg font-semibold">
+        {item ? 'Edit amount: ' + item.label : 'Add manual item'}
+      </h2>
+      {item && (
+        <div className="rounded-lg bg-stone-50 p-3 space-y-2">
+          <p className="pp-muted">
+            Current shopping amount: <strong>{item.display}</strong>
+          </p>
+          {item.key && (
+            <p className="pp-muted">
+              Exact generated basis:{' '}
+              {item.numerator && item.denominator
+                ? item.denominator === '1'
+                  ? item.numerator
+                  : item.numerator + '/' + item.denominator
+                : item.amountText || 'Unknown'}{' '}
+              {view.units.find((unit) => unit.id === item.unitId)?.label ?? ''}
+            </p>
+          )}
+        </div>
+      )}
       {!item && (
         <FormField label="Item name">
           <input
+            autoFocus
             required
             maxLength={200}
             value={label}
@@ -70,6 +100,7 @@ export function ShoppingForm({
       )}
       <FormField label="Shopping amount">
         <input
+          autoFocus={!!item}
           maxLength={120}
           placeholder="e.g. 1 1/2, to taste, or unknown"
           value={amount}
@@ -115,11 +146,16 @@ export function ShoppingForm({
         Unknown amounts remain text. Overrides survive refresh until you reset
         them.
       </p>
-      <div className="flex gap-2">
+      <div className="pp-save-bar">
         <Button type="submit" disabled={busy}>
           Save shopping item
         </Button>
-        <Button disabled={busy} onClick={onCancel}>
+        <Button
+          disabled={busy}
+          onClick={() => {
+            if (canDiscard()) onCancel();
+          }}
+        >
           Cancel
         </Button>
       </div>

@@ -1,0 +1,56 @@
+PantryPal approved design implementation - 13 October 2026
+
+Implemented
+- Shared forest/cream desktop shell, local fonts, code-native navigation icons,
+  clear primary/secondary/destructive actions, focus styles and responsive layouts.
+- Week agenda, explicit meal selection/day/servings/Add, occurrence actions,
+  cooked-event history and readable scaling summaries.
+- Meal catalogue filters/cards, two-column recipe detail, grouped recipe editor,
+  household field management and ingredient matching disclosures.
+- Ingredient catalogue/editor, aliases, conversion rules and vocabulary management.
+- Shopping rows, generated-quantity basis in amount editing, provenance/warnings,
+  excluded-item review and explicit reset confirmation.
+- Task-based settings with mounted drafts, unit convention references,
+  browser session reset, staged backup restore and update controls.
+- Import Source/Review/Save, manual fallback, raw quantities and review/duplicate
+  acknowledgement before save.
+- Unsaved edit guards for navigation and cancellation; pending writes block leaving.
+
+Existing Rust business rules, schema, typed commands and capability boundaries
+remain the baseline. No dependencies, remote fonts or production image assets
+were added. Original imagegen proposals remain in ../mockups/.
+Intentional workflow decisions: ../../docs/adr/0012-approved-ui-refinement.md.
+
+Checks completed
+- npm run check: passed formatting, lint, TypeScript and 78 tests in 20 files.
+- npm run build: passed TypeScript and production frontend bundling.
+- cargo fmt --all -- --check: passed.
+- cargo clippy --workspace --all-targets --locked -- -D warnings: passed.
+- cargo test --workspace --features tauri/custom-protocol --locked: passed;
+  59 unit and 11 integration tests, 2 pre-existing opt-in tests ignored.
+- npm run tauri build -- --debug --no-bundle: passed on Windows.
+- cargo build --example ui_review --features tauri/custom-protocol --locked: passed.
+- git diff --check: passed.
+- Local gallery links and PNG headers: checked with Node.
+
+Native visual review
+13 screenshots cover the primary sections, recipe detail/editor, household fields,
+import source, planner selection/confirmation and backups. Reviewed default
+1100 by 760 and minimum 640 by 480 logical client areas on Windows at 200% DPI.
+Scroll is required for long forms; Save/Cancel stays available in editor footers.
+Screenshots are actual app renders, copied without image editing.
+Automated UI flows cover import review, planner add/cancel, shopping adjustments,
+restore, ingredients, null/false fields, drafts and disclosure keyboard handling.
+
+The in-app browser tool reported no available browser. Native WebView2 captures
+provided visual verification instead. Full screen-reader auditing, every modal at
+all DPI sizes and unsaved-edit handling on native window close are not verified.
+Existing release clean-machine/updater gates remain pending; no release published.
+
+Optional isolated review runner (never opens the household database)
+  npm run build
+  cargo run --example ui_review --features tauri/custom-protocol -- YYYY-MM-DD
+Run Cargo from the repository workspace with the development environment loaded.
+Replace YYYY-MM-DD with the desired local date. Each launch creates a fresh
+.verification/ui-review-UUID database and dedicated recipe-browser profile.
+Close the runner before rebuilding examples on Windows to avoid executable locks.

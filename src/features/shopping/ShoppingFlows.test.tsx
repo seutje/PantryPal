@@ -67,6 +67,7 @@ function show() {
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(changeShopping).mockReset();
   vi.mocked(getShopping).mockResolvedValue(fixture());
   vi.mocked(copyShopping).mockResolvedValue();
 });
@@ -100,24 +101,27 @@ describe('shopping editing and copying', () => {
     expect(screen.getByLabelText('Shopping amount')).toHaveValue('unknown');
     expect(screen.getByLabelText('Shopping unit')).toHaveValue('');
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    const confirm = vi
-      .spyOn(window, 'confirm')
-      .mockReturnValueOnce(false)
-      .mockReturnValueOnce(true);
+    await user.click(screen.getByLabelText('More actions for Broccoli'));
     await user.click(
       screen.getByRole('button', { name: 'Reset amount for Broccoli' }),
     );
     expect(changeShopping).not.toHaveBeenCalled();
+    await user.click(
+      screen.getByRole('button', { name: 'Keep edited amount' }),
+    );
+    await user.click(screen.getByLabelText('More actions for Broccoli'));
     vi.mocked(changeShopping).mockResolvedValueOnce(fixture());
     await user.click(
       screen.getByRole('button', { name: 'Reset amount for Broccoli' }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Confirm amount reset' }),
     );
     expect(changeShopping).toHaveBeenCalledWith(
       expect.objectContaining({
         operation: { kind: 'reset', itemId: 'broccoli', confirmed: true },
       }),
     );
-    confirm.mockRestore();
   });
   it('refreshes explicitly, preserves a checked override and copies backend text for the selected week', async () => {
     const user = userEvent.setup();
@@ -219,7 +223,13 @@ describe('shopping editing and copying', () => {
     orphan.items[0]!.orphaned = true;
     orphan.items[0]!.adjustment = { amount: '2', unitId: 'g' };
     vi.mocked(changeShopping).mockResolvedValueOnce(orphan);
+    await user.click(screen.getByLabelText('More actions for Broccoli'));
     await user.click(screen.getByRole('button', { name: 'Exclude Broccoli' }));
+    await user.click(
+      await screen.findByText(/Excluded and retained items/, {
+        selector: 'summary',
+      }),
+    );
     expect(await screen.findByText('Excluded from copy')).toBeVisible();
     expect(screen.getByText(/Source no longer present/)).toBeVisible();
     expect(screen.getByRole('button', { name: 'Copy list' })).toBeDisabled();

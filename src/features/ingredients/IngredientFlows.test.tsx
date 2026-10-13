@@ -311,7 +311,7 @@ describe('ingredient editing workflows', () => {
       notes: 'Medium onion',
     });
     await user.click(
-      screen.getByRole('button', { name: 'Edit rule rule-one' }),
+      screen.getByRole('button', { name: /Edit conversion rule/ }),
     );
     expect(
       screen.getByRole('button', { name: 'Retire conversion rule' }),

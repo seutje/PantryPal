@@ -1,3 +1,4 @@
+import { useDraftGuard } from '../../lib/drafts';
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/Button';
@@ -38,6 +39,10 @@ function VocabularyForm({
     onSuccess: done,
   });
   const pending = save.isPending || retire.isPending;
+  const canDiscard = useDraftGuard(
+    name !== (record?.name ?? '') || order !== (record?.sortOrder ?? 0),
+    pending,
+  );
   return (
     <form
       onSubmit={(e) => {
@@ -72,7 +77,12 @@ function VocabularyForm({
         <Button type="submit" disabled={pending}>
           Save {kind}
         </Button>
-        <Button disabled={pending} onClick={onClose}>
+        <Button
+          disabled={pending}
+          onClick={() => {
+            if (canDiscard()) onClose();
+          }}
+        >
           Cancel {kind}
         </Button>
       </div>
@@ -91,6 +101,7 @@ function VocabularyForm({
             Confirm retirement of {record.name}
           </label>
           <Button
+            variant="danger"
             disabled={!confirm || pending}
             onClick={() => retire.mutate()}
           >
@@ -128,7 +139,15 @@ export function VocabularyManager({
                 {v.name}
                 {kind === 'section' ? ` (order ${v.sortOrder})` : ''}
               </span>
-              <Button onClick={() => setEditing(v)}>Edit {v.name}</Button>
+              <Button
+                disabled={editing !== undefined}
+                variant="quiet"
+                onClick={() => {
+                  setEditing(v);
+                }}
+              >
+                Edit {v.name}
+              </Button>
             </li>
           ))}
       </ul>

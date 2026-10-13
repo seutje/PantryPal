@@ -55,7 +55,10 @@ function file(text: string) {
 it('exports to the backend folder and restores only after review and explicit replacement confirmation', async () => {
   const user = userEvent.setup();
   show(<DataSettings />);
-  expect(await screen.findByText('Backup folder: test-backups')).toBeVisible();
+  await user.click(
+    await screen.findByText('Backup location', { selector: 'summary' }),
+  );
+  expect(screen.getByText('Backup folder: test-backups')).toBeVisible();
   await user.click(screen.getByRole('button', { name: 'Export JSON backup' }));
   expect(
     await screen.findByText('Backup saved: test-backups/export.json'),

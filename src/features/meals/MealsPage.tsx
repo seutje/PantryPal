@@ -118,15 +118,59 @@ export function MealsPage({
   const results = library.error
     ? []
     : (data?.meals ?? []).filter((record) => !onSelect || !record.meal.retired);
+  const activeFilters = [
+    search.ingredientId && {
+      label:
+        'Ingredient: ' +
+        (data?.catalog.ingredients.find((i) => i.id === search.ingredientId)
+          ?.name ?? 'Selected'),
+      clear: () => change('ingredientId', null),
+    },
+    search.tag && {
+      label: 'Tag: ' + search.tag,
+      clear: () => change('tag', ''),
+    },
+    search.field &&
+      (search.field.operator !== 'equals' || search.field.value !== null) && {
+        label: (field?.label ?? 'Custom field') + ': ' + search.field.operator,
+        clear: () => change('field', null),
+      },
+    search.cooked !== 'any' && {
+      label:
+        'History: ' + (search.cooked === 'never' ? 'Never recorded' : 'Cooked'),
+      clear: () => change('cooked', 'any'),
+    },
+    search.cookedFrom && {
+      label: 'From: ' + search.cookedFrom,
+      clear: () => change('cookedFrom', null),
+    },
+    search.cookedTo && {
+      label: 'Through: ' + search.cookedTo,
+      clear: () => change('cookedTo', null),
+    },
+  ].filter((f): f is { label: string; clear: () => void } => !!f);
   return (
     <>
-      {!onSelect && (
-        <div className="mb-4 flex items-center gap-3">
+      {!onSelect && view === 'list' && (
+        <div className="pp-toolbar">
           <Button
-            disabled={!data || view === 'import' || importAction.isPending}
+            variant="primary"
+            disabled={!data || importAction.isPending}
             onClick={() => importAction.mutate()}
           >
             Import recipe
+          </Button>
+          <Button
+            disabled={!data}
+            onClick={() => {
+              setSelected(null);
+              setView('editor');
+            }}
+          >
+            New meal
+          </Button>
+          <Button variant="quiet" onClick={() => setView('fields')}>
+            Manage custom fields
           </Button>
         </div>
       )}
@@ -201,21 +245,6 @@ export function MealsPage({
             </>
           ) : (
             <section className="space-y-4">
-              {!onSelect && (
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      setSelected(null);
-                      setView('editor');
-                    }}
-                  >
-                    New meal
-                  </Button>
-                  <Button onClick={() => setView('fields')}>
-                    Manage custom fields
-                  </Button>
-                </div>
-              )}
               <fieldset disabled={selectionBusy} className="space-y-4">
                 <FormField label="Search meals">
                   <input
@@ -227,7 +256,12 @@ export function MealsPage({
                 </FormField>
                 <details className="rounded-lg border border-stone-300 p-3">
                   <summary className="cursor-pointer font-semibold">
-                    Filters
+                    Filters{' '}
+                    {activeFilters.length > 0 && (
+                      <span className="pp-badge">
+                        {activeFilters.length} active
+                      </span>
+                    )}
                   </summary>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     <FormField label="Contains ingredient">
@@ -346,26 +380,51 @@ export function MealsPage({
                     </FormField>
                   </div>
                 </details>
-                <Button onClick={() => setSearch(emptySearch)}>
-                  Clear filters
-                </Button>
-                <p role="status">
+                {(activeFilters.length > 0 || search.text) && (
+                  <div className="pp-filter-chips">
+                    {activeFilters.map((filter) => (
+                      <Button
+                        key={filter.label}
+                        variant="quiet"
+                        aria-label={`Remove ${filter.label} filter`}
+                        onClick={filter.clear}
+                      >
+                        {filter.label} &times;
+                      </Button>
+                    ))}
+                    <Button
+                      variant="quiet"
+                      onClick={() => setSearch(emptySearch)}
+                    >
+                      Clear filters
+                    </Button>
+                  </div>
+                )}
+                <p role="status" className="pp-muted">
                   {results.length} meal{results.length === 1 ? '' : 's'} found
                 </p>
                 {results.length === 0 && (
-                  <p>No meals match. Create a meal or clear your filters.</p>
+                  <div className="pp-panel">
+                    <h3 className="text-lg font-semibold">
+                      {search.text || activeFilters.length
+                        ? 'No meals match'
+                        : 'No meals yet'}
+                    </h3>
+                    <p className="pp-muted">
+                      {search.text || activeFilters.length
+                        ? 'Change your search or clear the filters to see more meals.'
+                        : 'Create your first meal or import a recipe to get started.'}
+                    </p>
+                  </div>
                 )}
                 <ul className="grid gap-3 md:grid-cols-2">
                   {results.map((record) => (
-                    <li
-                      key={record.meal.id}
-                      className="rounded-lg border border-stone-300 p-4"
-                    >
+                    <li key={record.meal.id} className="pp-panel">
                       {onSelect ? (
                         <button
                           type="button"
                           className="w-full rounded-lg p-2 text-left hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50"
-                          aria-label={`Add ${record.meal.title}`}
+                          aria-label={`Choose ${record.meal.title}`}
                           disabled={
                             selectionBusy ||
                             library.isFetching ||
@@ -393,15 +452,27 @@ export function MealsPage({
                             {record.servingsDisplay} servings · Last cooked:{' '}
                             {record.lastCooked ?? 'Never recorded'}
                           </p>
-                          <p>{record.meal.tags.join(', ')}</p>
+                          <p className="pp-muted">
+                            Prep {record.meal.prepMinutes ?? 'unknown'} min
+                            &middot; Cook {record.meal.cookMinutes ?? 'unknown'}{' '}
+                            min
+                          </p>
+                          <div className="flex flex-wrap gap-2 my-3">
+                            {record.meal.tags.map((tag) => (
+                              <span key={tag} className="pp-badge">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
                           <Button
                             className="mt-2"
+                            aria-label={`View ${record.meal.title}`}
                             onClick={() => {
                               setSelected(record);
                               setView('detail');
                             }}
                           >
-                            View {record.meal.title}
+                            View recipe
                           </Button>
                         </>
                       )}

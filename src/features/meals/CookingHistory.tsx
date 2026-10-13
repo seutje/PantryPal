@@ -32,10 +32,7 @@ export function CookingHistory({ mealId }: { mealId: string }) {
     change.mutate(input);
   }
   return (
-    <section
-      className="space-y-3 rounded-lg border border-stone-300 p-4"
-      aria-label="Cooking history"
-    >
+    <section className="pp-panel space-y-3" aria-label="Cooking history">
       <h3 className="text-lg font-semibold">Cooking history</h3>
       <p>
         Only actual cooked records update last eaten. Undo keeps a cancelled
@@ -108,7 +105,7 @@ export function CookingHistory({ mealId }: { mealId: string }) {
             {history.data.events.map((event) => (
               <li
                 key={event.id}
-                className="rounded border border-stone-200 p-3"
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 py-3"
               >
                 <p>
                   {event.localDate}{' '}
@@ -122,8 +119,9 @@ export function CookingHistory({ mealId }: { mealId: string }) {
                     : ''}
                 </p>
                 {!event.voided && (
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
+                      variant="quiet"
                       disabled={change.isPending || !!pending}
                       onClick={() => {
                         setEditing(event);
@@ -134,6 +132,7 @@ export function CookingHistory({ mealId }: { mealId: string }) {
                       Correct date {event.localDate}
                     </Button>
                     <Button
+                      variant="quiet"
                       disabled={change.isPending || !!pending}
                       onClick={() => setUndo(event)}
                     >
@@ -152,6 +151,7 @@ export function CookingHistory({ mealId }: { mealId: string }) {
                 count towards last eaten. A linked plan returns to planned.
               </p>
               <Button
+                variant="danger"
                 disabled={change.isPending || !!pending}
                 onClick={() =>
                   submit({

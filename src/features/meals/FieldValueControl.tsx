@@ -55,15 +55,21 @@ export function FieldValueControl({
               </option>
             ))}
           </select>
+        ) : field.kind === 'text' ? (
+          <textarea
+            rows={3}
+            value={value ? String(value.value) : ''}
+            onChange={(event) =>
+              onChange(
+                event.target.value === ''
+                  ? null
+                  : { kind: 'text', value: event.target.value },
+              )
+            }
+          />
         ) : (
           <input
-            type={
-              field.kind === 'date'
-                ? 'date'
-                : field.kind === 'text'
-                  ? 'text'
-                  : 'number'
-            }
+            type={field.kind === 'date' ? 'date' : 'number'}
             step={field.kind === 'rating' ? 1 : 'any'}
             min={field.minimum ?? undefined}
             max={field.maximum ?? undefined}

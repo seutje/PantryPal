@@ -1,3 +1,4 @@
+import { useDraftGuard } from '../../lib/drafts';
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/Button';
@@ -53,6 +54,7 @@ export function IngredientEditor({
   selectExisting?: boolean;
 }) {
   const [input, setInput] = useState<IngredientInput>(ingredient ?? blank);
+  const [baseline] = useState(() => JSON.stringify(input));
   const [aliases, setAliases] = useState(ingredient?.aliases.join('\n') ?? '');
   const [candidates, setCandidates] = useState<Ingredient[]>([]);
   const [confirm, setConfirm] = useState(false);
@@ -114,13 +116,18 @@ export function IngredientEditor({
     save.reset();
   };
   const pending = save.isPending || retire.isPending;
+  const canDiscard = useDraftGuard(
+    JSON.stringify(input) !== baseline ||
+      aliases !== (ingredient?.aliases.join('\n') ?? ''),
+    pending,
+  );
   useEffect(() => {
     onBusyChange?.(pending);
   }, [pending, onBusyChange]);
   return (
     <section
       aria-label={ingredient ? 'Edit ingredient' : 'New ingredient'}
-      className="mb-6 rounded-xl border border-green-800 bg-white p-6"
+      className="pp-panel"
     >
       <h2 className="mb-4 text-xl font-semibold">
         {ingredient ? `Edit ${ingredient.name}` : 'New ingredient'}
@@ -144,7 +151,7 @@ export function IngredientEditor({
               onChange={(e) => change('name', e.target.value)}
             />
           </FormField>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4">
             {(['categoryId', 'sectionId'] as const).map((key) => (
               <FormField
                 key={key}
@@ -202,53 +209,63 @@ export function IngredientEditor({
               }}
             />
           </FormField>
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium">Season months</legend>
-            <p className="mb-2 text-sm text-stone-600">
-              Leave empty for unspecified availability. These are household
-              notes.
-            </p>
-            <label className="mb-3 flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={input.seasonMonths.length === 12}
-                onChange={(e) =>
-                  change(
-                    'seasonMonths',
-                    e.target.checked ? months.map((_, i) => i + 1) : [],
-                  )
-                }
-              />
-              Year-round
-            </label>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {months.map((month, i) => (
-                <label key={month} className="flex items-center gap-2 text-sm">
+          <details>
+            <summary className="font-semibold">Seasonality and notes</summary>
+            <div className="space-y-3 mt-3">
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium">
+                  Season months
+                </legend>
+                <p className="mb-2 text-sm text-stone-600">
+                  Leave empty for unspecified availability. These are household
+                  notes.
+                </p>
+                <label className="mb-3 flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={input.seasonMonths.includes(i + 1)}
+                    checked={input.seasonMonths.length === 12}
                     onChange={(e) =>
                       change(
                         'seasonMonths',
-                        e.target.checked
-                          ? [...input.seasonMonths, i + 1]
-                          : input.seasonMonths.filter((m) => m !== i + 1),
+                        e.target.checked ? months.map((_, i) => i + 1) : [],
                       )
                     }
                   />
-                  {month}
+                  Year-round
                 </label>
-              ))}
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {months.map((month, i) => (
+                    <label
+                      key={month}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={input.seasonMonths.includes(i + 1)}
+                        onChange={(e) =>
+                          change(
+                            'seasonMonths',
+                            e.target.checked
+                              ? [...input.seasonMonths, i + 1]
+                              : input.seasonMonths.filter((m) => m !== i + 1),
+                          )
+                        }
+                      />
+                      {month}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <FormField label="Ingredient notes">
+                <textarea
+                  rows={3}
+                  maxLength={10000}
+                  value={input.notes}
+                  onChange={(e) => change('notes', e.target.value)}
+                />
+              </FormField>
             </div>
-          </fieldset>
-          <FormField label="Ingredient notes">
-            <textarea
-              rows={3}
-              maxLength={10000}
-              value={input.notes}
-              onChange={(e) => change('notes', e.target.value)}
-            />
-          </FormField>
+          </details>
         </fieldset>
         {candidates.length > 0 && (
           <div role="alert" className="rounded-lg bg-amber-50 p-3">
@@ -274,11 +291,17 @@ export function IngredientEditor({
           </div>
         )}
         {save.isError && <p role="alert">{save.error.message}</p>}
-        <div className="flex gap-3">
-          <Button type="submit" disabled={pending}>
+        <div className="pp-save-bar">
+          <Button type="submit" disabled={pending || candidates.length > 0}>
             Save ingredient
           </Button>
-          <Button disabled={pending} onClick={onClose}>
+          <Button
+            data-cancel-editor
+            disabled={pending}
+            onClick={() => {
+              if (canDiscard()) onClose();
+            }}
+          >
             Cancel
           </Button>
         </div>
@@ -286,10 +309,13 @@ export function IngredientEditor({
       {ingredient && (
         <>
           <ConversionRules ingredientId={ingredient.id} units={catalog.units} />
-          <ConversionControl
-            ingredientId={ingredient.id}
-            units={catalog.units}
-          />
+          <details className="mt-4">
+            <summary className="font-semibold">Test conversion</summary>
+            <ConversionControl
+              ingredientId={ingredient.id}
+              units={catalog.units}
+            />
+          </details>
           <details className="mt-5">
             <summary className="cursor-pointer font-medium">
               Retire ingredient
@@ -307,6 +333,7 @@ export function IngredientEditor({
               Confirm retirement of {ingredient.name}
             </label>
             <Button
+              variant="danger"
               disabled={!confirm || pending}
               onClick={() => retire.mutate()}
             >

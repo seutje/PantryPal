@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { DraftContext } from '../lib/drafts';
 import { WeekPage } from '../features/week/WeekPage';
 import { MealsPage } from '../features/meals/MealsPage';
 import { ShoppingPage } from '../features/shopping/ShoppingPage';
@@ -8,6 +9,7 @@ import { SettingsPage } from '../features/settings/SettingsPage';
 import { getAppInfo, getStorageStatus, nativeAvailable } from '../lib/ipc';
 import type { MealRecord, MealLibrary } from '../lib/models';
 import { localToday } from '../lib/local-date';
+import { NavIcon } from '../components/ui/NavIcon';
 import { UpdateNotice } from '../features/settings/UpdateNotice';
 
 const sections = [
@@ -27,6 +29,7 @@ const pages = {
 };
 
 export function App() {
+  const drafts = useContext(DraftContext);
   const [section, setSection] = useState<Section>('Week');
   const [weekDate, setWeekDate] = useState(localToday);
   const [shoppingWeek, setShoppingWeek] = useState<string | null>(null);
@@ -54,34 +57,22 @@ export function App() {
   }, [section]);
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900">
+    <div className="pp-app">
       <UpdateNotice />
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
-      <header className="border-b border-stone-200 bg-white px-6 py-5">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
+      <aside className="pp-sidebar">
+        <div className="pp-brand">
           <div>
-            <p className="text-2xl font-bold tracking-tight text-green-800">
-              PantryPal
-            </p>
-            <p className="text-sm text-stone-600">Good meals. Easier weeks.</p>
+            <p className="pp-wordmark">PantryPal</p>
+            <p className="pp-tagline">Good meals. Easier weeks.</p>
           </div>
-          <p className="text-sm text-stone-600" role="status">
-            {!nativeAvailable()
-              ? 'Browser preview'
-              : info.isError
-                ? 'App connection unavailable'
-                : info.data
-                  ? `Desktop · v${info.data.version}${storage.data ? ' · Local data ready' : ''}`
-                  : 'Connecting to app…'}
-          </p>
         </div>
-      </header>
-      <div className="mx-auto grid max-w-6xl gap-6 p-6 md:grid-cols-[180px_1fr]">
+
         <nav
           aria-label="Main navigation"
-          className="flex flex-wrap gap-1 self-start md:flex-col"
+          className="pp-navigation"
           onKeyDown={(event) => {
             if (
               ![
@@ -122,55 +113,65 @@ export function App() {
               type="button"
               aria-current={name === section ? 'page' : undefined}
               onClick={() => {
+                if (name === section || !drafts.canLeave()) return;
                 setMealToOpen(null);
                 setSection(name);
               }}
-              className={`rounded-lg px-4 py-3 text-left font-medium ${name === section ? 'bg-green-100 text-green-900' : 'text-stone-600 hover:bg-stone-200'}`}
+              className="pp-nav-button"
             >
+              <NavIcon name={name} />
               {name}
             </button>
           ))}
         </nav>
-        <main id="main-content" tabIndex={-1} className="min-w-0">
-          <h1
-            ref={heading}
-            tabIndex={-1}
-            className="mb-6 text-3xl font-semibold tracking-tight"
+        <div className="pp-local-status">
+          <p>Saved on this computer</p>{' '}
+          <p className="text-sm text-stone-600" role="status">
+            {!nativeAvailable()
+              ? 'Browser preview'
+              : info.isError
+                ? 'App connection unavailable'
+                : info.data
+                  ? `Desktop · v${info.data.version}${storage.data ? ' · Local data ready' : ''}`
+                  : 'Connecting to app…'}
+          </p>
+        </div>
+      </aside>
+      <main id="main-content" tabIndex={-1} className="pp-main">
+        <h1 ref={heading} tabIndex={-1} className="pp-page-title">
+          {section}
+        </h1>
+        {storage.isError && (
+          <p
+            role="alert"
+            className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-900"
           >
-            {section}
-          </h1>
-          {storage.isError && (
-            <p
-              role="alert"
-              className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 text-red-900"
-            >
-              Local data could not be opened. Your data has not been reset.
-              Close PantryPal and retry, or use a compatible version.
-            </p>
-          )}
-          {section === 'Week' ? (
-            <WeekPage
-              date={weekDate}
-              onDateChange={setWeekDate}
-              onOpenMeal={(record, library) => {
-                setMealToOpen(record);
-                setMealContext(library);
-                setSection('Meals');
-              }}
-              onShopping={(week) => {
-                setShoppingWeek(week);
-                setSection('Shopping');
-              }}
-            />
-          ) : section === 'Meals' ? (
-            <MealsPage initialMeal={mealToOpen} initialLibrary={mealContext} />
-          ) : section === 'Shopping' ? (
-            <ShoppingPage weekStart={shoppingWeek} />
-          ) : (
-            <Page />
-          )}
-        </main>
-      </div>
+            Local data could not be opened. Your data has not been reset. Close
+            PantryPal and retry, or use a compatible version.
+          </p>
+        )}
+        {section === 'Week' ? (
+          <WeekPage
+            date={weekDate}
+            onDateChange={setWeekDate}
+            onOpenMeal={(record, library) => {
+              setMealToOpen(record);
+              setMealContext(library);
+              setSection('Meals');
+            }}
+            onShopping={(week) => {
+              setShoppingWeek(week);
+              setSection('Shopping');
+            }}
+          />
+        ) : section === 'Meals' ? (
+          <MealsPage initialMeal={mealToOpen} initialLibrary={mealContext} />
+        ) : section === 'Shopping' ? (
+          <ShoppingPage weekStart={shoppingWeek} />
+        ) : (
+          <Page />
+        )}
+      </main>
     </div>
   );
 }
