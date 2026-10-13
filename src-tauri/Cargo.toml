@@ -19,6 +19,9 @@ serde_json = "1"
 sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "sqlite", "migrate", "macros"] }
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
+tauri-plugin-updater = "2"
+tokio = { version = "1", features = ["sync", "macros"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider"] }
 
 # The existing Tauri versions, used directly only to await WebView2's reset
 # completion (Tauri's convenience reset discards that asynchronous result).

@@ -4,6 +4,7 @@ target/
 src-tauri/gen/
 coverage/
 .verification/
+.release-secrets/
 *.log
 .env
 .env.*

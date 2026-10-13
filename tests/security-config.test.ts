@@ -52,6 +52,8 @@ describe('native permission boundary', () => {
     'get_usability_preferences',
     'save_usability_preferences',
     'read_recipe_clipboard_url',
+    'check_app_update',
+    'install_app_update',
   ];
   it('grants only named repository operations to the local main window', () => {
     expect(config.app.security.capabilities).toEqual(['main']);

@@ -14,7 +14,7 @@
 | 5     | Shopping list engine and copy/edit UX                 | Complete    |
 | 6     | Authenticated browser feasibility and import pipeline | Complete    |
 | 7     | Backup, preferences, security and polish              | Complete    |
-| 8     | End-to-end validation and Windows release             | Not started |
+| 8     | End-to-end validation and Windows release             | In progress |
 
 > **Rule:** Update this dashboard and checkboxes in the same commit as completed work. Do not mark a phase complete until its acceptance gate passes.
 
@@ -469,19 +469,66 @@ No project dependencies, lockfiles or migrations were changed.
 
 **Goal:** A reliable Windows deliverable for its intended user.
 
-- [ ] Run `cargo fmt`, `cargo clippy`, Rust tests, TypeScript lint/typecheck, frontend tests and production build.
-- [ ] Test clean install, app restart, migrations, and upgrade from previous seeded data.
-- [ ] Manually test end-to-end: ingredient → meal → custom field → plan → shopping → copy.
-- [ ] Manually test conversion/ambiguity cases, list override regeneration and backup restore.
-- [ ] Test authorized import/login flow or clearly document unavailable integration and fallback.
-- [ ] Package Windows installer (Tauri/NSIS or equivalent) and note any signing warnings.
-- [ ] Document install, uninstall, local-data directories, backups and how to reset website sessions.
-- [ ] Resolve critical defects and capture known limitations in `README.md`.
+**Scope extension (2026-10-13):** The owner requested WorDrop-style automatic
+updates: a bounded startup check of the PantryPal GitHub release feed, release
+notes, Not now, explicit download/install, progress and signature verification.
+Core usage remains offline. PantryPal retains its local-only IPC/CSP boundary
+and creates a household recovery backup before handing off to the installer.
+
+- [x] Implement signed Tauri 2 updates from the fixed PantryPal HTTPS release feed, following WorDrop's startup/prompt/progress workflow.
+- [x] Add accessible update review/postpone/retry states, Settings check and recovery backup before installation; handle offline startup without interruption.
+- [x] Verify updater ACL, newer-version handling, invalid signatures, failed downloads, cancellation/postponement and household data preservation.
+- [x] Configure a dedicated PantryPal signing key, version consistency checks and tag-triggered Windows GitHub release workflow producing draft NSIS artifacts/signatures/latest.json.
+- [x] Verify an installed old-to-new signed update and document signing-key custody, release prerequisites and rollback.
+
+- [x] Run `cargo fmt`, `cargo clippy`, Rust tests, TypeScript lint/typecheck, frontend tests and production build.
+- [x] Test isolated local install, app restart, migrations, and upgrade from previous seeded data.
+- [ ] Test installer and happy path on a clean Windows machine — pending, explicitly deferred by the owner.
+- [ ] Verify GitHub Actions signing-secret setup, published update feed and a production-feed UI upgrade — pending external release acceptance.
+- [x] Exercise native Windows end-to-end: ingredient → meal → custom field → plan → shopping → copy.
+- [x] Exercise native Windows conversion/ambiguity cases, list override regeneration and backup restore.
+- [x] Test authorized import/login flow or clearly document unavailable integration and fallback.
+- [x] Package Windows installer (Tauri/NSIS or equivalent) and note any signing warnings.
+- [x] Document install, uninstall, local-data directories, backups and how to reset website sessions.
+- [x] Resolve critical defects and capture known limitations in `README.md`.
 - [ ] Tag a first usable version once the MVP definition of done in DESIGN.md is met.
 
-**Acceptance gate:** Installer runs on a clean Windows environment and the main happy path succeeds without developer intervention.
+**Acceptance gate:** Installer runs on a clean Windows environment and the main
+happy path succeeds without developer intervention. A reviewed signed update can
+upgrade an installed version without losing household data; unavailable updates
+never block offline use. External release/clean-machine checks remain unchecked
+until actually executed.
 
-**Phase log:** _Add date, commands run, and blockers here._
+**Phase log (2026-10-13):** Implemented signed updates, local-only review/install
+commands, startup/postpone/progress/retry UI and Settings check, dedicated key,
+pre-install recovery backup, per-user NSIS packaging, stable version checks and
+draft GitHub release automation. DESIGN.md intentionally includes the requested
+startup check; ADR 0011 records architecture and SDK limits. README and
+`docs/releases.md` cover installation, data retention, sessions, key custody and
+recovery. Full commands/evidence and audit findings are in
+`docs/phase8-validation.md`.
+
+- Passed frontend format/lint/typecheck and 75 tests, Rust format/Clippy and
+  59 unit/11 integration tests, stable version check and locked signed production
+  NSIS build. Actual SDK tests reject tampering, wrong signed versions and failed
+  downloads; actual IPC denies remote updater and generic SDK commands.
+- Passed native bundled acceptance with production IPC, exact servings,
+  regional/ambiguous/incompatible units, real Windows clipboard, preserved
+  manual items/overrides, file review/confirmed restore, recovery and reopening.
+  Deterministic scripted Windows acceptance plus UI tests implements the planned
+  manual smoke checks; no comprehensive human/screen-reader audit is claimed.
+- Passed isolated NSIS installation/restart, signed SDK 0.1.0 → 0.1.1 upgrade,
+  exact exported-table preservation and uninstall retaining data. Fixtures use
+  their own app identity/profile; production household data was not touched.
+- Passed npm audit (zero vulnerabilities). RustSec audit exits 1 for the existing
+  RSA advisory and reports GTK/unmaintained informational findings; dependency
+  trees confirm those packages are absent on Windows. No advisory was ignored.
+- Clean-machine acceptance is pending at the owner's explicit instruction:
+  “Use isolated local testing for now; leave clean-machine acceptance pending.”
+  Live Actions/feed acceptance and signing-secret custody are also pending;
+  no secrets, commits, tags or releases have been pushed/published. Keep Phase 8
+  In progress until its remaining external gates actually pass. Local first-version
+  tag is recorded separately after committing the verified implementation.
 
 ## Future ideas — explicitly out of MVP
 

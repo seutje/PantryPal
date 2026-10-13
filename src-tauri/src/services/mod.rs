@@ -4,3 +4,4 @@ pub mod browser;
 pub mod clipboard;
 pub mod meal_library;
 pub mod planning;
+pub mod updates;

@@ -1,0 +1,76 @@
+name: Windows release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install pinned Rust toolchain
+        run: rustup show
+      - run: npm ci
+      - name: Verify stable release tag and versions
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: npm run version:check -- "$env:RELEASE_TAG"
+      - name: Verify signing secret is configured
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw 'Configure the dedicated PantryPal TAURI_SIGNING_PRIVATE_KEY secret before releasing.' }
+      - run: npm run check
+      - run: cargo fmt --all -- --check
+      - name: Import Windows compiler and SDK for subsequent steps
+        run: |
+          . ./scripts/Enter-DevEnvironment.ps1
+          foreach ($name in @('PATH', 'INCLUDE', 'LIB', 'LIBPATH', 'VCINSTALLDIR', 'VCToolsInstallDir', 'WindowsSdkDir')) {
+            $value = [Environment]::GetEnvironmentVariable($name)
+            if ($value) { "$name=$value" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append }
+          }
+      - run: |
+          . ./scripts/Enter-DevEnvironment.ps1
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test --workspace --locked
+      - name: Build signed updater artifacts and release draft
+        uses: tauri-apps/tauri-action@v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: PantryPal ${{ github.ref_name }}
+          releaseBody: |
+            Install PantryPal on Windows 10/11 x64 using the setup executable below.
+            Core use is offline. Household data is kept in your user profile.
+            Windows may show an unrecognized publisher warning: installers are not Authenticode signed.
+          generateReleaseNotes: true
+          releaseDraft: true
+          prerelease: false
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true
+          args: --bundles nsis -- --locked
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PantryPal-${{ github.ref_name }}-Windows-installer
+          path: |
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/nsis/*.sig
+          if-no-files-found: error

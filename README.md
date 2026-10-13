@@ -228,6 +228,21 @@ blocks remote fetches; only deliberate recipe browsing needs internet. See
 [ADR 0010](docs/adr/0010-backups-and-everyday-settings.md) and the
 [Phase 7 audit](docs/phase7-security-audit.md) for format and verification limits.
 
+## Windows installer and updates
+
+Build a signed updater-compatible NSIS installer with `npm run release:build`.
+The executable and signature appear in `target/release/bundle/nsis/`. Installed
+release builds check for updates once at startup; review notes, save open drafts,
+then choose **Download and install** or **Not now**. Settings offers a manual
+check. Offline use remains available. Updates verify signatures and signed
+versions and save a household recovery backup before launching the installer.
+
+Windows publisher signing is currently absent, so setup may show SmartScreen
+warnings. Clean-machine acceptance and the published GitHub update feed remain
+pending. See [Windows installation and releases](docs/releases.md) for key custody,
+release prerequisites, uninstall/data retention, recovery and isolated tests, and
+[ADR 0011](docs/adr/0011-signed-windows-updates.md) for architecture and limits.
+
 ## Local data and fixtures
 
 The desktop app creates `%APPDATA%\ca.pantrypal.desktop\pantrypal.sqlite3` using Tauri's app-data resolver. Foreign keys and WAL are enabled. Eight additive migrations initialize schema, seed, preferences, original amount text and planner/history metadata exactly once; reopening preserves user edits and retirement. SQLite's `-wal` and `-shm` files may be present during use. This directory is outside the repository and contains personal data; do not commit it or delete it to repair a migration error.

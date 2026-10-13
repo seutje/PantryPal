@@ -30,6 +30,25 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
-    "icon": ["icons/icon.ico"]
+    "icon": ["icons/icon.ico"],
+    "createUpdaterArtifacts": true,
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "requireSignedVersion": true,
+      "endpoints": [
+        "https://github.com/seutje/PantryPal/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZDODkzNjA3OEU3RkNCQzAKUldUQXkzK09CemFKYkNUWnB0Ny9zKzJlL2dZUnZCT3l2ZzMrek5TQmdjdGlLc2lHN1EwK09OM3kK",
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

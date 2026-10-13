@@ -8,6 +8,7 @@ import { SettingsPage } from '../features/settings/SettingsPage';
 import { getAppInfo, getStorageStatus, nativeAvailable } from '../lib/ipc';
 import type { MealRecord, MealLibrary } from '../lib/models';
 import { localToday } from '../lib/local-date';
+import { UpdateNotice } from '../features/settings/UpdateNotice';
 
 const sections = [
   'Week',
@@ -54,6 +55,7 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900">
+      <UpdateNotice />
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>

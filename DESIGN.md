@@ -227,6 +227,14 @@ Prefer durable IDs, unique constraints, referential integrity, timestamps, and m
 - **Accessibility:** keyboard navigation, visible focus states, legible contrast, proper labels, no drag-only essential actions.
 - **Performance:** instant-feeling ordinary list/search and shopping generation on a modest household dataset; no unnecessary background network traffic.
 - **Distribution:** reproducible signed or unsigned Windows installer as appropriate, documented install/update and data-location instructions; treat signing as optional for personal use.
+- **Application updates (owner-approved Phase 8 extension):** installed release
+  builds check the fixed PantryPal GitHub HTTPS feed once at startup and on a
+  deliberate Settings check. Show release notes and allow postponement; require
+  explicit download/install consent. Verify installer signatures and their signed
+  versions, then save a household recovery backup before Windows installer
+  handoff. Network failures never prevent core offline use. No household data,
+  website credentials or cookies are sent with update checks. Updater signatures
+  are mandatory; Windows Authenticode publisher signing remains optional.
 - **Tests:** prioritize Rust unit/property tests for measurements and list generation; integration tests for SQLite/migrations/import drafts; UI tests for key user journeys.
 
 ## 9. Decisions and open questions

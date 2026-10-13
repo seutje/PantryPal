@@ -8,6 +8,8 @@ pub mod services;
 pub fn run() {
     use tauri::Manager;
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(services::updates::UpdateState::default())
         .setup(|app| {
             app.manage(services::browser::BrowserState::new(
                 app.path()
@@ -72,7 +74,9 @@ pub fn run() {
             commands::restore_backup,
             commands::get_usability_preferences,
             commands::save_usability_preferences,
-            commands::read_recipe_clipboard_url
+            commands::read_recipe_clipboard_url,
+            commands::check_app_update,
+            commands::install_app_update
         ])
         .run(tauri::generate_context!())
         .expect("failed to run PantryPal");

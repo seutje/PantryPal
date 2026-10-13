@@ -5,6 +5,7 @@ import { MeasurementSettings } from './MeasurementSettings';
 import { BrowserReset } from '../import/ImportPage';
 import { DataSettings } from './DataSettings';
 import { UsabilitySettings } from './UsabilitySettings';
+import { UpdateNotice } from './UpdateNotice';
 
 export function SettingsPage() {
   const status = useQuery({
@@ -39,6 +40,7 @@ export function SettingsPage() {
       {nativeAvailable() && <BrowserReset />}
       {nativeAvailable() && <UsabilitySettings />}
       {nativeAvailable() && <DataSettings />}
+      {nativeAvailable() && <UpdateNotice manual />}
       <EmptyState title="Made for your household">
         Core planning and shopping work offline. Recipe websites require an
         internet connection.
