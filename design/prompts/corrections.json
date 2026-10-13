@@ -1,0 +1,17 @@
+[
+  {
+    "id": "03-meal-detail",
+    "prompt": "Correct only the lower two cards. Household fields must be read-only text, not dropdowns: 'Kids enjoyed? Unknown', 'Family score 4 / 5'. Cooking history columns must be Date and Record type; row '12 Oct 2026' / 'Planned occurrence'. Remove invented history notes completely. Keep Record past cooking action, all layout and recipe content unchanged.",
+    "mode": "built-in image_gen edit"
+  },
+  {
+    "id": "08-import",
+    "prompt": "Correct text and safety claims only. Cup dropdown exact choices: 'US cup ≈ 236.588 mL', 'Metric cup = 250 mL', 'Imperial cup ≈ 284.131 mL'. Never use 240 mL for US cup. Replace website checked explanatory claim with 'URL checked. Availability depends on the website.' Replace link 'We don’t automatically match ingredients.' with 'Confirm uncertain matches.' Replace import date with 'Source retained for review'. Show Onion selector label 'Confirm Onion' to make uncertain match explicit. Preserve every other UI detail and layout.",
+    "mode": "built-in image_gen edit"
+  },
+  {
+    "id": "09-supporting-editors",
+    "prompt": "Correct ONLY the top-right New ingredient panel and bottom-left Custom fields panel. In New ingredient top Category value should be 'Vegetable'. Field 'Shopping' must become 'Shopping section' with value 'Produce'; never offer an include-on-shopping toggle. Aliases must be multiline textarea with one alias per line, example 'brown onion' then newline 'yellow onion'; helper 'One alias per line'. In custom fields management remove editable Default value control; replace it with a read-only note 'New values start Unknown'. Table column Default rename 'Details'; rows Yes-no details 'Unknown initially', Rating details 'Range 1–5', Choice details 'Easy, Hard'. Tri-state Unknown / Yes / No should appear in separate small box captioned 'Recipe value example', not as an editable field-definition default. Preserve layout and other two panels.",
+    "mode": "built-in image_gen edit"
+  }
+]

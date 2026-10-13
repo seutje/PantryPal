@@ -1,0 +1,1240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PantryPal · UX/UI design review</title>
+    <style>
+      :root {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        color: #292524;
+        background: #f7f6f2;
+        line-height: 1.55;
+        font-size: 16px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      header,
+      main,
+      footer {
+        max-width: 1320px;
+        margin: auto;
+        padding: 32px;
+      }
+      header {
+        padding-bottom: 16px;
+      }
+      h1 {
+        font-size: 40px;
+        line-height: 1.15;
+        letter-spacing: -1px;
+        margin: 12px 0;
+      }
+      h2 {
+        font-size: 28px;
+        margin-top: 40px;
+      }
+      h3 {
+        font-size: 21px;
+        margin: 0;
+      }
+      a {
+        color: #21634b;
+        text-underline-offset: 3px;
+      }
+      a:focus-visible {
+        outline: 3px solid #21634b;
+        outline-offset: 4px;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 24px 0;
+      }
+      nav a {
+        border: 1px solid #b6c9bf;
+        background: white;
+        padding: 8px 14px;
+        border-radius: 8px;
+        text-decoration: none;
+      }
+      p {
+        max-width: 100ch;
+      }
+      .eyebrow {
+        color: #21634b;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+      .notice {
+        padding: 18px 24px;
+        background: #fff6e5;
+        border-left: 4px solid #946000;
+        border-radius: 8px;
+      }
+      .panel {
+        padding: 24px;
+        background: white;
+        border: 1px solid #dedbd6;
+        border-radius: 12px;
+        margin: 20px 0;
+      }
+      .priority {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .priority .panel {
+        margin: 0;
+      }
+      .proposal {
+        margin: 24px 0 40px;
+        border: 1px solid #dedbd6;
+        border-radius: 12px;
+        overflow: hidden;
+        background: white;
+        scroll-margin-top: 20px;
+      }
+      .proposal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+      }
+      .proposal img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-block: 1px solid #dedbd6;
+      }
+      .proposal p {
+        margin: 20px 24px 24px;
+      }
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid #dedbd6;
+        border-radius: 8px;
+        background: white;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 1040px;
+        font-size: 14px;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 14px;
+        border-bottom: 1px solid #e7e5e4;
+      }
+      thead th {
+        background: #e5eee8;
+      }
+      tbody th {
+        min-width: 180px;
+      }
+      td code {
+        overflow-wrap: anywhere;
+        font-family: Consolas, monospace;
+        font-size: 12px;
+      }
+      li {
+        margin: 10px 0;
+      }
+      .tokens {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .token {
+        padding: 12px;
+        border: 1px solid #dedbd6;
+        border-radius: 8px;
+        min-width: 140px;
+      }
+      .swatch {
+        display: block;
+        height: 30px;
+        border: 1px solid #a8a29e;
+        border-radius: 4px;
+        margin-bottom: 8px;
+      }
+      footer {
+        border-top: 1px solid #dedbd6;
+        color: #57534e;
+      }
+      @media (max-width: 760px) {
+        header,
+        main,
+        footer {
+          padding: 20px;
+        }
+        .priority {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 30px;
+        }
+        .proposal-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="eyebrow">
+        DESIGN REVIEW · 13 OCTOBER 2026 · PROPOSALS ONLY
+      </div>
+      <h1>PantryPal, easier to read and quicker to use.</h1>
+      <p>
+        Ten imagegen concept boards cover the five main sections, recipe detail
+        and editing, import, supporting editors, and safety states. The
+        inspection inventory below covers 30 screen and state families. Open any
+        image at full size to inspect it.
+      </p>
+      <nav aria-label="Review contents">
+        <a href="#direction">Design direction</a><a href="#gallery">Mockups</a
+        ><a href="#inventory">Every screen</a
+        ><a href="#priorities">Priorities</a
+        ><a href="#verification">Evidence & limits</a>
+      </nav>
+      <div class="notice">
+        <strong>These are proposals, not an implemented redesign.</strong>
+        Current source and historical native screenshots informed this review.
+        Live browser interaction was unavailable. Written behavior notes and
+        DESIGN.md govern where generated artwork differs; individual images
+        contain fictional content and some visual shorthand.
+      </div>
+    </header>
+    <main>
+      <section id="direction">
+        <h2>A compact, calm desktop workspace</h2>
+        <p>
+          Keep the existing forest-green identity and warm neutral surfaces.
+          Shrink the global banner, place identity in the sidebar, and give the
+          task more room. Use a single prominent primary action per form,
+          outlined secondary actions and quiet links. Prefer compact semantic
+          rows for repetitive data and readable cards for recipes.
+        </p>
+        <div class="tokens">
+          <div class="token">
+            <span class="swatch" style="background: #21634b"></span>Primary ·
+            #21634B
+          </div>
+          <div class="token">
+            <span class="swatch" style="background: #f7f6f2"></span>Workspace ·
+            #F7F6F2
+          </div>
+          <div class="token">
+            <span class="swatch" style="background: #ffffff"></span>Surface ·
+            #FFFFFF
+          </div>
+          <div class="token">
+            <span class="swatch" style="background: #292524"></span>Text ·
+            #292524
+          </div>
+          <div class="token">
+            <span class="swatch" style="background: #fff6e5"></span>Review ·
+            pale amber
+          </div>
+        </div>
+        <p>
+          Use local Segoe UI, 16px body text, 14px secondary text, 28–32px
+          screen titles, 8px spacing steps, 8px control corners, 40px controls
+          and 3px focus outlines. Treat these as CSS dimensions, not dimensions
+          inferred from screenshots. No remote fonts or recipe photos are
+          needed. Icons supplement text labels.
+        </p>
+        <p>
+          The forest sidebar is the proposed default; board 02 also demonstrates
+          a lighter sidebar variation. Consolidate to one treatment before
+          implementation. Keep the current PantryPal wordmark and tagline;
+          generated leaf marks, slogans and gradients are exploratory
+          decoration, not requests for branding changes.
+        </p>
+        <p>
+          The native window defaults to 1100 × 760 and can shrink to 640 × 480.
+          These 1536 × 1024 concept images show spacious layouts: at actual
+          sizes, stack recipe columns, let agenda rows grow, use a full-width
+          editing dialog rather than squeezing a drawer, and allow scrolling. At
+          200% display/text scaling, labels and actions must remain accessible.
+          There is no promise that every populated week always fits without
+          scrolling.
+        </p>
+      </section>
+      <section id="priorities">
+        <h2>Suggested implementation order</h2>
+        <div class="priority">
+          <div class="panel">
+            <h3>1 · Shared hierarchy</h3>
+            <p>
+              Compact shell, primary/secondary/quiet buttons, consistent
+              headers, local status, field errors and confirmation patterns.
+              Remove stale future-tense copy from measurement settings. Verify
+              contrast and keyboard navigation.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>2 · Week and Shopping</h3>
+            <p>
+              Compact agenda and aisle rows, current quantities beside names,
+              consistent status badges and labelled More actions. Retain
+              shopping provenance, alternatives, stale-copy blocking and all
+              adjustments.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>3 · Forms and review</h3>
+            <p>
+              Recipe ingredient table and save footer, catalog editor,
+              task-based settings and guided import review. Evaluate the
+              picker’s proposed extra confirmation step before changing its
+              immediate-add behavior.
+            </p>
+          </div>
+        </div>
+        <p>
+          These are presentation and workflow proposals over the existing domain
+          model. New tabs, drawers and controls need frontend state, focus
+          handling and meaningful flow tests. No migration or change to
+          authoritative measurement/shopping calculations is proposed. Accept
+          individual slices after review; no implementation checklist is marked
+          complete here.
+        </p>
+      </section>
+      <section id="gallery">
+        <h2>Inspect the proposed screens</h2>
+        <nav aria-label="Mockup shortcuts">
+          <a href="#01-week">Week</a><a href="#02-meals">Meals</a
+          ><a href="#03-meal-detail">Meal detail</a
+          ><a href="#04-meal-editor">Meal editor</a
+          ><a href="#05-shopping">Shopping</a
+          ><a href="#06-ingredients">Ingredients</a
+          ><a href="#07-settings">Settings</a><a href="#08-import">Import</a
+          ><a href="#09-supporting-editors">Supporting editors</a
+          ><a href="#10-safety-states">Safety and recovery</a>
+        </nav>
+        <article class="proposal" id="01-week">
+          <div class="proposal-head">
+            <h3>01 · Week</h3>
+            <a href="mockups/01-week.png" target="_blank" rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/01-week.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/01-week.png"
+              alt="Week proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Compact agenda keeps the full week visible for a small plan. Day
+            rows expand for multiple entries; no entry is hidden or counted once
+            per recipe instead of once per occurrence. Retain an accessible date
+            picker, current-week action, last-cooked metadata and scaled
+            ingredients disclosure. Mark cooked still opens the actual-date
+            form.
+          </p>
+        </article>
+        <article class="proposal" id="02-meals">
+          <div class="proposal-head">
+            <h3>02 · Meals</h3>
+            <a href="mockups/02-meals.png" target="_blank" rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/02-meals.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/02-meals.png"
+              alt="Meals proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Use text-first cards without image dependencies. Filters should stay
+            live as today unless a deliberate Apply model is approved. Only
+            non-default filters count as active: the generated ‘History: any’
+            chip and ‘2 active’ badge are illustrative mistakes; one weeknight
+            tag means one active filter. ‘Never recorded’ is safer wording than
+            ‘Never cooked’.
+          </p>
+        </article>
+        <article class="proposal" id="03-meal-detail">
+          <div class="proposal-head">
+            <h3>03 · Meal detail</h3>
+            <a href="mockups/03-meal-detail.png" target="_blank" rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/03-meal-detail.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/03-meal-detail.png"
+              alt="Meal detail proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Read-only fields, clear ingredient rows, original wording disclosure
+            and large instructions area. Keep every source line available and
+            warnings visible. Cooking history remains an explicit list of
+            recorded events with correction and undo, including cancelled
+            records. The sample instruction prose is fictional layout content,
+            not recipe guidance.
+          </p>
+        </article>
+        <article class="proposal" id="04-meal-editor">
+          <div class="proposal-head">
+            <h3>04 · Meal editor</h3>
+            <a href="mockups/04-meal-editor.png" target="_blank" rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/04-meal-editor.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/04-meal-editor.png"
+              alt="Meal editor proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Prioritize the fields used on every edit. Use a text amount input
+            accepting fractions and unknowns; generated spinner styling must not
+            restrict base servings to integers. Every ingredient has its own
+            canonical chooser; the drawn top search is only shorthand. Raw text,
+            source convention, optional flag, preparation, order and removal
+            stay available in row details. Source URL remains read-only on
+            import.
+          </p>
+        </article>
+        <article class="proposal" id="05-shopping">
+          <div class="proposal-head">
+            <h3>05 · Shopping</h3>
+            <a href="mockups/05-shopping.png" target="_blank" rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/05-shopping.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/05-shopping.png"
+              alt="Shopping proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Quick aisle scanning with current quantity beside the item.
+            Generated basis appears where an override exists. Keep compatible
+            same-dimension alternative measures, approximate and rounded labels,
+            full source breakdown and explicit no-unit edits; the image
+            abbreviates these. Stale copying is blocked. Editing drawer retains
+            draft on failure and does not enable background writes during
+            pending save.
+          </p>
+        </article>
+        <article class="proposal" id="06-ingredients">
+          <div class="proposal-head">
+            <h3>06 · Ingredients</h3>
+            <a href="mockups/06-ingredients.png" target="_blank" rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/06-ingredients.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/06-ingredients.png"
+              alt="Ingredients proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Aliases become visible as well as searchable. Editing beside the
+            catalog reduces loss of context. The illustrated onion rule is
+            fictional, scoped and approximate; the separate-onion Shopping image
+            intentionally shows a household without that rule. ‘Preference’
+            means use display preference, not a new unit. Ignore the generated
+            slogan and sort arrow; retain existing wordmark/tagline and
+            ordering.
+          </p>
+        </article>
+        <article class="proposal" id="07-settings">
+          <div class="proposal-head">
+            <h3>07 · Settings</h3>
+            <a href="mockups/07-settings.png" target="_blank" rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/07-settings.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/07-settings.png"
+              alt="Settings proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Group the existing settings by task. Cup reference values must come
+            from the unit catalog. Exact fractions and decimal preview
+            illustrate formatting only. Unsaved tab changes need retention or
+            discard confirmation; Saved appears only after successful
+            persistence. Remove completed-feature wording ‘when grocery
+            generation is available’.
+          </p>
+        </article>
+        <article class="proposal" id="08-import">
+          <div class="proposal-head">
+            <h3>08 · Import</h3>
+            <a href="mockups/08-import.png" target="_blank" rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/08-import.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/08-import.png"
+              alt="Import proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Source and Review are successive states, shown side by side for
+            inspection. The example.com URL is illustrative, not an approved
+            integration. The actual result determines whether browser reading is
+            available. Preserve manual preview/cancel actions even though they
+            are omitted from this composition. Final save requires review;
+            duplicate-source consent is separate. Unknown quantity alone must
+            remain valid.
+          </p>
+        </article>
+        <article class="proposal" id="09-supporting-editors">
+          <div class="proposal-head">
+            <h3>09 · Supporting editors</h3>
+            <a
+              href="mockups/09-supporting-editors.png"
+              target="_blank"
+              rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a
+            href="mockups/09-supporting-editors.png"
+            target="_blank"
+            rel="noopener"
+            ><img
+              src="mockups/09-supporting-editors.png"
+              alt="Supporting editors proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            Four separate panels, not one production screen. Picker’s explicit
+            Add with servings is a proposed change to the current immediate
+            selection behavior. Duplicate identity warning must keep Save
+            disabled or reject the conflicting name; the regenerated green Save
+            button is a remaining visual error. Null preferred unit should read
+            ‘Use measurement preference’. Custom-field example shows recipe
+            value semantics, not a configurable definition default. Preserve all
+            six field kinds and independent vocabulary/rule saves.
+          </p>
+        </article>
+        <article class="proposal" id="10-safety-states">
+          <div class="proposal-head">
+            <h3>10 · Safety and recovery</h3>
+            <a
+              href="mockups/10-safety-states.png"
+              target="_blank"
+              rel="noopener"
+              >Open full image ↗</a
+            >
+          </div>
+          <a href="mockups/10-safety-states.png" target="_blank" rel="noopener"
+            ><img
+              src="mockups/10-safety-states.png"
+              alt="Safety and recovery proposed desktop interface"
+              width="1536"
+              height="1024"
+              loading="lazy"
+          /></a>
+          <p>
+            A pattern board showing separate states. Update prompt and 42%
+            progress are alternatives; prompt buttons must be disabled/hidden
+            during installation. Release text is fictional. No Restart command
+            is proposed: show the existing instruction to close and reopen the
+            app until a restart action is explicitly implemented. Recipe-library
+            empty state belongs under Meals. Storage errors cannot promise
+            integrity without evidence; say ‘Your data has not been reset’.
+            Replacement warns about absent records being removed, while merge
+            rejects conflicts.
+          </p>
+        </article>
+      </section>
+      <section id="inventory">
+        <h2>Screen-by-screen inspection</h2>
+        <p>
+          This inventory includes every authored feature screen and its
+          materially different editing, review, confirmation and error states.
+          Source paths are relative to the repository; bare component names
+          share the preceding feature directory. Third-party recipe pages are
+          reviewed only as a handoff boundary, because their content and
+          authentication belong to the website.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Screen / state</th>
+                <th>Current source</th>
+                <th>Inspection finding</th>
+                <th>Proposed UX/UI change</th>
+                <th>Board</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">App shell</th>
+                <td>
+                  <code
+                    >src/app/App.tsx; src/styles.css;
+                    src/components/ui/Button.tsx</code
+                  >
+                </td>
+                <td>
+                  Large global header; every Button has the same filled green
+                  treatment. Navigation and focus handling are already explicit.
+                </td>
+                <td>
+                  Reduce header height, use sidebar identity, reserve green for
+                  the task’s primary action; retain skip link, arrow-key
+                  navigation, focus restoration and visible local-data errors.
+                </td>
+                <td>01–07</td>
+              </tr>
+              <tr>
+                <th scope="row">Week agenda and unscheduled pool</th>
+                <td><code>src/features/week/WeekPage.tsx</code></td>
+                <td>
+                  Eight vertically stacked groups; date navigation and shopping
+                  handoff compete with content.
+                </td>
+                <td>
+                  Compact day agenda, short date toolbar, subtle today
+                  highlight, separate unscheduled area. Expand for multiple
+                  entries; use stacking at narrow sizes.
+                </td>
+                <td>01</td>
+              </tr>
+              <tr>
+                <th scope="row">Plan card / servings / move / ordering</th>
+                <td>
+                  <code>src/features/week/PlanCard.tsx; PlanForms.tsx</code>
+                </td>
+                <td>
+                  Many visible buttons, repeated metadata and ingredient
+                  disclosure per occurrence.
+                </td>
+                <td>
+                  Title opens recipe; expose status and servings, keep Mark
+                  cooked accessible; group move, skip and remove in labelled
+                  More menu. Retain keyboard up/down and explicit date chooser.
+                </td>
+                <td>01, 09</td>
+              </tr>
+              <tr>
+                <th scope="row">Meal picker / add-to-week</th>
+                <td>
+                  <code
+                    >src/features/week/MealPickerDialog.tsx; PlanForms.tsx</code
+                  >
+                </td>
+                <td>
+                  Picker adds base servings immediately; changing servings
+                  requires a later edit. Generic add uses search plus select.
+                </td>
+                <td>
+                  Proposed selection → servings/date → Add flow in one dialog,
+                  including unscheduled destination. This is a deliberate
+                  interaction proposal; only Add commits, and repeated additions
+                  stay separate.
+                </td>
+                <td>09</td>
+              </tr>
+              <tr>
+                <th scope="row">Record cooked / undo / plan removal</th>
+                <td>
+                  <code>src/features/week/PlanForms.tsx; PlanCard.tsx</code>
+                </td>
+                <td>
+                  Explicit actual date and confirmations already protect cooking
+                  history.
+                </td>
+                <td>
+                  Keep actual-date entry and recorded-event logic; focused
+                  confirmation explains undo’s effect on last eaten and linked
+                  plan. Removal keeps recipe/history.
+                </td>
+                <td>10</td>
+              </tr>
+              <tr>
+                <th scope="row">Meal library / search / filters</th>
+                <td><code>src/features/meals/MealsPage.tsx</code></td>
+                <td>
+                  Import occupies a separate row; custom-field administration is
+                  as prominent as New meal; filters are collapsed, results show
+                  few metadata fields.
+                </td>
+                <td>
+                  One toolbar, prominent Import, secondary New, tertiary Manage
+                  fields; text-first recipe cards with times and real last
+                  cooked; removable chips only for non-default filters.
+                </td>
+                <td>02</td>
+              </tr>
+              <tr>
+                <th scope="row">Recipe detail</th>
+                <td><code>src/features/meals/MealDetail.tsx</code></td>
+                <td>
+                  Sequential long page; original text and entered values repeat
+                  under every ingredient; retirement is a top-level action.
+                </td>
+                <td>
+                  Two-column ingredients/instructions at wide sizes, metadata
+                  row, source disclosure, read-only household fields; More
+                  contains retirement. Keep warnings outside disclosure.
+                </td>
+                <td>03</td>
+              </tr>
+              <tr>
+                <th scope="row">Meal create / edit / ingredient rows</th>
+                <td><code>src/features/meals/MealEditor.tsx</code></td>
+                <td>
+                  Comprehensive form with line-level advanced fields and
+                  save/cancel near end.
+                </td>
+                <td>
+                  Basics → compact ingredient rows → multiline instructions →
+                  optional details; persistent Save/Cancel, section anchors,
+                  searchable canonical ingredient chooser and row details.
+                  New-ingredient action remains a separate modal.
+                </td>
+                <td>04, 09</td>
+              </tr>
+              <tr>
+                <th scope="row">Meal custom-field value controls</th>
+                <td><code>src/features/meals/FieldValueControl.tsx</code></td>
+                <td>
+                  Boolean Unknown/Yes/No correctly distinct; text known-empty
+                  semantics need extra checkbox.
+                </td>
+                <td>
+                  Use labelled three-state control for booleans; retain date,
+                  numeric/rating bounds, choices and known-empty text handling.
+                  Text can be multiline per DESIGN; preserve null versus empty
+                  string.
+                </td>
+                <td>03, 09</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Custom-field management / definition editor / retirement
+                </th>
+                <td><code>src/features/meals/FieldManager.tsx</code></td>
+                <td>
+                  Raw internal kind names, stacked records; immutable shapes are
+                  explained in prose.
+                </td>
+                <td>
+                  Compact table and adjacent definition form, friendly type
+                  labels, examples and fixed-shape explanation. Support all six
+                  types; retirement confirmation retains historical values.
+                </td>
+                <td>09, 10</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Cooking history / backfill / correction / undo
+                </th>
+                <td><code>src/features/meals/CookingHistory.tsx</code></td>
+                <td>
+                  History plus record form occupy recipe flow; per-event buttons
+                  include full dates.
+                </td>
+                <td>
+                  Readable date/type rows, deliberate Record past cooking entry,
+                  per-row correction/undo actions. Cancelled records remain
+                  reachable; no new history-note field.
+                </td>
+                <td>03, 10</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Shopping checklist / stale / copy / provenance
+                </th>
+                <td><code>src/features/shopping/ShoppingPage.tsx</code></td>
+                <td>
+                  Full cards, multiple buttons and repeated explanations make
+                  long lists slow to scan.
+                </td>
+                <td>
+                  Compact aisle rows, aligned amounts, purchased styling plus
+                  text, clear edited/manual/approximate/rounded/unknown badges;
+                  source details disclosure. Stale copy stays blocked with a
+                  visible reason.
+                </td>
+                <td>05</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Shopping manual addition / amount edit / reset
+                </th>
+                <td>
+                  <code
+                    >src/features/shopping/ShoppingForm.tsx;
+                    ShoppingPage.tsx</code
+                  >
+                </td>
+                <td>
+                  Forms interrupt the list; generated basis and override need
+                  comparison; reset uses window.confirm.
+                </td>
+                <td>
+                  Labelled drawer/form with generated and current amounts,
+                  text-compatible amount input accepting fractions and unknowns,
+                  explicit no-unit option. Confirm reset; manual items and
+                  overrides survive refresh.
+                </td>
+                <td>05, 10</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Shopping excluded / orphaned / empty / retry
+                </th>
+                <td><code>src/features/shopping/ShoppingPage.tsx</code></td>
+                <td>
+                  Excluded and orphaned rows stay in normal groups; retry state
+                  preserves action IDs.
+                </td>
+                <td>
+                  Dedicated retained-items disclosure with count; orphaned rows
+                  visibly omitted from copy. Empty state offers Generate or Add
+                  item; retry explains retained input without exposing IDs.
+                </td>
+                <td>05, 10</td>
+              </tr>
+              <tr>
+                <th scope="row">Ingredient catalog / alias search</th>
+                <td>
+                  <code>src/features/ingredients/IngredientsPage.tsx</code>
+                </td>
+                <td>
+                  Useful semantic table; aliases are searchable but not shown;
+                  edit form is above catalog.
+                </td>
+                <td>
+                  Retain table with aliases column, lighter Edit actions and
+                  selected-row highlight. Edit beside catalog where space
+                  allows; narrower layout uses a modal/full-width form.
+                </td>
+                <td>06</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  New ingredient modal / edit / duplicate match / retirement
+                </th>
+                <td>
+                  <code
+                    >src/features/ingredients/IngredientDialog.tsx;
+                    IngredientEditor.tsx</code
+                  >
+                </td>
+                <td>
+                  New is a modal, edit is inline; long form includes months;
+                  duplicate choices protect identity.
+                </td>
+                <td>
+                  Consistent grouped forms, persistent footer, explicit Use
+                  existing/Open existing context, independent category and
+                  shopping-section selectors; seasonality/notes disclosed. Empty
+                  months remain unspecified, all 12 means year-round.
+                </td>
+                <td>06, 09</td>
+              </tr>
+              <tr>
+                <th scope="row">Ingredient rules / create / edit / retire</th>
+                <td>
+                  <code>src/features/ingredients/ConversionRules.tsx</code>
+                </td>
+                <td>
+                  Rule editing has source/equivalent inputs, required notes and
+                  approximation checkbox; Edit label includes ID fragment.
+                </td>
+                <td>
+                  Human-readable conversion expression, required
+                  size/density/package applicability note, approximate badge,
+                  friendly action label; preserve rule retirement and
+                  independent save behavior.
+                </td>
+                <td>06, 09</td>
+              </tr>
+              <tr>
+                <th scope="row">Quantity and temperature converter</th>
+                <td>
+                  <code>src/features/ingredients/ConversionControl.tsx</code>
+                </td>
+                <td>
+                  Converter repeats in catalog, ingredient editor and
+                  measurement settings; ambiguity candidates already explicit.
+                </td>
+                <td>
+                  A compact optional tool, clear source/target labels,
+                  exact/rounded/approximate result and explicit cannot-convert
+                  reason. Ingredient rules apply only in ingredient context.
+                  Temperature remains isolated.
+                </td>
+                <td>07, 09</td>
+              </tr>
+              <tr>
+                <th scope="row">Category and section management</th>
+                <td>
+                  <code>src/features/ingredients/VocabularyManager.tsx</code>
+                </td>
+                <td>
+                  Separate durable vocabularies already exist in details panels;
+                  section order is numeric here.
+                </td>
+                <td>
+                  Separate management views with labelled add/edit/retire,
+                  preserve IDs/references. Distinguish vocabulary order from
+                  Settings’ effective shopping order; do not silently couple
+                  them.
+                </td>
+                <td>06, 09</td>
+              </tr>
+              <tr>
+                <th scope="row">Import source / URL check / browser handoff</th>
+                <td><code>src/features/import/ImportPage.tsx</code></td>
+                <td>
+                  URL controls, browser extraction, manual fields, JSON-LD and
+                  session reset share one long page.
+                </td>
+                <td>
+                  Source → Review → Save progress; URL checks and
+                  permitted-content confirmation beside browser handoff; show
+                  support-dependent result, never promise every site. Login
+                  stays on the untrusted website.
+                </td>
+                <td>08</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Import manual / authorized JSON-LD / failures
+                </th>
+                <td><code>src/features/import/ImportPage.tsx</code></td>
+                <td>
+                  Two supplied-content formats; input-preserving error messages
+                  already present.
+                </td>
+                <td>
+                  Manual path always available, structured metadata input under
+                  advanced disclosure; retain title/servings/multiline
+                  ingredients/instructions and permission checkbox; bounded
+                  errors next to the relevant action.
+                </td>
+                <td>08</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Import review / duplicate source / final confirmation
+                </th>
+                <td>
+                  <code
+                    >src/features/import/ImportPage.tsx; MealEditor.tsx</code
+                  >
+                </td>
+                <td>
+                  Review reuses full meal editor plus warnings and
+                  acknowledgement; explicit duplicate choice.
+                </td>
+                <td>
+                  Warning summary links to uncertain lines, raw wording
+                  alongside canonical match, exact regional-unit choices, base
+                  yield and attribution. Confirm all reviewed values; save
+                  remains draft until deliberate confirmation.
+                </td>
+                <td>08</td>
+              </tr>
+              <tr>
+                <th scope="row">External recipe website window</th>
+                <td>
+                  <code
+                    >src-tauri/src (browser/import commands);
+                    src-tauri/capabilities</code
+                  >
+                </td>
+                <td>
+                  Third-party UI is outside PantryPal’s authored screen
+                  hierarchy; trusted app owns import actions.
+                </td>
+                <td>
+                  Keep website content unmodified; native trusted chrome can
+                  identify domain/profile and provide return guidance. No
+                  redesign of third-party login, privileged overlay or expanded
+                  remote IPC.
+                </td>
+                <td>08 (handoff only)</td>
+              </tr>
+              <tr>
+                <th scope="row">Settings overview / local data</th>
+                <td><code>src/features/settings/SettingsPage.tsx</code></td>
+                <td>
+                  Long stack of unrelated sections, ending in an EmptyState
+                  despite existing settings.
+                </td>
+                <td>
+                  Task tabs or section navigation for Measurements, Shopping
+                  order, Recipe websites, Backups &amp; restore, Updates;
+                  compact local status. Storage failure remains prominent.
+                </td>
+                <td>07</td>
+              </tr>
+              <tr>
+                <th scope="row">Measurement preferences</th>
+                <td>
+                  <code>src/features/settings/MeasurementSettings.tsx</code>
+                </td>
+                <td>
+                  Accurate explicit cup options; stale 'when grocery generation
+                  is available' copy despite completed shopping engine.
+                </td>
+                <td>
+                  Shorter labels, Mixed/Metric/US mode, cup reference and
+                  examples; remove stale future-tense text. Always preserve
+                  explicit cup review, precision settings and source values.
+                </td>
+                <td>07</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Shopping order / clipboard import preferences
+                </th>
+                <td>
+                  <code>src/features/settings/UsabilitySettings.tsx</code>
+                </td>
+                <td>
+                  Shopping ordering and clipboard prefill live in one form
+                  though they serve different tasks.
+                </td>
+                <td>
+                  Group existing controls by task; retain clear unsaved/saved
+                  state and keyboard Move earlier/later. Clipboard prefill stays
+                  opt-in and reads only on Import action; no automatic browser
+                  opening.
+                </td>
+                <td>07, 09</td>
+              </tr>
+              <tr>
+                <th scope="row">Website sessions / clear confirmation</th>
+                <td>
+                  <code>src/features/import/ImportPage.tsx: BrowserReset</code>
+                </td>
+                <td>
+                  Same session controls appear in Import and Settings; clearing
+                  has explicit confirmation.
+                </td>
+                <td>
+                  Make Settings the main management location, link from import;
+                  show clear sign-out consequence and keep confirmation.
+                  Household backups exclude browser cookies.
+                </td>
+                <td>10</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Backup export / file selection / merge or replace review
+                </th>
+                <td><code>src/features/settings/DataSettings.tsx</code></td>
+                <td>
+                  Technical folder paths and export details dominate;
+                  merge/replace semantics and recovery already explicit.
+                </td>
+                <td>
+                  Export action and short inclusion summary; file picker →
+                  behavior → review → confirmation. Distinguish merge conflict
+                  rejection from replace deletion, show actual result counts and
+                  recovery path after success.
+                </td>
+                <td>10</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Application updates / review / progress / failure
+                </th>
+                <td><code>src/features/settings/UpdateNotice.tsx</code></td>
+                <td>
+                  Startup and Settings review use modal; explicit consent,
+                  signature checking and recovery already exist.
+                </td>
+                <td>
+                  Clear release notes, postpone focus, progress phases and
+                  retry. Never imply cancel during installer handoff; save edits
+                  warning remains before install. Offline errors do not block
+                  core usage.
+                </td>
+                <td>10</td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  Shared loading / no results / validation / stale revision
+                </th>
+                <td>
+                  <code>src/components/EmptyState.tsx; all feature pages</code>
+                </td>
+                <td>
+                  Native labels, status/alert roles, retry/idempotency and many
+                  safety statements already present.
+                </td>
+                <td>
+                  One consistent status pattern with a next action; distinguish
+                  empty library from filtered no-results. Keep drafts after
+                  failures, avoid false Saved indicators, maintain keyboard
+                  focus and confirmation on draft discard.
+                </td>
+                <td>02, 04, 10</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h2>Interaction and safety requirements for implementation</h2>
+        <ul>
+          <li>
+            Use semantic navigation, headings, tables and labelled inputs. Menus
+            need keyboard operation, Escape handling and focus restoration;
+            neither hover nor drag may be required. Do not hide all essential
+            actions behind unlabeled icons.
+          </li>
+          <li>
+            Retain source wording, entered exact quantities, explicit unit
+            variants, custom-field null semantics and all cooking audit records.
+            Disclosure changes visibility, never persistence.
+          </li>
+          <li>
+            Keep scheduled and actually cooked states distinct. Each repeated
+            meal occurrence retains its own servings, status and ordering. Mark
+            cooked still requires an actual cooked date.
+          </li>
+          <li>
+            Shopping rows retain compatible alternative measures and visible
+            rounding/approximation. Incompatible dimensions, unknown amounts and
+            unconfigured packages stay separate. Badges supplement
+            plain-language reasons.
+          </li>
+          <li>
+            Refresh preserves manual items, amount overrides, checkmarks and
+            exclusions. Changed source identities retain affected adjustments
+            for review; drawer design does not change this policy.
+          </li>
+          <li>
+            Import stays untrusted draft review. Explicit canonical matches and
+            regional-unit decisions remain required where uncertain. Login
+            happens on the website; no new remote capability or extraction
+            technique is proposed.
+          </li>
+          <li>
+            Separate website-data reset from household restore. Merge rejects
+            conflicts; replace removes current records absent from the backup.
+            Both require preview and deliberate confirmation, with recovery
+            backup before changes.
+          </li>
+          <li>
+            Save feedback follows successful persistence. Preserve inputs after
+            failures; confirm draft discard; avoid clearing settings drafts when
+            switching tabs. Keep idempotent retries and stale-revision
+            protection underneath friendlier wording.
+          </li>
+          <li>
+            Update postponement remains possible before installation. Actual
+            downloading/verification/backup/handoff phases control enabled
+            actions. Existing unsaved-work warning remains visible; no automatic
+            installation or unsupported cancellation is proposed.
+          </li>
+        </ul>
+      </section>
+      <section id="verification">
+        <h2>Inspection evidence and limits</h2>
+        <div class="panel">
+          <p>
+            <strong>Baseline:</strong> DESIGN.md and PLAN.md; working tree was
+            clean at the start. Reviewed App, all feature page/editor/dialog
+            components, shared styles/buttons, typed IPC, native window sizing
+            and local capability scope. Historical native captures inspected:
+            phase4-week, phase5-shopping, phase3-meals, ingredient-modal-open,
+            phase6-import and phase2-settings.
+          </p>
+          <p>
+            <strong>Discrepancies identified:</strong> historical screenshots
+            include earlier “coming later” behavior; current source implements
+            those workflows. MeasurementSettings still says compatible
+            aggregation is available “when grocery generation is available,”
+            despite Phase 5 completion. The intentional proposal is to update
+            that copy in a later implementation slice, retaining current
+            behavior. DESIGN remains the baseline. No scope or architecture
+            changes were silently applied.
+          </p>
+          <p>
+            <strong>Generation:</strong> built-in image_gen via the imagegen
+            skill, ten original calls and three targeted corrections. Final
+            prompt set is in <a href="prompts/prompts.json">prompts.json</a>;
+            corrections are in
+            <a href="prompts/corrections.json">corrections.json</a>. Final PNGs
+            are in mockups/. Original outputs were copied into the repository;
+            discarded variants are not included.
+          </p>
+          <p>
+            <strong>Checks:</strong> npm run typecheck passed. Final HTML/JSON
+            formatting, local image-link/PNG checks and git diff --check are
+            recorded in <a href="verification.txt">verification.txt</a>. No
+            application behavior was changed; Rust tests, native build and new
+            UI flow tests were not run for this artifact-only slice.
+          </p>
+          <p>
+            <strong>Not verified:</strong> live clicking, focus behavior,
+            screen-reader use, exact render at native window sizes and
+            installed-app visual equivalence. Browser discovery returned no
+            available browser. Artwork was visually reviewed, but it is not an
+            accessibility audit or a pixel-accurate implementation
+            specification. Remaining generated details are called out beneath
+            each board.
+          </p>
+          <p>
+            <strong>Plan:</strong> release phase dashboard and acceptance
+            checkboxes remain unchanged. Next unchecked release tasks concern
+            deferred clean-machine testing and published-feed acceptance;
+            neither is part of this requested review. A dated design-review log
+            records these deliverables without claiming implementation.
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer>
+      PantryPal · Local design proposal gallery · No network requests, scripts,
+      remote assets or household data. Open index.html in a browser, or open the
+      PNG files directly.
+    </footer>
+  </body>
+</html>

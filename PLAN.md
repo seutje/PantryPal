@@ -581,6 +581,24 @@ pending. Passed `npm test -- tests/release-config.test.ts` (2 tests), focused
 Prettier checks and `git diff --check`. Reviewed the remaining release workflow's
 four quality/test commands; Rust checks were not rerun for this workflow deletion.
 
+**UX/UI design review (2026-10-13):** At the owner's request, inspected the
+five primary sections and 30 authored screen/state families through current
+components and six historical Windows captures. Created ten built-in imagegen
+proposal boards and an offline review gallery at `design/index.html`, including
+screen-by-screen findings, priorities, exact prompts and artwork limitations.
+Corrected generated unit/reference and editor semantics before delivery. These
+are review artifacts; no app behavior, data semantics or architecture changed.
+Browser discovery returned no available browser, so live interaction and native
+rendering of the proposals are not verified. Historical screenshots contain
+earlier-phase copy; current source is the behavior baseline. The stale
+measurement aggregation copy is identified for a future implementation slice.
+Passed `npm run typecheck`, focused `npx prettier --check` for the gallery,
+prompt JSON and PLAN.md, inline Node image/link/JSON validation, and
+`git diff --check`. Python validation could not launch due to a Windows logon
+session error; Node supplied the completed artifact check instead. Rust tests,
+native build and live UI checks were not run for this artifact-only change.
+Release acceptance checkboxes and the phase dashboard remain unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.
