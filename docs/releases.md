@@ -59,13 +59,18 @@ Local builds read `TAURI_SIGNING_PRIVATE_KEY` (contents or path), falling back t
 that ignored key, and optional `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Configure the
 same private key contents in the PantryPal repository's GitHub Actions secret
 `TAURI_SIGNING_PRIVATE_KEY`; optionally set its password secret. No repository
-secrets have been uploaded by this work. Tag-triggered `.github/workflows/release.yml`
+secrets have been uploaded by the agent. The owner's initial GitHub release run
+passed the signing-secret check and signed build. Tag-triggered `.github/workflows/release.yml`
 validates versions/checks and creates a **draft** release containing the NSIS
 executable, `.exe.sig` and `latest.json`. Manual dispatch must select the matching
-release tag, not a branch. Review notes/assets, install/upgrade in a clean Windows
+release tag, not a branch. The updater manifest input is `includeUpdaterJson: true`
+for tauri-action v0.6.2. Review notes/assets, install/upgrade in a clean Windows
 environment, verify the signature and feed, then explicitly publish. Draft releases
 are not served by the `releases/latest` updater URL. No live release has been
-published or CI execution verified locally.
+published by the agent. The initial Actions run successfully uploaded setup,
+signature and `latest.json` to a draft. A published release named “Initial release”
+was also observed without assets; ensure you publish the reviewed draft containing
+the files. An Actions artifact ZIP is separate from public release assets.
 The repository and release assets must be publicly readable for this feed;
 private-repository authentication is not implemented. Do not embed a GitHub token
 in the app or update manifest.

@@ -36,7 +36,8 @@ it('uses a fixed HTTPS PantryPal feed and signing key with per-user NSIS artifac
   expect(config.bundle.windows.nsis.installMode).toBe('currentUser');
   expect(config.plugins.updater.windows.installMode).toBe('passive');
   const workflow = readFileSync('.github/workflows/release.yml', 'utf8');
-  expect(workflow).toContain('uploadUpdaterJson: true');
+  expect(workflow).toContain('includeUpdaterJson: true');
+  expect(workflow).not.toContain('uploadUpdaterJson:');
   expect(workflow).toContain('TAURI_SIGNING_PRIVATE_KEY');
   expect(workflow).toContain('version:check');
   expect(workflow).toContain('releaseDraft: true');

@@ -484,7 +484,8 @@ and creates a household recovery backup before handing off to the installer.
 - [x] Run `cargo fmt`, `cargo clippy`, Rust tests, TypeScript lint/typecheck, frontend tests and production build.
 - [x] Test isolated local install, app restart, migrations, and upgrade from previous seeded data.
 - [ ] Test installer and happy path on a clean Windows machine — pending, explicitly deferred by the owner.
-- [ ] Verify GitHub Actions signing-secret setup, published update feed and a production-feed UI upgrade — pending external release acceptance.
+- [x] Verify GitHub Actions signing-secret check, Windows release build and draft asset uploads.
+- [ ] Verify published update feed and a production-feed UI upgrade — pending external release acceptance.
 - [x] Exercise native Windows end-to-end: ingredient → meal → custom field → plan → shopping → copy.
 - [x] Exercise native Windows conversion/ambiguity cases, list override regeneration and backup restore.
 - [x] Test authorized import/login flow or clearly document unavailable integration and fallback.
@@ -531,6 +532,18 @@ recovery. Full commands/evidence and audit findings are in
 - Created and verified the annotated local `v0.1.0` tag at implementation commit
   `33dc847`. Its annotation explicitly states that clean-machine/published-feed
   acceptance is pending; no tag or release was pushed or published.
+
+**Release workflow follow-up (2026-10-13):** The owner pushed `v0.1.0`.
+Verified GitHub run `38385585450` succeeded, including its signing-secret check,
+quality checks, signed installer build and draft uploads of the setup executable,
+signature and `latest.json`. Corrected the unsupported `uploadUpdaterJson` input
+to the pinned action's documented `includeUpdaterJson`; its default is already
+true, so the warning did not prevent those uploads. Updated the existing release
+configuration test. Passed focused release tests (2), ESLint and formatting.
+The published “Initial release” currently has no assets; review the action-created
+draft containing the three uploaded files before publication. Published-feed/UI
+upgrade and clean-machine gates remain pending; no release was changed or tag
+moved by this follow-up.
 
 ## Future ideas — explicitly out of MVP
 
