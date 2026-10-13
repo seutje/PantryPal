@@ -1,94 +1,57 @@
 # PantryPal
 
-An offline-first Windows desktop meal planner for a Canadian household. Built with Rust, Tauri 2, React, TypeScript and, beginning in Phase 1, SQLite. See [DESIGN.md](DESIGN.md), [PLAN.md](PLAN.md) and [AGENTS.md](AGENTS.md) before changing behavior.
+An offline-first Windows desktop meal planner and grocery-list generator for a
+Canadian household. Keep recipes, plan the week and shop with practical quantities
+while preserving original recipe wording. Household data stays on your computer;
+no account is required.
 
-Phases 0–7 supply the local SQLite foundation, ingredient editing, exact measurements, manual meal library and Monday-start weekly planner. Week supports repeated meals, independent fractional servings, dated/unscheduled occurrences, keyboard ordering and explicit planned/cooked/skipped actions. Cooking history supports backfill, confirmed date correction and undo, with last eaten derived only from actual records. Meals supports original amount wording, unknown quantities, six custom field kinds, typed filters and safe retirement. Ingredients supports aliases, categories, shopping sections, season months, notes, preferred units and optional conversion rules. Settings saves measurement preferences and converts temperatures. Shopping generates exact grouped quantities for the selected week, keeps incompatible and unknown lines visible, preserves manual items, overrides, checkmarks and exclusions on refresh, and copies plain text to the Windows clipboard. Stale source data requires explicit refresh before copying. Imports support authorized website capture and JSON-LD/manual entry with review before saving. Settings now provides reviewed JSON backup export/restore, aisle ordering and opt-in clipboard URL prefill.
+## Install on Windows
 
-## Windows prerequisites
+PantryPal requires Windows 10/11 x64 and the Microsoft Edge WebView2 Runtime.
+Download the setup executable from [PantryPal releases](https://github.com/seutje/PantryPal/releases)
+and run it. Installation is per user and does not require administrator access.
+The installer can download WebView2 if it is missing.
 
-- Windows 10/11 x64 and the [Microsoft Edge WebView2 Runtime](https://v2.tauri.app/start/prerequisites/#webview2).
-- Visual Studio 2022 Build Tools (or Community), with **Desktop development with C++** and a Windows SDK.
-- Rust through [rustup](https://rustup.rs/), using the MSVC host (`x86_64-pc-windows-msvc`). `rust-toolchain.toml` pins Rust 1.98.1, rustfmt and Clippy; rustup downloads them on the first Cargo command.
-- Node.js 24 and npm 11. Run commands from the repository root in PowerShell. If a build cannot locate MSVC or the SDK, use Developer PowerShell for Visual Studio.
+Windows publisher signing is currently absent, so setup may show an unrecognized
+publisher or SmartScreen warning. Clean-machine installation and the published
+update feed remain pending acceptance checks. See
+[Windows installation and releases](docs/releases.md) for installation, recovery
+and known limitations.
 
-Official setup reference: [Tauri Windows prerequisites](https://v2.tauri.app/start/prerequisites/).
+For source setup, builds and tests, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
-## Develop
+## Everyday use
 
-```powershell
-npm ci
-. ./scripts/Enter-DevEnvironment.ps1
-npm run tauri dev
-```
+- **Meals:** create or import recipes, retain original amounts and unknown quantities,
+  and add custom yes/no, choice, number, date, text or rating fields for filtering.
+- **Week:** plan a Monday-start week with multiple or repeated meals and independent
+  fractional servings. Record cooked meals explicitly; scheduling alone never
+  changes last eaten. Cooking history supports backfill, date correction and undo.
+- **Shopping:** generate a grouped list for the selected week. Refresh after recipe
+  or plan changes; manual items, overrides, checkmarks and exclusions are preserved.
+  A stale list requires refresh before copying plain text to the Windows clipboard.
+- **Ingredients:** manage names, aliases, categories, shopping sections, season
+  months, notes, preferred units and ingredient-specific conversion rules.
+- **Settings:** choose measurement preferences, convert temperatures, order shopping
+  aisles, manage backups, clear website sessions and check for application updates.
 
-This starts Vite on `http://127.0.0.1:1420` and opens the native Windows app. The first Rust build can take several minutes. Port 1420 must be free; Vite fails instead of selecting a different port. Close the app and stop the dev command with Ctrl+C when finished.
-
-The environment helper locates Visual Studio through `vswhere` and imports the x64 compiler and SDK environment. Merely having `cl.exe` on PATH is insufficient to compile bundled SQLite: it also needs the SDK include/library paths. Run the helper before Cargo checks or native builds in an ordinary PowerShell terminal; a configured Developer PowerShell already supplies those paths.
-
-`npm run dev` starts a browser preview only. It displays “Browser preview” and does not emulate a native connection. Core assets and fonts are bundled/local; dependency installation requires internet, while the built shell does not.
-
-## Quality checks
-
-```powershell
-npm run format:check
-npm run lint
-npm run typecheck
-npm test
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --locked -- -D warnings
-cargo test --workspace --locked
-```
-
-`npm run check` runs the four frontend checks. `npm run format` and `cargo fmt --all` apply formatting. Vitest + Testing Library cover navigation, keyboard/form flows, weekly planning and cooking history, shopping edits/copying/retry, meal and field editing, filters and invalid-filter recovery, ingredient/rule/vocabulary editing, preferences, conversion displays, typed IPC payloads/errors and capability regression checks. Rust tests cover exact parsing/arithmetic, compatible unit pairs, ambiguous quantities, temperatures, ingredient rules, all custom field types, retirement, history-derived filters, duplicate occurrences, date boundaries, action retries, mixed-unit grocery generation, source preservation, shopping regeneration/legacy upgrades, migrations and transactional persistence. IPC integration tests exercise actual command serialization, capabilities and SQLite with only the OS runtime mocked. `crud_survives_real_process_restart` launches its normally ignored child harness twice, verifying ingredient edits, rules, preferences and a meal with custom fields, repeated plans, cooking history and shopping adjustments through a genuine process exit/reopen, combined filters, another edit and a safe original-action retry. Simulated origin-denial and static security checks do not replace the Phase 6 real external-WebView isolation test.
-
-An explicit Windows clipboard acceptance check writes harmless fixture grocery text and verifies its UTF-16 paste representation (the ordinary test suite leaves the clipboard alone):
-
-```powershell
-cargo test -p pantrypal --lib windows_clipboard_roundtrip --locked -- --ignored --exact services::clipboard::windows::tests::windows_clipboard_roundtrip
-```
-
-The Windows release workflow in `.github/workflows/release.yml` runs frontend
-checks, Rust formatting, Clippy and tests before building and publishing the
-signed installer on version tags. Run the commands above locally for ordinary
-development; there is no separate push/pull-request quality workflow.
-
-## Build
-
-```powershell
-# Debug executable with bundled frontend; no installer.
-npm run tauri build -- --debug --no-bundle
-# Optimized executable without an installer.
-npm run tauri build -- --no-bundle
-# Release executable and an unsigned NSIS installer.
-npm run tauri build
-```
-
-All builds first run TypeScript checking and Vite production compilation. With the root Cargo workspace, executables are `target/debug/pantrypal.exe` and `target/release/pantrypal.exe`; NSIS output is under `target/release/bundle/nsis/`. Tauri may download NSIS tools during the first installer build. Signing, clean-machine installation and release acceptance are Phase 8 work; a documented installer command is not a verified release.
-
-Commit both lockfiles. Use `npm ci` and Cargo's `--locked` option for repeatable checks. Update dependencies and the pinned Rust toolchain deliberately, with the quality suite and Windows build rerun.
-
-## Boundaries
-
-- `src/app`: navigation shell and Query provider.
-- `src/features`: section-specific presentation.
-- `src/components`: native semantic UI primitives with shared focus styling.
-- `src/lib/ipc.ts`: named typed operations and safe normalized errors.
-- `src-tauri/src/commands`: narrow IPC adapters; `domain` and `services` own business rules.
-- `src-tauri/src/persistence` and `src-tauri/migrations`: SQLx repositories and numbered embedded migrations in per-user app data.
-- `src-tauri/src/importers`: bounded authorized website/JSON-LD/manual draft adapters and URL validation.
+Recipes, planning, shopping and backups work offline. Website browsing and update
+checks need an internet connection.
 
 ## Adding meals to a day
 
-In Week, each day has an **Add meal** button. It opens the Meals search and
-filters in a modal; click a meal card or activate it with the keyboard to add it
-to that day. The picker closes after saving. Each selection creates a separate
-planned occurrence, so a day can contain multiple meals or repeated meals.
-Servings start at the recipe's base servings and can be changed with **Edit
-servings** on the planned meal. This changes only that occurrence. Expand
-**Ingredients for … servings** to see its scaled amounts; the saved recipe and
-other occurrences retain their servings. Refresh Shopping to use the new totals.
-**Edit occurrence** also allows changing the day. Escape or Cancel closes the picker without adding a meal; failed
-saves retain the search and offer the same-action retry.
+In Week, choose **Add meal** on a day, or **Add meal to week** for an unscheduled
+meal. Search and filter the meal library, then select a meal card with the mouse
+or keyboard. Review its planned servings and destination, then choose **Add planned
+meal**. Selecting a card alone does not save. The picker closes after saving;
+each addition creates a separate occurrence, including repeated meals.
+
+Servings start at the recipe's base servings. **Edit servings** changes only that
+occurrence, and **Edit occurrence** also allows changing the day. Expand
+**Ingredients for … servings** to see scaled amounts; the saved recipe and other
+occurrences retain their servings. Refresh Shopping to use the new totals.
+Escape or Cancel closes the picker without adding a meal; failed saves retain
+the search and offer a retry.
 
 ## Shopping quantity displays
 
@@ -140,42 +103,9 @@ data in `%APPDATA%\ca.pantrypal.desktop\recipe-browser-profile`. Recipes and oth
 household data are unchanged. Clearing waits for WebView2 completion; an error
 does not claim success. Website passwords/tokens are never collected by the app.
 
-The owner confirmed agreements for these five publishers. All five supplied URLs
-passed native recipe-preview checks, including denial of remote capture commands
-and zero meal writes before confirmation. Hidden/gated content is rejected even
-if recipe metadata exists; no login, paywall or anti-bot bypass is provided.
-Future site layout changes or cross-origin login prompts may require manual
-entry. Actual subscriber login/MFA was not verified. Cook Smarts remains manual;
-no authorized automated integration was established. See
-[ADR 0008](docs/adr/0008-authorized-website-adapters.md) for the adapter decision
-and [ADR 0007](docs/adr/0007-reviewed-imports-and-browser.md) for session isolation.
-
-Explicit Windows acceptance harnesses (each uses isolated fixture storage, never
-the household database):
-
-```powershell
-. ./scripts/Enter-DevEnvironment.ps1
-cargo run -p pantrypal --example browser_spike --locked -- write
-cargo run -p pantrypal --example browser_spike --locked -- read
-cargo run -p pantrypal --example browser_spike --locked -- cleared
-# Live authorized recipe previews and remote capture denial, no meal saves:
-cargo run -p pantrypal --example adapter_sites --locked
-# Optional live compatibility visits, no recipe extraction:
-cargo run -p pantrypal --example recipe_sites --locked
-```
-
-The three-process owned fixture verifies native evaluation, ACL rejection of
-remote application commands, reviewed local-IPC save, meal persistence after
-process restart, login-cookie/local-storage retention and the actual session reset
-command. Loopback HTTP is permitted only in this isolated test fixture. Results
-and disposable profiles are ignored under `.verification/`. The live site check
-`recipe_sites` records only load state and page title. `adapter_sites` exercises
-production open/capture commands, records only recipe counts and pass/fail,
-and verifies previewing leaves its isolated database empty. Neither logs
-credentials or saves publisher recipe text in the repository. Saved adapter
-fixtures use original synthetic recipe text and inspected publisher structures.
-
-Only the local `main` window can invoke the explicitly granted identity, storage-status, measurement, catalog/meal/field and planner/history, shopping, reviewed backup and preference operations. There are no generic filesystem, SQL, shell, HTTP, clipboard or remote-origin permissions. New commands must be included in the build-time command manifest and granted individually. See [ADR 0001](docs/adr/0001-foundation.md), [ADR 0002](docs/adr/0002-local-storage.md), [ADR 0003](docs/adr/0003-exact-measurements.md), [ADR 0004](docs/adr/0004-meal-library.md), [ADR 0005](docs/adr/0005-week-planner-history.md), [ADR 0006](docs/adr/0006-shopping-generation.md) and [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
+Hidden/gated content cannot be imported, even if recipe metadata exists. Site
+layout changes or cross-origin login prompts may require manual entry. Subscriber
+login/MFA has not been verified. Cook Smarts supports manual entry only.
 
 ## Backups and everyday settings
 
@@ -217,41 +147,30 @@ URL prefill is off by default. Enabling it reads a bounded public HTTPS URL only
 when **Import recipe** is clicked; it never monitors the clipboard or opens a
 website automatically. Invalid clipboard contents leave manual entry available.
 
-Offline Windows acceptance, using bundled assets and isolated fixture storage:
+## Application updates
 
-```powershell
-npm run build
-. ./scripts/Enter-DevEnvironment.ps1
-cargo run -p pantrypal --example phase7_spike --features tauri/custom-protocol --locked
-```
+Installed release builds check for updates once at startup. Review the notes,
+save open drafts, then choose **Download and install** or **Not now**.
+**Settings → Application updates** offers a manual check. Offline use remains
+available. Updates verify signatures and signed versions, and save a household
+recovery backup before launching the installer. PantryPal closes for installation
+and restarts afterward. If an error appears, continue using the app and retry later.
 
-This verifies native planning/shopping, Settings labels/navigation, file review,
-explicit confirmation, export/restore, recovery and reopening. The shell CSP
-blocks remote fetches; only deliberate recipe browsing needs internet. See
-[ADR 0010](docs/adr/0010-backups-and-everyday-settings.md) and the
-[Phase 7 audit](docs/phase7-security-audit.md) for format and verification limits.
+To uninstall, use Windows Settings → Apps. Leave **Delete app data** unchecked to
+retain household records and website sessions. Export a JSON backup and copy it
+elsewhere before deliberately deleting app data.
 
-## Windows installer and updates
+## Local data
 
-Build a signed updater-compatible NSIS installer with `npm run release:build`.
-The executable and signature appear in `target/release/bundle/nsis/`. Installed
-release builds check for updates once at startup; review notes, save open drafts,
-then choose **Download and install** or **Not now**. Settings offers a manual
-check. Offline use remains available. Updates verify signatures and signed
-versions and save a household recovery backup before launching the installer.
+PantryPal stores household data in
+`%APPDATA%\ca.pantrypal.desktop\pantrypal.sqlite3`. Backups and the separate
+recipe-browser profile also live in this app-data directory. SQLite's `-wal`
+and `-shm` companion files may be present during use. Never delete the database
+to repair a migration error.
 
-Windows publisher signing is currently absent, so setup may show SmartScreen
-warnings. Clean-machine acceptance and the published GitHub update feed remain
-pending. See [Windows installation and releases](docs/releases.md) for key custody,
-release prerequisites, uninstall/data retention, recovery and isolated tests, and
-[ADR 0011](docs/adr/0011-signed-windows-updates.md) for architecture and limits.
-
-## Local data and fixtures
-
-The desktop app creates `%APPDATA%\ca.pantrypal.desktop\pantrypal.sqlite3` using Tauri's app-data resolver. Foreign keys and WAL are enabled. Eight additive migrations initialize schema, seed, preferences, original amount text and planner/history metadata exactly once; reopening preserves user edits and retirement. SQLite's `-wal` and `-shm` files may be present during use. This directory is outside the repository and contains personal data; do not commit it or delete it to repair a migration error.
-
-Plan/history writes use revisions and durable action receipts, so a retry cannot repeat an add or cooking action, including after restart or undo. Cancelled cooking records and date-change audit data are retained. Removing a plan entry preserves its actual cooking history. Dates use the computer's local calendar; future cooking is rejected, and scheduled dates never imply actual cooking. Shopping generates quantities through the week-aware handoff.
-
-If storage is unavailable or incompatible, Settings and Ingredients display an error and the app never silently resets data. Use Settings to export and restore household JSON backups as described below. For a manual database safety copy, close all PantryPal processes and copy the database and any remaining WAL/SHM companions; do not copy only the main file while the app is writing. Keep website profiles separate from household backups.
-
-`tests/fixtures/demo-meal.json` provides a deterministic meal with an exact fractional amount, raw wording and an unknown/to-taste line. Rust and frontend tests use it without seeding production meals. Tests create isolated temporary databases and never use the household app-data database.
+If storage is unavailable or incompatible, the app displays an error and never
+silently resets data. Use Settings to export and restore household JSON backups
+as described above. For a manual database safety copy, close all PantryPal
+processes and copy the database and any remaining WAL/SHM companions; do not copy
+only the main file while the app is writing. Keep website profiles separate from
+household backups.

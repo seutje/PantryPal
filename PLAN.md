@@ -28,7 +28,7 @@
 - [x] Configure formatting/linting: `cargo fmt`, `cargo clippy`, TypeScript strict type checking, ESLint/Prettier.
 - [x] Set up Rust unit tests and frontend test runner; add a smoke test in each layer.
 - [x] Configure Tauri 2 capabilities with least privilege and no remote-origin privileged commands.
-- [x] Document dev commands and Windows prerequisites in `README.md`.
+- [x] Document dev commands and Windows prerequisites in `DEVELOPMENT.md`.
 - [x] Verify developer can run the app on Windows and produce a debug build.
 
 **Acceptance gate:** Windows dev app opens, navigation shell renders, lint/typecheck/tests pass, and the release/build pipeline is documented.
@@ -629,6 +629,20 @@ runner resolved it and the rerun passed. Browser discovery had no available
 surface; native WebView2 screenshots provided visual review. Full screen-reader
 and every-state/DPI coverage, and native-close draft protection are not verified.
 No release was published. Release acceptance checkboxes/dashboard remain unchanged.
+
+**Documentation split (2026-10-13):** At the owner's request, separated
+user installation, workflows, backups, updates and data safety into README.md,
+and source setup, build/check commands, architecture, release references and
+isolated acceptance harnesses into DEVELOPMENT.md. Corrected the README's stale
+meal-picker instructions to match DESIGN.md, ADR 0012 and the current explicit
+Add action. The completed Phase 0 documentation checkbox now names DEVELOPMENT.md;
+its completion state and the phase dashboard are unchanged. No product behavior
+or release acceptance gate changed.
+
+Passed `npx prettier --check README.md DEVELOPMENT.md PLAN.md`, inline Node
+validation of 25 local documentation links/anchors and audience separation, and
+`git diff --check`. Application tests/builds were not run for this documentation-only
+change.
 
 ## Future ideas — explicitly out of MVP
 
