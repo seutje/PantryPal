@@ -644,6 +644,21 @@ validation of 25 local documentation links/anchors and audience separation, and
 `git diff --check`. Application tests/builds were not run for this documentation-only
 change.
 
+**Meal ingredient alignment follow-up (2026-10-13):** Fixed the owner's reported
+vertical misalignment by moving Find or add ingredient out of the three-column
+Ingredient/Amount/Unit row. The disclosure now sits below the controls and can
+expand without shifting their alignment. No quantity, matching or persistence
+behavior changed.
+
+- [x] Align meal ingredient controls and verify the native Windows editor;
+      save the actual capture in `design/implementation/ingredient-alignment.png`.
+
+Passed `npm run check` (78 tests/20 files), `npm run build`,
+`cargo build --example ui_review --features tauri/custom-protocol --locked`,
+focused Prettier checks and `git diff --check`. Rust domain tests and release
+packaging were not rerun for this presentation-only change. Release acceptance
+checkboxes and dashboard remain unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

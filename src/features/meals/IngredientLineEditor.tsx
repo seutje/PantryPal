@@ -41,50 +41,33 @@ export function IngredientLineEditor({
         </p>
       )}
       <div className="pp-editor-grid">
-        <div className="space-y-2">
-          <FormField label="Ingredient">
-            <select
-              value={line.ingredientId ?? ''}
-              onChange={(event) =>
-                onChange({ ingredientId: event.target.value || null })
-              }
-            >
-              <option value="">Unresolved — keep wording</option>
-              {ingredients
-                .filter(
-                  (i) =>
-                    (!i.retired || i.id === line.ingredientId) &&
-                    (i.id === line.ingredientId ||
-                      [i.name, ...i.aliases].some((name) =>
-                        name
-                          .toLocaleLowerCase()
-                          .includes(search.trim().toLocaleLowerCase()),
-                      )),
-                )
-                .map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {i.name}
-                    {i.retired ? ' (retired)' : ''}
-                  </option>
-                ))}
-            </select>
-          </FormField>
-          <details>
-            <summary className="pp-muted">Find or add ingredient</summary>
-            <div className="space-y-2 mt-2">
-              <FormField label="Find ingredient or alias">
-                <input
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-              </FormField>
-              <Button variant="quiet" onClick={onAdd}>
-                Add ingredient
-              </Button>
-            </div>
-          </details>
-        </div>
+        <FormField label="Ingredient">
+          <select
+            value={line.ingredientId ?? ''}
+            onChange={(event) =>
+              onChange({ ingredientId: event.target.value || null })
+            }
+          >
+            <option value="">Unresolved — keep wording</option>
+            {ingredients
+              .filter(
+                (i) =>
+                  (!i.retired || i.id === line.ingredientId) &&
+                  (i.id === line.ingredientId ||
+                    [i.name, ...i.aliases].some((name) =>
+                      name
+                        .toLocaleLowerCase()
+                        .includes(search.trim().toLocaleLowerCase()),
+                    )),
+              )
+              .map((i) => (
+                <option key={i.id} value={i.id}>
+                  {i.name}
+                  {i.retired ? ' (retired)' : ''}
+                </option>
+              ))}
+          </select>
+        </FormField>
         <FormField label="Amount">
           <input
             value={line.amount}
@@ -119,6 +102,21 @@ export function IngredientLineEditor({
           </select>
         </FormField>
       </div>
+      <details>
+        <summary className="pp-muted">Find or add ingredient</summary>
+        <div className="space-y-2 mt-2">
+          <FormField label="Find ingredient or alias">
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </FormField>
+          <Button variant="quiet" onClick={onAdd}>
+            Add ingredient
+          </Button>
+        </div>
+      </details>
       {!line.amount && (
         <span className="pp-badge pp-badge-warning">Unknown amount</span>
       )}
