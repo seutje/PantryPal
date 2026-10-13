@@ -43,16 +43,16 @@ npm run release:build
 ```
 
 The installer and signature are in `target/release/bundle/nsis/`. Production
-version 0.1.1 is consistent in npm, Cargo and Tauri configuration. For a later
+version 0.2.0 is consistent in npm, Cargo and Tauri configuration. For a later
 release, update all versions (including the npm lockfile), verify, commit and
 create a matching `vX.Y.Z` tag. Push that tag to trigger checks, signing, installer
 build and automatic GitHub Release publication, matching WorDrop. For example,
 after committing consistent versions for a new release:
 
 ```powershell
-git tag -a v0.1.1 -m "PantryPal 0.1.1"
+git tag -a v0.2.0 -m "PantryPal 0.2.0"
 git push origin main
-git push origin v0.1.1
+git push origin v0.2.0
 ```
 
 The tag must point to the commit containing the new versions and release workflow.

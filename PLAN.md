@@ -659,6 +659,20 @@ focused Prettier checks and `git diff --check`. Rust domain tests and release
 packaging were not rerun for this presentation-only change. Release acceptance
 checkboxes and dashboard remain unchanged.
 
+**Version 0.2.0 preparation (2026-10-13):** At the owner's request, updated
+npm, Cargo and Tauri versions and both lockfiles to 0.2.0; dependencies are
+unchanged. Release documentation now uses the matching v0.2.0 tag. The release
+commit is prepared for an annotated local v0.2.0 tag.
+
+Passed `npm run version:check -- v0.2.0`, `npm run check` (78 frontend tests),
+`npm run build`, `cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`,
+`cargo test --workspace --locked` (59 unit and 11 integration tests passed;
+two opt-in/child tests ignored) after importing the Visual Studio environment,
+and `git diff --check`. Installer packaging, remote publication and production-feed
+upgrade were not run for this version-only slice. Phase 8 checkboxes and dashboard
+remain unchanged; clean-machine and production-feed acceptance remain pending.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.
