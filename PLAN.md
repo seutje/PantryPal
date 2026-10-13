@@ -491,7 +491,7 @@ and creates a household recovery backup before handing off to the installer.
 - [x] Package Windows installer (Tauri/NSIS or equivalent) and note any signing warnings.
 - [x] Document install, uninstall, local-data directories, backups and how to reset website sessions.
 - [x] Resolve critical defects and capture known limitations in `README.md`.
-- [ ] Tag a first usable version once the MVP definition of done in DESIGN.md is met.
+- [x] Tag a first usable local version once the MVP core is verified; publication and clean-machine acceptance remain pending.
 
 **Acceptance gate:** Installer runs on a clean Windows environment and the main
 happy path succeeds without developer intervention. A reviewed signed update can
@@ -527,8 +527,10 @@ recovery. Full commands/evidence and audit findings are in
   “Use isolated local testing for now; leave clean-machine acceptance pending.”
   Live Actions/feed acceptance and signing-secret custody are also pending;
   no secrets, commits, tags or releases have been pushed/published. Keep Phase 8
-  In progress until its remaining external gates actually pass. Local first-version
-  tag is recorded separately after committing the verified implementation.
+  In progress until its remaining external gates actually pass.
+- Created and verified the annotated local `v0.1.0` tag at implementation commit
+  `33dc847`. Its annotation explicitly states that clean-machine/published-feed
+  acceptance is pending; no tag or release was pushed or published.
 
 ## Future ideas — explicitly out of MVP
 

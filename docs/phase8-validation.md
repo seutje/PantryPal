@@ -79,3 +79,7 @@ checked after SDK parsing; see ADR 0011 for the bounded-time/memory limitation.
 Private key is ignored and currently unencrypted; its owner must secure and back
 it up before publishing updates. Local evidence remains in ignored `.verification`
 and the isolated acceptance app-data directory for review.
+
+Verified implementation commit: `33dc847`. Annotated local tag `v0.1.0` points to
+that commit and explicitly records the pending external acceptance checks. The
+subsequent plan-only commit records the tag after its creation/verification.
