@@ -478,7 +478,7 @@ and creates a household recovery backup before handing off to the installer.
 - [x] Implement signed Tauri 2 updates from the fixed PantryPal HTTPS release feed, following WorDrop's startup/prompt/progress workflow.
 - [x] Add accessible update review/postpone/retry states, Settings check and recovery backup before installation; handle offline startup without interruption.
 - [x] Verify updater ACL, newer-version handling, invalid signatures, failed downloads, cancellation/postponement and household data preservation.
-- [x] Configure a dedicated PantryPal signing key, version consistency checks and tag-triggered Windows GitHub release workflow producing draft NSIS artifacts/signatures/latest.json.
+- [x] Configure a dedicated PantryPal signing key, version consistency checks and tag-triggered Windows GitHub release workflow automatically publishing NSIS artifacts/signatures/latest.json.
 - [x] Verify an installed old-to-new signed update and document signing-key custody, release prerequisites and rollback.
 
 - [x] Run `cargo fmt`, `cargo clippy`, Rust tests, TypeScript lint/typecheck, frontend tests and production build.
@@ -544,6 +544,19 @@ The published “Initial release” currently has no assets; review the action-c
 draft containing the three uploaded files before publication. Published-feed/UI
 upgrade and clean-machine gates remain pending; no release was changed or tag
 moved by this follow-up.
+
+**Automatic publication follow-up (2026-10-13):** At the owner's request,
+changed `releaseDraft` to false, matching WorDrop: pushing a stable matching
+version tag runs the existing quality/signing/build gates and automatically
+publishes the release with NSIS installer, signature and `latest.json`.
+Updated release instructions, ADR 0011's initial draft policy and the existing
+workflow regression test. Passed `npm test -- tests/release-config.test.ts`
+(2 tests), `npm run lint`, focused Prettier check and `git diff --check`.
+No application code changed, so Rust tests/build were not rerun. No tag was
+moved, workflow dispatched or release published by the agent. A new tag must
+include this workflow change; the old v0.1.0 tag retains its draft behavior.
+Published-feed/UI upgrade and clean-machine acceptance remain pending, so the
+phase dashboard remains In progress.
 
 ## Future ideas — explicitly out of MVP
 

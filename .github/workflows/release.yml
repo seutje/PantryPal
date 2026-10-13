@@ -48,7 +48,7 @@ jobs:
           cargo clippy --workspace --all-targets --locked -- -D warnings
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test --workspace --locked
-      - name: Build signed updater artifacts and release draft
+      - name: Build signed updater artifacts and publish release
         uses: tauri-apps/tauri-action@v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,7 +62,7 @@ jobs:
             Core use is offline. Household data is kept in your user profile.
             Windows may show an unrecognized publisher warning: installers are not Authenticode signed.
           generateReleaseNotes: true
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           includeUpdaterJson: true
           updaterJsonPreferNsis: true

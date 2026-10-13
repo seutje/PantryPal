@@ -45,7 +45,18 @@ npm run release:build
 The installer and signature are in `target/release/bundle/nsis/`. Production
 version 0.1.0 is consistent in npm, Cargo and Tauri configuration. For a later
 release, update all versions (including the npm lockfile), verify, commit and
-create a matching `vX.Y.Z` tag. Push/publishing is a separate owner action.
+create a matching `vX.Y.Z` tag. Push that tag to trigger checks, signing, installer
+build and automatic GitHub Release publication, matching WorDrop. For example,
+after committing consistent versions for a new release:
+
+```powershell
+git tag -a v0.1.1 -m "PantryPal 0.1.1"
+git push origin main
+git push origin v0.1.1
+```
+
+The tag must point to the commit containing the new versions and release workflow.
+No separate draft publication is needed; pushing the tag authorizes publication.
 
 A dedicated PantryPal private key was created locally at the ignored
 `.release-secrets/pantrypal.key`; its public key is in Tauri configuration. The
@@ -61,16 +72,18 @@ same private key contents in the PantryPal repository's GitHub Actions secret
 `TAURI_SIGNING_PRIVATE_KEY`; optionally set its password secret. No repository
 secrets have been uploaded by the agent. The owner's initial GitHub release run
 passed the signing-secret check and signed build. Tag-triggered `.github/workflows/release.yml`
-validates versions/checks and creates a **draft** release containing the NSIS
+validates versions/checks and creates a **published** release containing the NSIS
 executable, `.exe.sig` and `latest.json`. Manual dispatch must select the matching
 release tag, not a branch. The updater manifest input is `includeUpdaterJson: true`
-for tauri-action v0.6.2. Review notes/assets, install/upgrade in a clean Windows
-environment, verify the signature and feed, then explicitly publish. Draft releases
-are not served by the `releases/latest` updater URL. No live release has been
-published by the agent. The initial Actions run successfully uploaded setup,
-signature and `latest.json` to a draft. A published release named “Initial release”
-was also observed without assets; ensure you publish the reviewed draft containing
-the files. An Actions artifact ZIP is separate from public release assets.
+for tauri-action v0.6.2. Complete release acceptance before pushing the tag, then
+check the Actions result and released assets/feed afterward. Clean-machine testing
+remains pending by the owner's instruction; automatic publication is now explicitly
+requested. No live release has been published by the agent. The initial workflow
+used drafts and successfully uploaded setup, signature and `latest.json` to one.
+This change affects tags containing the updated workflow; rerunning the old
+`v0.1.0` tag still uses its original draft configuration. For the existing release,
+the owner can publish the draft containing the files. An Actions artifact ZIP is
+separate from public release assets.
 The repository and release assets must be publicly readable for this feed;
 private-repository authentication is not implemented. Do not embed a GitHub token
 in the app or update manifest.

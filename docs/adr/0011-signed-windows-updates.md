@@ -42,9 +42,12 @@ launch; NSIS upgrades in place using passive mode and restarts the application.
 No automatic install, scheduled retry or download occurs after postponement.
 
 Release automation validates consistent stable project/tag versions, runs checks
-and builds per-user NSIS installers, signatures and `latest.json` into a draft
-release. Publishing remains a separate owner action. CI secrets/key custody and
-the live feed cannot be verified by a local build. Authenticode remains optional
+and builds per-user NSIS installers, signatures and `latest.json`. The owner
+subsequently requested WorDrop-style automatic publication (2026-10-13): pushing
+a matching stable version tag now authorizes the workflow to create a published
+release and upload its assets, using `releaseDraft: false`. This supersedes the
+initial draft/review policy; no separate publish click is required. CI secrets/key
+custody and the live feed cannot be verified by a local build. Authenticode remains optional
 and currently absent; a valid updater signature does not suppress SmartScreen.
 
 Limits: the SDK parses the fixed trusted feed before the application's 1 MiB

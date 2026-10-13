@@ -40,5 +40,6 @@ it('uses a fixed HTTPS PantryPal feed and signing key with per-user NSIS artifac
   expect(workflow).not.toContain('uploadUpdaterJson:');
   expect(workflow).toContain('TAURI_SIGNING_PRIVATE_KEY');
   expect(workflow).toContain('version:check');
-  expect(workflow).toContain('releaseDraft: true');
+  expect(workflow).toContain("tags: ['v*.*.*']");
+  expect(workflow).toContain('releaseDraft: false');
 });
