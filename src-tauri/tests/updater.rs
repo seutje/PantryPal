@@ -25,7 +25,7 @@ async fn signed_download_rejects_tampering_wrong_version_and_network_failure() {
         ("0.2.0", true, false, false),
         ("0.3.0", false, false, false),
         ("0.2.0", false, true, false),
-        ("0.1.0", false, false, false),
+        (env!("CARGO_PKG_VERSION"), false, false, false),
         ("0.0.9", false, false, false),
     ] {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -82,7 +82,7 @@ async fn signed_download_rejects_tampering_wrong_version_and_network_failure() {
             .check()
             .await
             .unwrap();
-        if matches!(version, "0.1.0" | "0.0.9") {
+        if version == env!("CARGO_PKG_VERSION") || version == "0.0.9" {
             assert!(update.is_none());
         } else {
             assert_eq!(

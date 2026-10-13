@@ -95,6 +95,8 @@ fn main() {
                 }
             });
             let mut context = tauri::generate_context!();
+            // This fixture upgrades an installed 0.1.0 regardless of the source version.
+            context.package_info_mut().version = "0.1.0".parse().unwrap();
             let public = context.config().plugins.0["updater"]["pubkey"].clone();
             context.config_mut().plugins.0.insert("updater".into(),json!({"pubkey":public,"requireSignedVersion":true,"dangerousInsecureTransportProtocol":true,"windows":{"installMode":"quiet"}}));
             let app = tauri::test::mock_builder()

@@ -43,7 +43,7 @@ npm run release:build
 ```
 
 The installer and signature are in `target/release/bundle/nsis/`. Production
-version 0.1.0 is consistent in npm, Cargo and Tauri configuration. For a later
+version 0.1.1 is consistent in npm, Cargo and Tauri configuration. For a later
 release, update all versions (including the npm lockfile), verify, commit and
 create a matching `vX.Y.Z` tag. Push that tag to trigger checks, signing, installer
 build and automatic GitHub Release publication, matching WorDrop. For example,

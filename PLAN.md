@@ -558,6 +558,18 @@ include this workflow change; the old v0.1.0 tag retains its draft behavior.
 Published-feed/UI upgrade and clean-machine acceptance remain pending, so the
 phase dashboard remains In progress.
 
+**Version 0.1.1 preparation (2026-10-13):** Updated npm, Cargo and Tauri versions
+and both lockfiles; dependency versions are unchanged. Updated release docs and
+made the SDK same-version fixture follow the package version, while explicitly
+pinning the installed-upgrade example's old fixture identity to 0.1.0. Verified
+`npm run version:check -- v0.1.1`, `npm run check` (75 tests),
+`cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings` and
+`cargo test --workspace --locked` (59 unit/11 integration tests). The commit is
+ready for the annotated local v0.1.1 tag and includes automatic publication.
+Production packaging/publication will run when the owner pushes the tag; no
+remote workflow was dispatched here. Phase 8 checkboxes/dashboard are unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.
