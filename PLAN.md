@@ -570,6 +570,17 @@ ready for the annotated local v0.1.1 tag and includes automatic publication.
 Production packaging/publication will run when the owner pushes the tag; no
 remote workflow was dispatched here. Phase 8 checkboxes/dashboard are unchanged.
 
+**CI consolidation (2026-10-13):** At the owner's request, removed the separate
+Windows quality workflow after the owner reported a failed test there alongside
+a successful release. The release workflow retains `npm run check`, Rust format,
+Clippy and workspace tests before packaging/publication. README now documents
+release CI and local development checks. No test was removed or changed, and
+the reported separate-run failure was not investigated in this slice. Phase
+checkboxes and dashboard are unchanged; clean-machine/updater acceptance remains
+pending. Passed `npm test -- tests/release-config.test.ts` (2 tests), focused
+Prettier checks and `git diff --check`. Reviewed the remaining release workflow's
+four quality/test commands; Rust checks were not rerun for this workflow deletion.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

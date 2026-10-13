@@ -47,7 +47,10 @@ An explicit Windows clipboard acceptance check writes harmless fixture grocery t
 cargo test -p pantrypal --lib windows_clipboard_roundtrip --locked -- --ignored --exact services::clipboard::windows::tests::windows_clipboard_roundtrip
 ```
 
-The Windows quality workflow in `.github/workflows/quality.yml` runs these checks and builds the debug executable. CI configuration must pass on GitHub before treating a CI run as verified.
+The Windows release workflow in `.github/workflows/release.yml` runs frontend
+checks, Rust formatting, Clippy and tests before building and publishing the
+signed installer on version tags. Run the commands above locally for ordinary
+development; there is no separate push/pull-request quality workflow.
 
 ## Build
 
