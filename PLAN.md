@@ -721,6 +721,26 @@ Frontend checks and native packaging were not rerun for this Rust/docs-only
 follow-up. Existing saved recipes are unchanged; no migration is needed.
 No blocker remains, and the phase dashboard/release acceptance gates are unchanged.
 
+**Version 0.2.1 preparation (2026-10-16):** Updated npm, Cargo and Tauri
+versions and the npm/Cargo lockfiles to 0.2.1, with matching release documentation.
+Formatted the existing pnpm lockfile to unblock the release formatting gate;
+verified it matches a formatting-only transformation of HEAD. Dependencies are
+unchanged. Pinned the updater test's mock app to 0.1.0 so its signed 0.2.0
+fixture remains an upgrade across future app versions. The initial Rust suite
+failed because that fixture was older than the real app; the final suite passed.
+The release commit is prepared for an annotated local v0.2.1 tag.
+
+Passed `npm run version:check -- v0.2.1`, `npm run check` (78 frontend tests),
+`npm run build`, `cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`,
+`cargo test --workspace --locked` (62 unit and 11 integration tests passed;
+two existing opt-in/child tests ignored), and `git diff --check`.
+Cargo commands used `scripts/Enter-DevEnvironment.ps1`. The initial frontend
+check failed only on the pnpm lockfile formatting, corrected before the final run.
+Installer packaging, remote publication and production-feed upgrade were not run.
+Phase 8 checkboxes and dashboard remain unchanged; clean-machine and
+production-feed acceptance remain pending.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

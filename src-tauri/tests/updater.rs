@@ -25,7 +25,7 @@ async fn signed_download_rejects_tampering_wrong_version_and_network_failure() {
         ("0.2.0", true, false, false),
         ("0.3.0", false, false, false),
         ("0.2.0", false, true, false),
-        (env!("CARGO_PKG_VERSION"), false, false, false),
+        ("0.1.0", false, false, false),
         ("0.0.9", false, false, false),
     ] {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -65,6 +65,8 @@ async fn signed_download_rejects_tampering_wrong_version_and_network_failure() {
             }
         });
         let mut context = tauri::generate_context!();
+        // Keep the mock older than the signed 0.2.0 fixture across app releases.
+        context.package_info_mut().version = "0.1.0".parse().unwrap();
         let public = context.config().plugins.0["updater"]["pubkey"].clone();
         context.config_mut().plugins.0.insert("updater".into(), json!({"pubkey":public,"requireSignedVersion":true,"dangerousInsecureTransportProtocol":true}));
         let app = mock_builder()
@@ -82,7 +84,7 @@ async fn signed_download_rejects_tampering_wrong_version_and_network_failure() {
             .check()
             .await
             .unwrap();
-        if version == env!("CARGO_PKG_VERSION") || version == "0.0.9" {
+        if version == "0.1.0" || version == "0.0.9" {
             assert!(update.is_none());
         } else {
             assert_eq!(
