@@ -58,6 +58,11 @@ git push origin v0.2.1
 The tag must point to the commit containing the new versions and release workflow.
 No separate draft publication is needed; pushing the tag authorizes publication.
 
+The release action explicitly uses `tauriScript: npm run tauri`, matching
+`npm ci` and the local build scripts. This prevents a pnpm lockfile from changing
+the action's runner selection. Rerunning an existing tag still uses that tag's
+workflow; a workflow correction must be included in the tag being released.
+
 A dedicated PantryPal private key was created locally at the ignored
 `.release-secrets/pantrypal.key`; its public key is in Tauri configuration. The
 local key currently has an empty password. Back it up securely outside the

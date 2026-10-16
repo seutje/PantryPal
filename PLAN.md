@@ -741,6 +741,20 @@ Installer packaging, remote publication and production-feed upgrade were not run
 Phase 8 checkboxes and dashboard remain unchanged; clean-machine and
 production-feed acceptance remain pending.
 
+**Release runner correction (2026-10-16):** The owner reported that release CI
+selected pnpm from the existing pnpm lockfile, then failed because pnpm was not
+installed. Set the tauri-action v0.6.2 `tauriScript` input to `npm run tauri`,
+matching dependency installation and local release commands. Verified this input
+and runner selection against the pinned action's official source, added a
+release configuration regression assertion, and documented tag workflow behavior.
+
+Passed `npm run check` (78 frontend tests), `npm run tauri -- --version`,
+`npm run version:check -- v0.2.1`, focused Prettier checks and `git diff --check`.
+Rust checks and installer packaging were not rerun for this workflow-only fix.
+The failed tag's remote CI run/publication remains unverified; rerunning that tag
+uses its old workflow until a release tag includes the correction. No existing
+tag was moved. Phase 8 checkboxes and dashboard remain unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.
