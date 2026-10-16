@@ -755,6 +755,23 @@ The failed tag's remote CI run/publication remains unverified; rerunning that ta
 uses its old workflow until a release tag includes the correction. No existing
 tag was moved. Phase 8 checkboxes and dashboard remain unchanged.
 
+**Version 0.2.2 preparation (2026-10-16):** Updated npm, Cargo and Tauri
+versions and the npm/Cargo lockfiles to 0.2.2, with matching release documentation.
+Dependencies are unchanged. The new release commit is prepared for an annotated
+local v0.2.2 tag and includes the explicit npm release runner correction.
+
+Passed `npm run version:check -- v0.2.2`, `npm run check` (78 frontend tests),
+`npm run build`, `cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`,
+`cargo test --workspace --locked` (62 unit and 11 integration tests passed;
+two existing opt-in/child tests ignored), focused documentation Prettier checks
+and `git diff --check`. Cargo commands used `scripts/Enter-DevEnvironment.ps1`.
+An initial scripted Cargo version edit produced invalid manifests; corrected
+before the successful version check and complete Rust rerun.
+Installer packaging, remote publication and production-feed upgrade were not run.
+Phase 8 checkboxes and dashboard remain unchanged; clean-machine and
+production-feed acceptance remain pending.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.
