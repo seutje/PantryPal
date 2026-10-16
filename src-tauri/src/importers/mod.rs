@@ -3,6 +3,7 @@ mod json_ld;
 pub mod sites;
 #[cfg(test)]
 mod tests;
+mod units;
 pub mod url;
 use crate::{
     domain::{meal_library::MealDraft, validation},
@@ -79,4 +80,11 @@ pub fn extract(input: &ImportInput) -> AppResult<ImportedRecipeDraft> {
 }
 pub(crate) fn bounded_text(value: &str, limit: usize) -> AppResult<()> {
     validation::text(value, limit, false)
+}
+
+pub(crate) fn parse_line(
+    raw: &str,
+    mode: &crate::domain::measurements::Mode,
+) -> AppResult<crate::domain::meal_library::IngredientDraft> {
+    json_ld::line_with_mode(raw, mode)
 }

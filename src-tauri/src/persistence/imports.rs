@@ -22,6 +22,18 @@ pub struct ConfirmImport {
 impl Database {
     pub async fn preview_import(&self, input: &ImportInput) -> AppResult<ImportedRecipeDraft> {
         let mut draft = importers::extract(input)?;
+        let mode = self.measurement_preferences().await?.mode;
+        for line in &mut draft.meal.ingredients {
+            let parsed = importers::parse_line(&line.raw_text, &mode)?;
+            line.unit_id = parsed.unit_id;
+            line.source_convention = parsed.source_convention;
+            line.note = parsed.note;
+        }
+        draft.warnings.push(if mode == crate::domain::measurements::Mode::Metric {
+            "Unqualified cups and spoons use metric variants; other regional units default to US. Explicit source units are preserved."
+        } else {
+            "Unqualified regional units use US variants. Explicit source units are preserved."
+        }.into());
         let catalog = self.catalog().await?;
         for line in &mut draft.meal.ingredients {
             let name = line

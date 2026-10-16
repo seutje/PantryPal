@@ -143,6 +143,12 @@ impl RecipeImporter for JsonLdImporter {
     }
 }
 pub fn line(raw: &str) -> AppResult<IngredientDraft> {
+    line_with_mode(raw, &crate::domain::measurements::Mode::Mixed)
+}
+pub(super) fn line_with_mode(
+    raw: &str,
+    mode: &crate::domain::measurements::Mode,
+) -> AppResult<IngredientDraft> {
     bounded_text(raw, 2000)?;
     let words: Vec<&str> = raw.split_whitespace().collect();
     let mut amount = String::new();
@@ -157,34 +163,12 @@ pub fn line(raw: &str) -> AppResult<IngredientDraft> {
     }
     let rest = words[consumed..].join(" ");
     let lower = rest.to_lowercase();
-    let mut unit = None;
-    let mut convention = None;
-    let mut name = rest.clone();
-    for (prefix, id, region) in [
-        ("imperial cup ", "cup-imperial", Some("imperial")),
-        ("metric cup ", "cup-metric", Some("metric")),
-        ("us cup ", "cup-us", Some("us")),
-        ("kilograms ", "kg", None),
-        ("grams ", "g", None),
-        ("pounds ", "lb", None),
-        ("ounces ", "oz", None),
-        ("kg ", "kg", None),
-        ("g ", "g", None),
-        ("lb ", "lb", None),
-        ("oz ", "oz", None),
-        ("ml ", "ml", None),
-        ("l ", "l", None),
-        ("cloves ", "clove", None),
-        ("cans ", "can", None),
-        ("can ", "can", None),
-    ] {
-        if lower.starts_with(prefix) {
-            unit = Some(id.into());
-            convention = region.map(str::to_owned);
-            name = rest[prefix.len()..].into();
-            break;
+    let (unit, convention, mut name) = match super::units::prefix(&rest, mode) {
+        Some((id, region, consumed)) => {
+            (Some(id), region, rest[consumed..].trim_start().to_owned())
         }
-    }
+        None => (Some("piece".into()), None, rest.clone()),
+    };
     if amount.is_empty() && lower.ends_with(" to taste") {
         amount = "to taste".into();
         name = rest[..rest.len() - 9].into();
@@ -243,5 +227,5 @@ pub fn draft(
             .collect::<AppResult<_>>()?,
         custom_fields: vec![],
     };
-    Ok(ImportedRecipeDraft{meal,warnings:vec!["Review servings, every quantity, regional unit and ingredient identity before saving. Unresolved lines remain separate shopping notes. Imported markup is displayed as inert text.".into()],original_yield:yield_text,attribution,duplicate_titles:vec![]})
+    Ok(ImportedRecipeDraft{meal,warnings:vec!["Review servings, every quantity, regional unit and ingredient identity before saving. Unresolved or missing units default to Piece; review these against the original wording. Unknown quantities remain shopping notes. Imported markup is displayed as inert text.".into()],original_yield:yield_text,attribution,duplicate_titles:vec![]})
 }

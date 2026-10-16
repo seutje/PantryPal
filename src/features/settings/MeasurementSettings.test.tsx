@@ -25,10 +25,6 @@ describe('measurement preferences', () => {
       await screen.findByLabelText('Measurement mode'),
       'metric',
     );
-    await user.selectOptions(
-      screen.getByLabelText('Ambiguous cup review preference'),
-      'imperial',
-    );
     await user.click(screen.getByLabelText('Display exact fractions'));
     await user.clear(screen.getByLabelText('Decimal places'));
     await user.type(screen.getByLabelText('Decimal places'), '2');
@@ -41,7 +37,6 @@ describe('measurement preferences', () => {
     expect(saveMeasurementPreferences).toHaveBeenCalledWith({
       ...preferences,
       mode: 'metric',
-      cupConvention: 'imperial',
       fractions: false,
       decimalPlaces: 2,
     });

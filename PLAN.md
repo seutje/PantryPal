@@ -673,6 +673,54 @@ and `git diff --check`. Installer packaging, remote publication and production-f
 upgrade were not run for this version-only slice. Phase 8 checkboxes and dashboard
 remain unchanged; clean-machine and production-feed acceptance remain pending.
 
+### Import unit matching follow-up (2026-10-16)
+
+- [x] Recognize common measurement abbreviations, singulars and plurals in all
+      import formats, including lb/lbs/pound/pounds, tbsp and tsp.
+- [x] Default unqualified regional units to US in mixed/US mode and use metric
+      cups/spoons in metric mode; preserve explicit source units, amounts and raw text.
+- [x] Verify the supplied Philly Cheesesteak Casserole ingredient measurements
+      through website import preview with persisted mixed, US and metric settings.
+
+Replaced the short import prefix list with a shared Rust whole-token matcher.
+Import review explains the applied default; Settings and README describe it.
+Removed the former cup review preference control, retaining its stored value
+for backup compatibility. DESIGN.md and ADR 0013 document this intentional change
+from mandatory ambiguity resolution. No numeric conversions, migrations, registry
+changes, dependencies or remote browser/capability changes were introduced.
+
+Passed `npm run check` (formatting, lint, strict type checking, 78 frontend tests),
+`npm run build`, `cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`,
+`cargo test --workspace --locked` (61 unit and 11 integration tests; two existing
+opt-in/child tests ignored), focused documentation Prettier checks and
+`git diff --check`. Cargo commands used `scripts/Enter-DevEnvironment.ps1`.
+An initial workspace run failed in the unrelated updater socket fixture with
+Windows WouldBlock/connection-reset errors; the complete final rerun passed.
+The Python executable could not launch; Node completed the source edits.
+
+The example fixture contains ingredient measurement facts and synthetic instructions,
+not a full publisher recipe. Live native browser capture, installer packaging and
+release publication were not rerun. No blocker remains for unit matching; the
+phase dashboard and pending Phase 8 external acceptance gates remain unchanged.
+
+**Piece fallback follow-up (2026-10-16):** At the owner's request:
+
+- [x] Default unresolved or missing imported units to Piece in every measurement
+      mode, preserving source wording, review notes and unknown quantities.
+
+Updated the shared Rust import parser, review warning, regression expectations,
+README, DESIGN.md and ADR 0013. Verified unknown unit names, bare ingredients,
+package-size wording, missing/to-taste/range amounts and all three modes of the
+Philly Cheesesteak Casserole fixture. Passed `cargo test --workspace --locked`
+(62 unit and 11 integration tests; two existing opt-in/child tests ignored),
+`cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`, focused
+`npx prettier --check` for changed documentation and `git diff --check`.
+Frontend checks and native packaging were not rerun for this Rust/docs-only
+follow-up. Existing saved recipes are unchanged; no migration is needed.
+No blocker remains, and the phase dashboard/release acceptance gates are unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

@@ -62,7 +62,7 @@ impl RecipeImporter for WebsiteImporter {
         projected.format = ImportFormat::JsonLd;
         projected.payload = serde_json::to_string(&capture.recipe).map_err(|_| error())?;
         let mut draft = json_ld::JsonLdImporter.extract(&projected)?;
-        draft.warnings.push("Read from the visible website recipe. Check ingredient sections, optional items and any website serving/unit adjustments; no regional cup convention is assumed.".into());
+        draft.warnings.push("Read from the visible website recipe. Check ingredient sections, optional items and any website serving/unit adjustments; review the resolved regional units before saving.".into());
         Ok(draft)
     }
 }
@@ -103,7 +103,7 @@ mod tests {
             let draft = extract(&input).unwrap();
             assert_eq!(draft.meal.ingredients[0].raw_text, "½ cup milk");
             assert_eq!(draft.meal.ingredients[0].amount, "½");
-            assert!(draft.meal.ingredients[0].unit_id.is_none());
+            assert_eq!(draft.meal.ingredients[0].unit_id.as_deref(), Some("cup-us"));
             assert_eq!(draft.meal.ingredients[1].amount, "to taste");
             assert_eq!(draft.attribution, "PantryPal fixture author");
             assert_eq!(draft.meal.prep_minutes, Some(5));

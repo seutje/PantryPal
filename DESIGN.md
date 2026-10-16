@@ -84,7 +84,7 @@ PantryPal is a small, personal Windows desktop app for turning a household's fav
 ### Settings
 
 - Measurement mode: metric, US customary, or mixed/ingredient-specific (default: mixed).
-- Volume conventions: **US cup ≈ 236.588 mL; metric cup = 250 mL; imperial cup ≈ 284.131 mL**. Support named, explicit variants. For ambiguous `cup`, apply a user-selectable interpretation in review and store that choice.
+- Volume conventions: **US cup ≈ 236.588 mL; metric cup = 250 mL; imperial cup ≈ 284.131 mL**. Support named, explicit variants. For unqualified imported cups and spoons, select US variants in mixed/US mode and metric variants in metric mode. Other unqualified regional units default to US. Preserve explicit source variants and raw wording; the review remains editable. See ADR 0013.
 - Temperature conversion: °C ↔ °F (for display/recipe instructions; temperature never merges into shopping quantities).
 - Recipe display fractions (e.g. `½`, `⅓`), automatic compatible-unit aggregation, and rounding/formatting preferences.
 - Shopping section order, data export/import and backups, browser session clear/reset, and importer/site settings.
@@ -160,7 +160,7 @@ Import is **opt-in, user-initiated**: paste URL → inspect domain → open a br
 2. Prefer authorized machine-readable recipe data such as `schema.org/Recipe` / JSON-LD when available.
 3. Apply specific extractor modules only for approved supported sites; use stable fixtures and versioned tests.
 4. Produce `ImportedRecipeDraft`: title, source URL/site, attribution, servings, timing, instruction blocks, ingredient lines (original raw text + parsed amount/unit/name), optional notes.
-5. Display a **review screen**: resolve unknown units, aliases and ingredients, choose how to handle duplicates, confirm servings and instructions.
+5. Display a **review screen**: default unresolved or missing units to `piece` (owner-approved import fallback), preserve their original wording for review, resolve aliases and ingredients, choose how to handle duplicates, confirm servings and instructions. Do not invent missing or to-taste amounts.
 6. Save normalized local recipe and source provenance. Import failure must leave current data intact.
 
 ### Ingredient matching

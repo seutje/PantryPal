@@ -287,7 +287,7 @@ export function ImportPage({
               )}
               <p>
                 Paste a single schema.org Recipe JSON object or graph, without
-                script tags. Unknown amounts and ambiguous regional units stay
+                script tags. Unknown amounts and original unit wording stay
                 available for review. Login failures and unavailable metadata
                 can use manual entry.
               </p>

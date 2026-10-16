@@ -65,36 +65,6 @@ function PreferenceForm({
               <option value="us">US customary</option>
             </select>
           </FormField>
-          <FormField label="Ambiguous cup review preference">
-            <select
-              value={input.cupConvention ?? ''}
-              onChange={(e) => {
-                setInput({
-                  ...input,
-                  cupConvention: (e.target.value ||
-                    null) as MeasurementPreferences['cupConvention'],
-                });
-                save.reset();
-              }}
-            >
-              <option value="">Always ask</option>
-              <option value="metric">
-                {cups.find((u) => u.system === 'metric')
-                  ? cupLabel(cups.find((u) => u.system === 'metric')!)
-                  : 'Metric cup'}
-              </option>
-              <option value="us">
-                {cups.find((u) => u.system === 'us')
-                  ? cupLabel(cups.find((u) => u.system === 'us')!)
-                  : 'US cup'}
-              </option>
-              <option value="imperial">
-                {cups.find((u) => u.system === 'imperial')
-                  ? cupLabel(cups.find((u) => u.system === 'imperial')!)
-                  : 'Imperial cup'}
-              </option>
-            </select>
-          </FormField>
           <FormField label="Decimal places">
             <input
               type="number"
@@ -132,8 +102,8 @@ function PreferenceForm({
           Combine compatible shopping quantities
         </label>
         <p className="text-sm text-stone-600">
-          These are display and review preferences. An unspecified cup still
-          requires an explicit choice; source units are preserved.
+          Imports use US cups and spoons in mixed/US mode and metric variants in
+          metric mode. Explicit source units and original wording are preserved.
         </p>
         <div className="pp-panel text-sm">
           <h3 className="font-semibold mb-2">Cup reference</h3>
@@ -142,9 +112,7 @@ function PreferenceForm({
               <li key={cup.id}>{cupLabel(cup)}</li>
             ))}
           </ul>
-          <p className="pp-muted">
-            An unspecified cup still needs an explicit choice.
-          </p>
+          <p className="pp-muted">Review imported units before saving.</p>
         </div>
         <Button type="submit" disabled={save.isPending}>
           Save measurement preferences

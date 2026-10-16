@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "site": "spend_with_pennies",
+  "recipe": {
+    "@type": "Recipe",
+    "name": "Philly Cheesesteak Casserole measurement fixture",
+    "recipeYield": "6",
+    "recipeIngredient": [
+      "8 ounces cavatappi",
+      "1 pound lean ground beef",
+      "2 teaspoons steak seasoning",
+      "1 large onion",
+      "8 ounces brown mushrooms",
+      "1 large green bell pepper",
+      "3 tablespoons salted butter",
+      "3 tablespoons all purpose flour",
+      "1¾ cups beef broth",
+      "⅔ cup half and half",
+      "1 teaspoon Dijon mustard",
+      "1 beef bouillon cube",
+      "½ teaspoon black pepper",
+      "¾ cup shredded Swiss cheese",
+      "1½ cups shredded pepper jack cheese"
+    ],
+    "recipeInstructions": [
+      "Synthetic test instruction; measurement fixture only."
+    ]
+  }
+}

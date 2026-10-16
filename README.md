@@ -79,7 +79,12 @@ return to PantryPal once the recipe is visible, confirm permission and choose
 **Read recipe from browser**. The authorized adapter reads visible recipe text
 into a preview. Alternatively enter permitted recipe text, or paste an authorized
 schema.org Recipe JSON-LD export/object (without script tags).
-Check servings, choose explicit regional units,
+Unqualified cups and spoons default to US variants in mixed/US measurement mode
+and metric variants in metric mode. Other unqualified regional units default to
+US; abbreviations and plurals such as `lb`, `lbs`, `pound`, `tbsp` and `teaspoons`
+are recognized. Unresolved or missing units default to **Piece** for review.
+Recognized source units and original amounts are preserved.
+Check servings and resolved regional units,
 review canonical ingredient suggestions and confirm saving. Unknown quantities,
 ranges and package sizes retain their original wording. Imported HTML markup is
 inert text. The saved meal remains editable; its original import payload,
