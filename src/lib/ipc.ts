@@ -149,6 +149,8 @@ export const ingredientCandidates = (
   names: string[],
   excludeId: string | null,
 ) => invokeNative<Ingredient[]>('ingredient_candidates', { names, excludeId });
+export const searchIngredients = (query: string) =>
+  invokeNative<Ingredient[]>('search_ingredients', { query });
 export const createIngredient = (input: IngredientInput) =>
   invokeNative<Ingredient>('create_ingredient', { input });
 export const updateIngredient = (id: string, input: IngredientInput) =>

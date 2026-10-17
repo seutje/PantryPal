@@ -5,6 +5,13 @@ use crate::{
 };
 use tauri::State;
 #[tauri::command]
+pub async fn search_ingredients(
+    state: State<'_, StorageState>,
+    query: String,
+) -> AppResult<Vec<Ingredient>> {
+    state.database()?.search_ingredients(query).await
+}
+#[tauri::command]
 pub async fn get_measurement_preferences(
     state: State<'_, StorageState>,
 ) -> AppResult<MeasurementPreferences> {

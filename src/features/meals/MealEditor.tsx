@@ -87,6 +87,7 @@ export function MealEditor({
   const [discard, setDiscard] = useState(false);
   const [addingIngredient, setAddingIngredient] = useState<string | null>(null);
   const [addedIngredients, setAddedIngredients] = useState<Ingredient[]>([]);
+  const [ingredientPending, setIngredientPending] = useState(false);
   const ingredients = [
     ...catalog.ingredients,
     ...addedIngredients.filter(
@@ -112,7 +113,7 @@ export function MealEditor({
     JSON.stringify(draft) !== baseline ||
       tags !== draft.tags.join('\n') ||
       !!initialDraft,
-    save.isPending,
+    save.isPending || ingredientPending,
   );
   const change = <K extends keyof MealDraft>(key: K, value: MealDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -173,7 +174,10 @@ export function MealEditor({
           <a href="#recipe-ingredients">Ingredients</a>
           <a href="#recipe-instructions">Instructions</a>
         </nav>
-        <fieldset disabled={save.isPending} className="space-y-5">
+        <fieldset
+          disabled={save.isPending || ingredientPending}
+          className="space-y-5"
+        >
           <section
             id="recipe-basics"
             className="pp-panel pp-form-section space-y-3"
@@ -256,6 +260,14 @@ export function MealEditor({
                 onChange={(changes) => lineChange(line.id, changes)}
                 onMove={(delta) => move(index, delta)}
                 onAdd={() => setAddingIngredient(line.id)}
+                onBusyChange={setIngredientPending}
+                onSelect={(ingredient) => {
+                  setAddedIngredients((items) => [
+                    ...items.filter((item) => item.id !== ingredient.id),
+                    ingredient,
+                  ]);
+                  lineChange(line.id, { ingredientId: ingredient.id });
+                }}
                 onRemove={() =>
                   change(
                     'ingredients',
@@ -372,10 +384,16 @@ export function MealEditor({
         )}
         {beforeActions}
         <div className="pp-save-bar">
-          <Button type="submit" disabled={save.isPending || submitDisabled}>
+          <Button
+            type="submit"
+            disabled={save.isPending || ingredientPending || submitDisabled}
+          >
             Save meal
           </Button>
-          <Button disabled={save.isPending} onClick={() => setDiscard(true)}>
+          <Button
+            disabled={save.isPending || ingredientPending}
+            onClick={() => setDiscard(true)}
+          >
             Cancel editing
           </Button>
         </div>

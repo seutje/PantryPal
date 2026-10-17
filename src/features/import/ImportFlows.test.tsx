@@ -14,6 +14,7 @@ vi.mock('../../lib/ipc', () => ({
   confirmRecipeImport: vi.fn(),
   resetRecipeBrowser: vi.fn(),
   captureRecipeBrowser: vi.fn(),
+  searchIngredients: vi.fn(),
 }));
 const draft: ImportedRecipeDraft = {
   meal: {
@@ -54,6 +55,9 @@ beforeEach(() => {
   vi.mocked(api.openRecipeBrowser).mockResolvedValue();
   vi.mocked(api.previewRecipeImport).mockResolvedValue(structuredClone(draft));
   vi.mocked(api.resetRecipeBrowser).mockResolvedValue();
+  vi.mocked(api.searchIngredients).mockResolvedValue(
+    catalogFixture.ingredients,
+  );
 });
 it('reads an authorized browser recipe into review without saving, and retains manual input on access failure', async () => {
   const user = userEvent.setup();
@@ -143,10 +147,8 @@ it('reviews a supplied draft, resolves cups and identity, and retries an identic
   await user.type(screen.getByLabelText('Base servings'), '4');
   const line = within(screen.getByRole('group', { name: 'Ingredient 1' }));
   await user.selectOptions(line.getByLabelText('Unit'), 'cup-us');
-  await user.selectOptions(
-    line.getByLabelText('Ingredient'),
-    catalogFixture.ingredients[0]!.id,
-  );
+  await user.type(line.getByLabelText('Ingredient'), 'Onion');
+  await user.click(await line.findByRole('option', { name: 'Onion' }));
   expect(screen.getByRole('button', { name: 'Save meal' })).toBeDisabled();
   expect(api.confirmRecipeImport).not.toHaveBeenCalled();
   await user.click(

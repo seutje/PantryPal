@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Catalog, Ingredient, IngredientDraft } from '../../lib/models';
 import { Button } from '../../components/ui/Button';
 import { FormField } from '../../components/ui/FormField';
+import { IngredientSearch } from './IngredientSearch';
 
 export function IngredientLineEditor({
   line,
@@ -14,6 +15,8 @@ export function IngredientLineEditor({
   onChange,
   onMove,
   onAdd,
+  onSelect,
+  onBusyChange,
   onRemove,
 }: {
   line: IngredientDraft;
@@ -26,9 +29,11 @@ export function IngredientLineEditor({
   onChange: (changes: Partial<IngredientDraft>) => void;
   onMove: (delta: number) => void;
   onAdd: () => void;
+  onSelect: (ingredient: Ingredient) => void;
+  onBusyChange: (busy: boolean) => void;
   onRemove: () => void;
 }) {
-  const [search, setSearch] = useState('');
+  const lastSearchWording = useRef('');
   const [confirmRemove, setConfirmRemove] = useState(false);
   return (
     <fieldset disabled={busy} className="pp-panel space-y-3">
@@ -41,33 +46,17 @@ export function IngredientLineEditor({
         </p>
       )}
       <div className="pp-editor-grid">
-        <FormField label="Ingredient">
-          <select
-            value={line.ingredientId ?? ''}
-            onChange={(event) =>
-              onChange({ ingredientId: event.target.value || null })
-            }
-          >
-            <option value="">Unresolved — keep wording</option>
-            {ingredients
-              .filter(
-                (i) =>
-                  (!i.retired || i.id === line.ingredientId) &&
-                  (i.id === line.ingredientId ||
-                    [i.name, ...i.aliases].some((name) =>
-                      name
-                        .toLocaleLowerCase()
-                        .includes(search.trim().toLocaleLowerCase()),
-                    )),
-              )
-              .map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.name}
-                  {i.retired ? ' (retired)' : ''}
-                </option>
-              ))}
-          </select>
-        </FormField>
+        <IngredientSearch
+          selected={ingredients.find((item) => item.id === line.ingredientId)}
+          onEdit={(text) => {
+            const rawText =
+              line.rawText === lastSearchWording.current ? text : line.rawText;
+            lastSearchWording.current = text;
+            onChange({ ingredientId: null, rawText });
+          }}
+          onSelect={onSelect}
+          onBusyChange={onBusyChange}
+        />
         <FormField label="Amount">
           <input
             value={line.amount}
@@ -105,13 +94,6 @@ export function IngredientLineEditor({
       <details>
         <summary className="pp-muted">Find or add ingredient</summary>
         <div className="space-y-2 mt-2">
-          <FormField label="Find ingredient or alias">
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </FormField>
           <Button variant="quiet" onClick={onAdd}>
             Add ingredient
           </Button>

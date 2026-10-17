@@ -80,6 +80,7 @@ fn main() {
             commands::save_conversion_rule,
             commands::retire_conversion_rule,
             commands::ingredient_candidates,
+            commands::search_ingredients,
             commands::search_meals,
             commands::save_meal_draft,
             commands::get_week,

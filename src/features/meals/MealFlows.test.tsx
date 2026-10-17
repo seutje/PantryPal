@@ -18,6 +18,7 @@ vi.mock('../../lib/ipc', () => ({
     events: [],
   })),
   saveMealDraft: vi.fn(),
+  searchIngredients: vi.fn(),
   createField: vi.fn(),
   updateField: vi.fn(),
   retireField: vi.fn(),
@@ -41,6 +42,9 @@ const meal: Meal = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(api.readRecipeClipboardUrl).mockResolvedValue(null);
+  vi.mocked(api.searchIngredients).mockResolvedValue(
+    catalogFixture.ingredients,
+  );
   records = [];
   fields = [
     {
@@ -212,15 +216,16 @@ describe('meal library workflows', () => {
     let line = screen.getByRole('group', { name: 'Ingredient 1' });
     await user.type(within(line).getByLabelText('Amount'), '⅓');
     await user.selectOptions(within(line).getByLabelText('Unit'), 'cup-us');
-    await user.selectOptions(
-      within(line).getByLabelText('Ingredient'),
-      'ingredient-onion',
+    await user.type(within(line).getByLabelText('Ingredient'), 'Onion');
+    await user.click(
+      await within(line).findByRole('option', { name: 'Onion' }),
     );
     await user.click(
       within(line).getByText('Original wording, preparation and ordering', {
         selector: 'summary',
       }),
     );
+    await user.clear(within(line).getByLabelText('Original wording'));
     await user.type(
       within(line).getByLabelText('Original wording'),
       '⅓ US cup onions',

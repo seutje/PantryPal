@@ -163,7 +163,7 @@ it('creates and selects a missing ingredient during review, retaining failed/can
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
   );
   expect(add).toHaveFocus();
-  expect(line.getByLabelText('Ingredient')).toHaveValue('new-milk');
+  expect(line.getByLabelText('Ingredient')).toHaveValue('Milk');
   expect(line.getByLabelText('Original wording')).toHaveValue('1/2 cup milk');
   expect(line.getByLabelText('Amount')).toHaveValue('1/2');
   expect(line.getByLabelText('Unit')).toHaveValue('');
@@ -204,7 +204,7 @@ it('requires an explicit choice of an existing duplicate and changes only the ch
   expect(api.createIngredient).not.toHaveBeenCalled();
   await user.click(modal.getByRole('button', { name: 'Use existing Onion' }));
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  expect(line.getByLabelText('Ingredient')).toHaveValue(onion.id);
+  expect(line.getByLabelText('Ingredient')).toHaveValue(onion.name);
   expect(
     within(screen.getByRole('group', { name: 'Ingredient 1' })).getByLabelText(
       'Ingredient',

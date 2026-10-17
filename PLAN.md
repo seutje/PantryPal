@@ -835,6 +835,40 @@ packaging were not run. Existing saved recipes are unchanged. No implementation
 blocker remains; the phase dashboard and pending Phase 8 external acceptance
 gates remain unchanged.
 
+### Inline ingredient search follow-up (2026-10-17)
+
+- [x] Replace the meal/import ingredient selector with canonical-name and alias
+      fuzzy search, explicit typo suggestions and inline creation of missing
+      ingredients, preserving original wording and quantities.
+- [x] Verify keyboard selection, exact alias reuse, explicit distinct creation,
+      stale identity checks, failed search/save recovery, retired-name protection,
+      persistence and local-only IPC permissions.
+
+Added `IngredientSearch.tsx`, a small Rust suggestion-ranking service and a bounded
+read-only repository/IPC search. Enter reuses an exact match or creates a new
+ingredient when there are no suggestions; possible matches require an explicit
+choice. Existing ingredient CRUD validates creation and prevents exact duplicates.
+Creation writes immediately, while the meal remains a draft; the UI and README
+explain that cancelling the meal retains the new catalog ingredient. DESIGN.md
+and ADR 0015 record this interaction. No schema, dependency, shopping calculation,
+import-parser matching policy or remote-origin permission changes were introduced.
+
+Passed `npm run check` (formatting, lint, strict type checking and 90 frontend
+tests), `npm run build`, `cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`,
+`cargo test --workspace --locked` (68 unit and 11 integration tests passed;
+two existing opt-in/child tests ignored), focused documentation Prettier checks
+and `git diff --check`. Cargo used `scripts/Enter-DevEnvironment.ps1`.
+
+Initial checks exposed test typing/fixture expectations and a Clippy loop warning,
+corrected before the final passing runs. An intermediate Rust suite hit the
+previously observed unrelated updater socket WouldBlock failure; the final full
+workspace rerun passed. Two existing frontend flows timed out during concurrent
+compilation; their focused rerun and final full frontend run passed. Live native
+UI interaction and installer packaging were not run. No implementation blocker
+remains; the phase dashboard and pending Phase 8 external acceptance gates are
+unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

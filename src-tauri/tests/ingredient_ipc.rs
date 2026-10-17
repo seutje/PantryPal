@@ -50,6 +50,7 @@ fn ingredient_commands_persist_and_measurements_use_narrow_local_permissions() {
             commands::update_ingredient,
             commands::retire_ingredient,
             commands::ingredient_candidates,
+            commands::search_ingredients,
             commands::save_conversion_rule,
             commands::convert_measurement,
             commands::get_measurement_preferences,
@@ -118,6 +119,23 @@ fn ingredient_commands_persist_and_measurements_use_narrow_local_permissions() {
         "retire_ingredient",
         json!({"id":id,"confirmed":false}),
         origin
+    )
+    .is_err());
+    assert_eq!(
+        call(
+            &window,
+            "search_ingredients",
+            json!({"query":"IPC leavs"}),
+            origin
+        )
+        .unwrap()[0]["id"],
+        id
+    );
+    assert!(call(
+        &window,
+        "search_ingredients",
+        json!({"query":"IPC herb"}),
+        "https://example.com/recipe"
     )
     .is_err());
     // Applies the real capability manifest to the real registered command.

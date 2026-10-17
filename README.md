@@ -91,12 +91,14 @@ ranges and package sizes retain their original wording. Imported HTML markup is
 inert text. The saved meal remains editable; its original import payload,
 attribution, source and timestamp remain in a durable import record.
 
-For a missing ingredient, choose **Add ingredient** beside its ingredient
-selector in recipe review. The modal saves the ingredient to your catalog and
-selects it on that recipe line, retaining quantities and original wording.
-Existing name/alias matches require an explicit **Use existing** choice.
-Ingredients saved this way remain in the catalog even if you later cancel the
-recipe. The Ingredients page's **Add ingredient** uses the same modal; Cancel
+In meal editing and recipe review, type in **Ingredient** to search names and
+aliases, including common typos. Choose a suggestion with the mouse or arrow keys
+and Enter. Enter reuses an exact match, or adds a new ingredient when no matches
+exist. With possible matches, choose one or explicitly select **Add as a new
+ingredient**. Quantities and original imported wording stay intact. New ingredients
+are saved immediately and remain in the catalog if you later cancel the recipe.
+**Find or add ingredient → Add ingredient** opens the full editor for additional
+details. The Ingredients page's **Add ingredient** uses the same dialog; Cancel
 or Escape closes it and restores focus when no save is in progress.
 
 Duplicate source URLs require an explicit **Save another meal** choice and never

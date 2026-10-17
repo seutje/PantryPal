@@ -46,6 +46,11 @@ PantryPal is a small, personal Windows desktop app for turning a household's fav
 - Search and filter by title, tags, ingredients, custom fields, and last-cooked date.
 - Create and edit title, description, base servings, ingredient lines, free-form multiline instructions, times, notes, source link, and optional tags.
 - Ingredient lines support amount, unit, ingredient reference, preparation note, optional flag, ordering, and original source text.
+- The ingredient field searches canonical names and aliases with typo-tolerant
+  suggestions. Explicitly select uncertain matches. Enter reuses an exact match
+  or creates a new catalog ingredient when there are no suggestions; with possible
+  matches, choose one or explicitly add a different ingredient. Creation saves
+  immediately, even if the meal is later cancelled. See ADR 0015.
 - Missing quantity / “to taste” is valid. Display a warning rather than inventing a quantity for a shopping list.
 - Recipe content can be edited freely after import. Keep source URL and import provenance.
 - Custom field definitions are managed separately; each meal may have values for any applicable definition.

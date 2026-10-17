@@ -9,6 +9,32 @@ use crate::{
 use uuid::Uuid;
 
 impl Database {
+    pub async fn search_ingredients(&self, query: String) -> AppResult<Vec<Ingredient>> {
+        validation::text(&query, 120, false)?;
+        let query = validation::normalized(&query);
+        if query.is_empty() {
+            return Ok(vec![]);
+        }
+        let names: Vec<(String, String)> = sqlx::query_as(
+            "SELECT id, name FROM ingredient WHERE retired=0 UNION ALL SELECT a.ingredient_id, a.alias FROM ingredient_alias a JOIN ingredient i ON i.id=a.ingredient_id WHERE i.retired=0",
+        ).fetch_all(&self.pool).await?;
+        let mut scores = std::collections::BTreeMap::<String, usize>::new();
+        for (id, name) in names {
+            if let Some(rank) = crate::services::ingredient_search::rank(&query, &name) {
+                scores
+                    .entry(id)
+                    .and_modify(|score| *score = (*score).min(rank))
+                    .or_insert(rank);
+            }
+        }
+        let mut ordered: Vec<_> = scores.into_iter().collect();
+        ordered.sort_by(|a, b| a.1.cmp(&b.1).then(a.0.cmp(&b.0)));
+        let mut results = vec![];
+        for (id, _) in ordered.into_iter().take(20) {
+            results.push(self.ingredient(&id).await?);
+        }
+        Ok(results)
+    }
     pub async fn measurement_preferences(&self) -> AppResult<MeasurementPreferences> {
         let json: String = sqlx::query_scalar(
             "SELECT value_json FROM app_settings WHERE key='measurement.preferences'",

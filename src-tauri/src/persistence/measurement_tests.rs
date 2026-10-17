@@ -301,6 +301,19 @@ async fn rules_preferences_and_identity_survive_restart_and_rejected_edits() {
         .await
         .unwrap();
     assert_eq!(candidates[0].id, "ingredient-onion");
+    for query in ["  ONIONS  ", "onoin", "oni", "onon"] {
+        assert_eq!(
+            db.search_ingredients(query.into()).await.unwrap()[0].id,
+            "ingredient-onion"
+        );
+    }
+    assert!(db
+        .search_ingredients("zzzzzzzz".into())
+        .await
+        .unwrap()
+        .is_empty());
+    assert!(db.search_ingredients(" ".into()).await.unwrap().is_empty());
+    assert!(db.search_ingredients("x".repeat(121)).await.is_err());
     assert!(db
         .ingredient_candidates(vec!["onions".into()], Some("ingredient-onion".into()))
         .await
@@ -309,6 +322,11 @@ async fn rules_preferences_and_identity_survive_restart_and_rejected_edits() {
     db.retire_ingredient("ingredient-garlic", true)
         .await
         .unwrap();
+    assert!(db
+        .search_ingredients("Garlic".into())
+        .await
+        .unwrap()
+        .is_empty());
     assert!(
         db.ingredient_candidates(vec!["Garlic".into()], None)
             .await

@@ -379,7 +379,18 @@ textarea {
       1fr
     );
   gap: 12px;
-  align-items: end;
+  align-items: start;
+}
+
+.pp-ingredient-options {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.pp-ingredient-options [aria-selected='true'] {
+  background: #edf5ef;
+  outline: 2px solid #276044;
+  outline-offset: -2px;
 }
 .pp-filter-chips {
   display: flex;

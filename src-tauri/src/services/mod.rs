@@ -2,6 +2,7 @@
 //! No business calculations are delegated to the frontend.
 pub mod browser;
 pub mod clipboard;
+pub mod ingredient_search;
 pub mod meal_library;
 pub mod planning;
 pub mod updates;

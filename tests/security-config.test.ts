@@ -30,6 +30,7 @@ describe('native permission boundary', () => {
     'save_conversion_rule',
     'retire_conversion_rule',
     'ingredient_candidates',
+    'search_ingredients',
     'search_meals',
     'save_meal_draft',
     'get_week',
