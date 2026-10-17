@@ -108,125 +108,128 @@ export function IngredientSearch({
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
     >
-      <FormField label="Ingredient">
-        <input
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded={open && !!query}
-          aria-controls={id}
-          aria-activedescendant={
-            open && active >= 0 ? `${id}-${active}` : undefined
-          }
-          aria-describedby={`${id}-help`}
-          autoComplete="off"
-          maxLength={120}
-          placeholder="Search or type a new ingredient"
-          value={value}
-          readOnly={pending}
-          onFocus={() => setOpen(true)}
-          onChange={(event) => {
-            setText(event.target.value);
-            onEdit(event.target.value);
-            setOpen(true);
-            setActive(-1);
-            setError('');
-          }}
-          onKeyDown={(event) => {
-            if (event.nativeEvent.isComposing) return;
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              setOpen(false);
+      <div className="pp-ingredient-anchor">
+        <FormField label="Ingredient">
+          <input
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={open && !!query}
+            aria-controls={id}
+            aria-activedescendant={
+              open && active >= 0 ? `${id}-${active}` : undefined
             }
-            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-              event.preventDefault();
+            aria-describedby={`${id}-help`}
+            autoComplete="off"
+            maxLength={120}
+            placeholder="Search or type a new ingredient"
+            value={value}
+            readOnly={pending}
+            onFocus={() => setOpen(true)}
+            onChange={(event) => {
+              setText(event.target.value);
+              onEdit(event.target.value);
               setOpen(true);
-              if (optionCount)
-                setActive(
-                  (current) =>
-                    ((current < 0 && event.key === 'ArrowUp' ? 0 : current) +
-                      (event.key === 'ArrowDown' ? 1 : optionCount - 1) +
-                      optionCount) %
-                    optionCount,
-                );
-            }
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              if (!open || !ready || pending) return;
-              if (active >= 0) activate(active);
-              else if (exact) choose(exact);
-              else if (!results.length) void create();
-            }
-          }}
-        />
-      </FormField>
+              setActive(-1);
+              setError('');
+            }}
+            onKeyDown={(event) => {
+              if (event.nativeEvent.isComposing) return;
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                setOpen(false);
+              }
+              if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                setOpen(true);
+                if (optionCount)
+                  setActive(
+                    (current) =>
+                      ((current < 0 && event.key === 'ArrowUp' ? 0 : current) +
+                        (event.key === 'ArrowDown' ? 1 : optionCount - 1) +
+                        optionCount) %
+                      optionCount,
+                  );
+              }
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                if (!open || !ready || pending) return;
+                if (active >= 0) activate(active);
+                else if (exact) choose(exact);
+                else if (!results.length) void create();
+              }
+            }}
+          />
+        </FormField>
+        {open && !!query && (
+          <div className="pp-ingredient-popover">
+            {matches.isFetching && <p role="status">Finding ingredients…</p>}
+            {matches.error && (
+              <p role="alert">
+                Search failed: {matches.error.message}. Retry by editing the
+                search.
+              </p>
+            )}
+            {ready && (
+              <div
+                id={id}
+                role="listbox"
+                aria-label="Ingredient suggestions"
+                className="space-y-1 pp-ingredient-options"
+              >
+                {results.map((item, index) => (
+                  <button
+                    type="button"
+                    role="option"
+                    id={`${id}-${index}`}
+                    aria-selected={active === index}
+                    tabIndex={-1}
+                    key={item.id}
+                    ref={(element) => {
+                      if (active === index)
+                        element?.scrollIntoView?.({ block: 'nearest' });
+                    }}
+                    className="block w-full text-left rounded p-2 hover:bg-stone-100 focus:bg-stone-100"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => choose(item)}
+                  >
+                    {item.name}
+                  </button>
+                ))}
+                {canCreate && (
+                  <button
+                    type="button"
+                    role="option"
+                    id={`${id}-${results.length}`}
+                    aria-selected={active === results.length}
+                    tabIndex={-1}
+                    ref={(element) => {
+                      if (active === results.length)
+                        element?.scrollIntoView?.({ block: 'nearest' });
+                    }}
+                    className="block w-full text-left rounded p-2 hover:bg-stone-100 focus:bg-stone-100"
+                    disabled={pending}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => void create()}
+                  >
+                    Add “{query}” as a new ingredient
+                  </button>
+                )}
+              </div>
+            )}
+            {ready && results.length > 0 && !exact && (
+              <p className="pp-muted text-xs">
+                Possible matches found. Choose one, or add a different
+                ingredient.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
       <p id={`${id}-help`} className="pp-muted text-xs">
         Choose a suggestion, or press Enter to add when no matches exist. New
         ingredients are saved immediately.
       </p>
       {pending && <p role="status">Adding ingredient…</p>}
-      {open && !!query && (
-        <>
-          {matches.isFetching && <p role="status">Finding ingredients…</p>}
-          {matches.error && (
-            <p role="alert">
-              Search failed: {matches.error.message}. Retry by editing the
-              search.
-            </p>
-          )}
-          {ready && (
-            <div
-              id={id}
-              role="listbox"
-              aria-label="Ingredient suggestions"
-              className="space-y-1 pp-ingredient-options"
-            >
-              {results.map((item, index) => (
-                <button
-                  type="button"
-                  role="option"
-                  id={`${id}-${index}`}
-                  aria-selected={active === index}
-                  tabIndex={-1}
-                  key={item.id}
-                  ref={(element) => {
-                    if (active === index)
-                      element?.scrollIntoView?.({ block: 'nearest' });
-                  }}
-                  className="block w-full text-left rounded p-2 hover:bg-stone-100 focus:bg-stone-100"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => choose(item)}
-                >
-                  {item.name}
-                </button>
-              ))}
-              {canCreate && (
-                <button
-                  type="button"
-                  role="option"
-                  id={`${id}-${results.length}`}
-                  aria-selected={active === results.length}
-                  tabIndex={-1}
-                  ref={(element) => {
-                    if (active === results.length)
-                      element?.scrollIntoView?.({ block: 'nearest' });
-                  }}
-                  className="block w-full text-left rounded p-2 hover:bg-stone-100 focus:bg-stone-100"
-                  disabled={pending}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => void create()}
-                >
-                  Add “{query}” as a new ingredient
-                </button>
-              )}
-            </div>
-          )}
-          {ready && results.length > 0 && !exact && (
-            <p className="pp-muted text-xs">
-              Possible matches found. Choose one, or add a different ingredient.
-            </p>
-          )}
-        </>
-      )}
       {error && <p role="alert">{error} Your wording is still here.</p>}
     </div>
   );

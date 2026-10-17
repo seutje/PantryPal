@@ -869,6 +869,24 @@ UI interaction and installer packaging were not run. No implementation blocker
 remains; the phase dashboard and pending Phase 8 external acceptance gates are
 unchanged.
 
+### Ingredient suggestion overlay correction (2026-10-17)
+
+- [x] Position the ingredient suggestions over surrounding content, at the
+      field's full width and directly against its bottom edge.
+
+Wrapped the labelled field in a positioned anchor and moved suggestions, search
+status and the possible-match hint into an absolutely positioned panel with an
+opaque background, border, shadow and stacking order. Help text stays outside
+the anchor so it cannot shift the dropdown away from the field. The options
+retain their scroll limit and keyboard selection behavior.
+
+Passed `npm run check` (formatting, lint, strict type checking and 90 frontend
+tests), `npm run build`, focused Prettier checks and `git diff --check`.
+Browser discovery reported no available browser, so live layout verification
+was not performed. Rust tests and installer packaging were not rerun for this
+React/CSS presentation change. No implementation blocker remains; the phase
+dashboard and pending external release acceptance gates are unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

@@ -382,6 +382,23 @@ textarea {
   align-items: start;
 }
 
+.pp-ingredient-anchor {
+  position: relative;
+  min-width: 0;
+}
+
+.pp-ingredient-popover {
+  position: absolute;
+  top: 100%;
+  inset-inline: 0;
+  z-index: 20;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #d6d3d1;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 15%);
+}
+
 .pp-ingredient-options {
   max-height: 16rem;
   overflow-y: auto;
