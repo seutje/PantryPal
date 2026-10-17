@@ -887,6 +887,22 @@ was not performed. Rust tests and installer packaging were not rerun for this
 React/CSS presentation change. No implementation blocker remains; the phase
 dashboard and pending external release acceptance gates are unchanged.
 
+### Version 0.2.3 preparation (2026-10-17)
+
+- [x] Align npm, Cargo and Tauri versions and both lockfiles to 0.2.3,
+      verify release configuration and prepare the matching annotated local tag.
+
+Updated release documentation for v0.2.3. Dependencies are unchanged.
+Passed `npm run version:check -- v0.2.3`, `npm run check` (90 frontend tests),
+`npm run build`, `cargo fmt --all -- --check`,
+`cargo metadata --locked --offline --no-deps --format-version 1`, focused
+release configuration tests, focused Prettier checks and `git diff --check`.
+Cargo commands used `scripts/Enter-DevEnvironment.ps1`. The initial version
+check correctly rejected v0.2.3 before the edits applied; the final check passed.
+Rust tests/Clippy, installer packaging, remote publication and production-feed
+upgrade were not run for this version-only change. Phase 8 acceptance checkboxes
+and the phase dashboard remain unchanged; external acceptance remains pending.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.
