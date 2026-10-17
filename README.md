@@ -74,7 +74,8 @@ Cross-origin redirects, popups, downloads and device permissions are blocked. If
 a login, MFA or page needs another origin, use your regular browser instead.
 Close the previous recipe window before opening a different recipe.
 
-For Budget Bytes, Allrecipes, Spend With Pennies, RecipeTin Eats and NYT Cooking,
+For Budget Bytes, Allrecipes, Spend With Pennies, RecipeTin Eats, NYT Cooking and
+Cook Smarts (`mealplans.cooksmarts.com`),
 return to PantryPal once the recipe is visible, confirm permission and choose
 **Read recipe from browser**. The authorized adapter reads visible recipe text
 into a preview. Alternatively enter permitted recipe text, or paste an authorized
@@ -110,7 +111,14 @@ does not claim success. Website passwords/tokens are never collected by the app.
 
 Hidden/gated content cannot be imported, even if recipe metadata exists. Site
 layout changes or cross-origin login prompts may require manual entry. Subscriber
-login/MFA has not been verified. Cook Smarts supports manual entry only.
+login/MFA has not been verified. Cook Smarts supports the supplied recipe layout,
+including `?version=standard`, `gf`, `paleo` or `vegetarian` on recipe URLs.
+Keep the URL's version aligned with the displayed recipe, and expand Prep and
+Make before reading. Ingredient sections, optional items and source wording
+remain in review. Divided amounts such as `1 Tbsp + 2 Tbsp` and ranges remain
+unknown until reviewed; enter the intended total explicitly. Check sections
+marked for multiple nights before planning. Active/Total times and selected diet
+remain source notes rather than guessed prep/cook durations.
 
 ## Backups and everyday settings
 

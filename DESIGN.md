@@ -152,6 +152,15 @@ Import is **opt-in, user-initiated**: paste URL → inspect domain → open a br
 - **Do not assume** that executing scripts against a third-party WebView or harvesting its DOM is exposed as a safe, supported Tauri API. Spike and validate the actual Tauri 2 / WebView2 capabilities before committing to the architecture. Alternatives may include: an explicit browser-assisted copy/import flow, extraction from HTML supplied via a sanctioned mechanism, or an official export/API. Do not sacrifice the security boundary merely to automate importing.
 - Limit import URLs to `https://` (with explicit exceptions only if justified); validate hostname and redirects, reject local/private network destinations for any backend fetch; impose timeouts, content-size limits, and sanitization. Never log cookies, tokens, passwords, or raw credential-bearing headers.
 - Comply with each site's terms, access controls, and permissions. Do **not** bypass paywalls, CAPTCHAs, or anti-bot measures. Cook Smarts is a **target to investigate**, not a guaranteed supported integration. Seek authorized export/API or permission where necessary.
+
+  Owner-requested follow-up (2026-10-17): enable a Cook Smarts visible-page adapter
+  for the supplied authenticated recipe layout on `mealplans.cooksmarts.com`,
+  using the existing isolated browser and explicit permission/review flow.
+  Only its four known diet-version query values are accepted on recipe paths;
+  arbitrary query strings remain rejected. Keep section/preparation notes and
+  optional markers, leave divided/range amounts unknown for review, and retain
+  Active/Total timing as source notes. See ADR 0014. Live authenticated access
+  remains unverified; this does not guarantee site permission or login support.
 - Provide a visible clear-session control, per-site failure messages, and a manual recipe-entry fallback.
 
 ### Importer pipeline

@@ -1,4 +1,5 @@
 //! Pure adapters produce untrusted, reviewable drafts and never persist meals.
+mod cook_smarts;
 mod json_ld;
 pub mod sites;
 #[cfg(test)]
@@ -87,4 +88,15 @@ pub(crate) fn parse_line(
     mode: &crate::domain::measurements::Mode,
 ) -> AppResult<crate::domain::meal_library::IngredientDraft> {
     json_ld::line_with_mode(raw, mode)
+}
+
+pub(crate) fn parse_site_line(
+    raw: &str,
+    mode: &crate::domain::measurements::Mode,
+    source_site: Option<&str>,
+) -> AppResult<crate::domain::meal_library::IngredientDraft> {
+    if source_site == Some("mealplans.cooksmarts.com") {
+        return cook_smarts::line(raw, mode);
+    }
+    parse_line(raw, mode)
 }

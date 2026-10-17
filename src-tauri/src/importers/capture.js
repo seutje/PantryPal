@@ -10,8 +10,8 @@ function captureRecipe(spec) {
       current.origin !== expected.origin ||
       current.pathname.replace(/\/$/, '') !==
         expected.pathname.replace(/\/$/, '') ||
-      current.search ||
-      current.hash
+      current.search !== expected.search ||
+      current.hash !== expected.hash
     )
       return fail();
     const visible = (e) => {
@@ -45,6 +45,8 @@ function captureRecipe(spec) {
     let title,
       ingredients,
       steps,
+      sections,
+      sourceNotes = '',
       yieldText = '';
     if (
       ['budget_bytes', 'spend_with_pennies', 'recipe_tin_eats'].includes(
@@ -95,6 +97,54 @@ function captureRecipe(spec) {
         text,
       );
       yieldText = text(nodes(body, '[class*="ingredients_recipeYield__"]')[0]);
+    } else if (spec.site === 'cook_smarts') {
+      const titles = nodes(document, '#day-title');
+      const lists = nodes(document, '#ingredients');
+      const methods = nodes(
+        document,
+        '#recipe-instructions [data-cooking-method-target="item"]',
+      );
+      if (titles.length !== 1 || lists.length !== 1 || methods.length !== 1)
+        return fail();
+      const compact = (e) => text(e).replace(/\s+/g, ' ');
+      title = compact(titles[0]);
+      const rows = completeNodes(lists[0], ':scope > ul > li');
+      ingredients = rows.map(compact);
+      sections = rows.map((row) => {
+        const heading = row.parentElement.previousElementSibling;
+        if (!heading?.matches('.recipe__subtitle') || !visible(heading))
+          throw new Error('Missing ingredient section');
+        const label = compact(heading);
+        if (label.length > 200) throw new Error('Oversized section');
+        return label;
+      });
+      steps = [];
+      for (const [id, heading] of [
+        ['prepBlock', 'Prep'],
+        ['makeBlock', 'Make'],
+      ]) {
+        const blocks = nodes(methods[0], `[id="${id}"]`);
+        if (blocks.length !== 1) return fail();
+        const lines = completeNodes(blocks[0], ':scope > ol > li').map(compact);
+        if (!lines.length || lines.some((line) => !line)) return fail();
+        steps.push(heading, ...lines);
+      }
+      const servings = nodes(
+        document,
+        '#recipe-content .recipe-meta__item',
+      ).filter(
+        (e) => text(e.querySelector('.recipe-meta__label')) === 'Servings:',
+      );
+      if (servings.length !== 1) return fail();
+      yieldText = compact(nodes(servings[0], '.recipe-meta__widget')[0]);
+      const metadata = nodes(document, '#recipe-metadata');
+      if (metadata.length !== 1) return fail();
+      const diets = nodes(metadata[0], '.version-switcher__link[disabled]');
+      if (diets.length !== 1) return fail();
+      // Active/Total are not interchangeable with prep/cook durations.
+      sourceNotes =
+        nodes(metadata[0], '[title="Cooking time"]').map(compact).join(' ') +
+        `; Diet version: ${compact(diets[0])}`;
     } else return fail();
     if (
       !title ||
@@ -124,9 +174,10 @@ function captureRecipe(spec) {
         if (v['@graph']) walk(v['@graph'], depth + 1);
       }
     };
-    const scripts = document.querySelectorAll(
-      'script[type="application/ld+json"]',
-    );
+    const scripts =
+      spec.site === 'cook_smarts'
+        ? []
+        : document.querySelectorAll('script[type="application/ld+json"]');
     if (scripts.length > 32) return fail();
     let bytes = 0;
     for (const s of scripts) {
@@ -150,13 +201,15 @@ function captureRecipe(spec) {
       recipeYield: yieldText,
       recipeIngredient: ingredients,
       recipeInstructions: steps,
-      author: authors,
+      author: spec.site === 'cook_smarts' ? 'Cook Smarts' : authors,
     };
+    if (spec.site === 'cook_smarts') recipe.description = sourceNotes;
     for (const key of ['prepTime', 'cookTime']) {
       if (typeof metadata[key] === 'string' && metadata[key].length <= 100)
         recipe[key] = metadata[key];
     }
     const result = { version: 1, site: spec.site, recipe };
+    if (sections) result.sections = sections;
     return new TextEncoder().encode(JSON.stringify(result)).length <= 262144
       ? result
       : fail();

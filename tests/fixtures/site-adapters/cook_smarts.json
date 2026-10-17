@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "site": "cook_smarts",
+  "recipe": {
+    "@type": "Recipe",
+    "name": "Original fixture cook_smarts with a side salad",
+    "recipeYield": "4",
+    "recipeIngredient": [
+      "Squash, butternut - 2 , peeled and cubed (about 2 1/2 - 3 lbs cubed)",
+      "Garlic - 4 cloves, chopped",
+      "Thyme, dried - 1 1/2 tsp",
+      "Sage, dried (opt) - 1/2 tsp",
+      "Sausage links, chicken-apple - 1 lb, sliced",
+      "Kale - 5 oz, stems removed",
+      "Oil, olive - 1 Tbsp + 2 Tbsp",
+      "Panko breadcrumbs - 1/2 cup",
+      "Salt - to taste"
+    ],
+    "recipeInstructions": [
+      "Prep",
+      "Original fixture preparation with a video label.",
+      "Make",
+      "Original fixture cooking."
+    ],
+    "author": "Cook Smarts",
+    "description": "Active: 60 Total: 75; Diet version: Original"
+  },
+  "sections": [
+    "Roasted Squash (for 2 nights):",
+    "Roasted Squash (for 2 nights):",
+    "Roasted Squash (for 2 nights):",
+    "Roasted Squash (for 2 nights):",
+    "Sausage:",
+    "Salad:",
+    "Salad:",
+    "Salad:",
+    "Salad:"
+  ]
+}

@@ -1,4 +1,4 @@
-//! Authorized adapters for the five publisher agreements supplied by the owner.
+//! Publisher adapters requested by the owner; only visible recipe content is read.
 //! The native host reads a bounded visible recipe; this module validates drafts.
 use super::*;
 use serde_json::Value;
@@ -10,6 +10,8 @@ struct Capture {
     version: u32,
     site: String,
     recipe: Value,
+    #[serde(default)]
+    sections: Vec<String>,
 }
 pub fn site(host: &str) -> Option<&'static str> {
     match host {
@@ -18,6 +20,7 @@ pub fn site(host: &str) -> Option<&'static str> {
         "spendwithpennies.com" | "www.spendwithpennies.com" => Some("spend_with_pennies"),
         "recipetineats.com" | "www.recipetineats.com" => Some("recipe_tin_eats"),
         "cooking.nytimes.com" => Some("nyt_cooking"),
+        "mealplans.cooksmarts.com" => Some("cook_smarts"),
         _ => None,
     }
 }
@@ -62,6 +65,26 @@ impl RecipeImporter for WebsiteImporter {
         projected.format = ImportFormat::JsonLd;
         projected.payload = serde_json::to_string(&capture.recipe).map_err(|_| error())?;
         let mut draft = json_ld::JsonLdImporter.extract(&projected)?;
+        if expected == "cook_smarts" {
+            if capture.sections.len() != draft.meal.ingredients.len() {
+                return Err(error());
+            }
+            for (line, section) in draft.meal.ingredients.iter_mut().zip(&capture.sections) {
+                bounded_text(section, 200)?;
+                *line =
+                    cook_smarts::line(&line.raw_text, &crate::domain::measurements::Mode::Mixed)?;
+                if !section.is_empty() {
+                    line.note.push_str(&format!("\nSection: {section}"));
+                }
+                bounded_text(&line.note, 2000)?;
+            }
+            draft.warnings.push("Cook Smarts: check the selected diet, servings, multi-night sections and divided quantities. Compound/range quantities remain unknown for explicit review. Active/Total times are retained in notes, not interpreted as prep/cook times.".into());
+            if let Some(notes) = capture.recipe["description"].as_str() {
+                draft.meal.notes = notes.into();
+            }
+        } else if !capture.sections.is_empty() {
+            return Err(error());
+        }
         draft.warnings.push("Read from the visible website recipe. Check ingredient sections, optional items and any website serving/unit adjustments; review the resolved regional units before saving.".into());
         Ok(draft)
     }

@@ -2,7 +2,7 @@ use crate::error::{AppError, AppResult};
 pub fn validate(raw: &str) -> AppResult<tauri::Url> {
     let invalid = || {
         AppError::validation(
-            "Use a public HTTPS recipe URL without credentials, query strings or fragments.",
+            "Use a public HTTPS recipe URL without credentials or fragments. Only Cook Smarts recipe version queries are supported.",
         )
     };
     if raw.len() > 2048 || raw.chars().any(|c| c.is_whitespace() || c.is_control()) {
@@ -13,7 +13,7 @@ pub fn validate(raw: &str) -> AppResult<tauri::Url> {
     if url.scheme() != "https"
         || !url.username().is_empty()
         || url.password().is_some()
-        || url.query().is_some()
+        || (url.query().is_some() && !super::cook_smarts::version_query(&url))
         || url.fragment().is_some()
         || url.port().is_some()
         || host.parse::<std::net::IpAddr>().is_ok()

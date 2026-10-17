@@ -772,6 +772,40 @@ Installer packaging, remote publication and production-feed upgrade were not run
 Phase 8 checkboxes and dashboard remain unchanged; clean-machine and
 production-feed acceptance remain pending.
 
+### Cook Smarts adapter follow-up (2026-10-17)
+
+- [x] Add a visible-page adapter for the owner's supplied authenticated Cook Smarts
+      layout, preserving source lines, ingredient sections, optional markers,
+      servings and separate Prep/Make instructions for explicit review.
+- [x] Verify name-first quantity parsing, all three measurement modes, conservative
+      handling of compound/range amounts, version-query restrictions and confirmed
+      save/reopen with deterministic fixtures and existing capability checks.
+
+ADR 0014 documents the intentional change from the earlier manual-only decision
+after the owner supplied HTML and requested this adapter. Only the exact
+`mealplans.cooksmarts.com` host and four known recipe-version query values are
+enabled. Selected diet and Active/Total timing remain source notes. Multi-night
+sections are retained without guessing serving allocations. Exact ingredient
+matches preserve preparation/section notes. No browser API, remote capability,
+dependency, schema or authentication mechanism changed.
+
+Passed `npm run check` (formatting, lint, strict type checking and 82 frontend
+tests), `cargo clippy --workspace --all-targets --locked -- -D warnings` and
+`cargo test --workspace --locked` (65 unit and 11 integration tests; two existing
+opt-in/child tests ignored). Cargo used `scripts/Enter-DevEnvironment.ps1`.
+The first focused Rust run exposed test API/call-signature mistakes, corrected
+before the passing full suite. The first capture fixture run found a whitespace
+expectation mismatch after formatting; corrected before the full frontend pass.
+
+A local Node/JSDOM inspection of the private supplied HTML found 19 ingredients,
+four Prep steps, seven Make steps and four servings using the production capture
+script. This verifies structure with emulated layout primitives, not live browser
+visibility. Committed fixtures use synthetic instructions and ingredient facts;
+the saved page's account/CSRF/review data is excluded. Live authenticated Cook
+Smarts/WebView2 acceptance and installer packaging were not run. No implementation
+blocker remains; Phase 6 stays Complete and the dashboard/Phase 8 external
+acceptance gates remain unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

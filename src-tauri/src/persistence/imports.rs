@@ -24,10 +24,13 @@ impl Database {
         let mut draft = importers::extract(input)?;
         let mode = self.measurement_preferences().await?.mode;
         for line in &mut draft.meal.ingredients {
-            let parsed = importers::parse_line(&line.raw_text, &mode)?;
+            let parsed = importers::parse_site_line(
+                &line.raw_text,
+                &mode,
+                draft.meal.source_site.as_deref(),
+            )?;
             line.unit_id = parsed.unit_id;
             line.source_convention = parsed.source_convention;
-            line.note = parsed.note;
         }
         draft.warnings.push(if mode == crate::domain::measurements::Mode::Metric {
             "Unqualified cups and spoons use metric variants; other regional units default to US. Explicit source units are preserved."
@@ -39,7 +42,10 @@ impl Database {
             let name = line
                 .note
                 .strip_prefix("Review ingredient: ")
-                .unwrap_or(&line.raw_text);
+                .unwrap_or(&line.raw_text)
+                .lines()
+                .next()
+                .unwrap_or_default();
             let name = crate::domain::validation::normalized(name);
             let matches: Vec<_> = catalog
                 .ingredients
@@ -53,7 +59,12 @@ impl Database {
                 .collect();
             if matches.len() == 1 {
                 line.ingredient_id = Some(matches[0].id.clone());
-                line.note.clear();
+                // Keep site section/preparation notes after resolving the name.
+                line.note = line
+                    .note
+                    .split_once('\n')
+                    .map(|(_, rest)| rest.to_owned())
+                    .unwrap_or_default();
             }
         }
         draft.duplicate_titles=sqlx::query_scalar("SELECT DISTINCT m.title FROM meal m LEFT JOIN import_record i ON i.meal_id=m.id WHERE m.source_url=? OR i.source_url=? ORDER BY m.title")

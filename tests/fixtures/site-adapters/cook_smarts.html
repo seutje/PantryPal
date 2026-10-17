@@ -1,0 +1,80 @@
+<!doctype html><meta charset="utf-8" /><title>
+  Owned Cook Smarts adapter fixture
+</title>
+<h1 class="recipe__name" id="day-title">
+  <div>Original fixture cook_smarts</div>
+  <small>with a side salad</small>
+</h1>
+<div id="recipe-metadata">
+  <div class="recipe-meta__item" title="Cooking time">Active: 60 Total: 75</div>
+  <div title="Diet version">
+    <a class="version-switcher__link" disabled="disabled">Original</a>
+  </div>
+</div>
+<div id="recipe-content">
+  <div class="recipe-meta__item">
+    <div class="recipe-meta__label">Metric</div>
+    <input id="metric" type="checkbox" />
+  </div>
+  <div class="recipe-meta__item">
+    <div class="recipe-meta__label">Servings:</div>
+    <div class="recipe-meta__widget">4</div>
+  </div>
+  <div id="ingredients">
+    <div class="recipe__subtitle">Roasted Squash (for 2 nights):</div>
+    <ul>
+      <li>
+        Squash, butternut - 2 , peeled and cubed (about 2 1/2 - 3 lbs cubed)
+      </li>
+      <li>Garlic - 4 cloves, chopped</li>
+      <li>Thyme, dried - 1 1/2 tsp</li>
+      <li>Sage, dried (opt) - 1/2 tsp</li>
+    </ul>
+    <div class="recipe__subtitle">Sausage:</div>
+    <ul>
+      <li>Sausage links, chicken-apple - 1 lb, sliced</li>
+    </ul>
+    <div class="recipe__subtitle">Salad:</div>
+    <ul>
+      <li>Kale - 5 oz, stems removed</li>
+      <li>Oil, olive - 1 Tbsp + 2 Tbsp</li>
+      <li>Panko breadcrumbs - 1/2 cup</li>
+      <li>Salt - to taste</li>
+    </ul>
+  </div>
+</div>
+<div id="recipe-instructions">
+  <div data-cooking-method-target="item" data-key="default">
+    <div id="prepBlock">
+      <ol>
+        <li>
+          <p>
+            Original fixture preparation with
+            <a href="https://example.com/video">a video label</a>.
+          </p>
+        </li>
+      </ol>
+    </div>
+    <div id="makeBlock">
+      <ol>
+        <li><p>Original fixture cooking.</p></li>
+      </ol>
+    </div>
+  </div>
+  <div hidden data-cooking-method-target="item" data-key="grill">
+    <div id="makeBlock">
+      <ol>
+        <li>Hidden secret instruction</li>
+      </ol>
+    </div>
+  </div>
+</div>
+<div id="reviews">Private review text excluded.</div>
+<input name="csrf-token" value="private-token-excluded" />
+<script type="application/ld+json">
+  {
+    "@type": "Recipe",
+    "recipeIngredient": ["999 g hidden amount"],
+    "recipeInstructions": ["Hidden secret instruction"]
+  }
+</script>
