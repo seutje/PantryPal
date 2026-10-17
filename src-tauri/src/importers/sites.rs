@@ -82,8 +82,18 @@ impl RecipeImporter for WebsiteImporter {
             if let Some(notes) = capture.recipe["description"].as_str() {
                 draft.meal.notes = notes.into();
             }
-        } else if !capture.sections.is_empty() {
-            return Err(error());
+        } else {
+            if !capture.sections.is_empty() {
+                return Err(error());
+            }
+            if expected == "budget_bytes" {
+                for line in &mut draft.meal.ingredients {
+                    *line = budget_bytes::line(
+                        &line.raw_text,
+                        &crate::domain::measurements::Mode::Mixed,
+                    )?;
+                }
+            }
         }
         draft.warnings.push("Read from the visible website recipe. Check ingredient sections, optional items and any website serving/unit adjustments; review the resolved regional units before saving.".into());
         Ok(draft)

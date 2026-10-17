@@ -806,6 +806,35 @@ Smarts/WebView2 acceptance and installer packaging were not run. No implementati
 blocker remains; Phase 6 stays Complete and the dashboard/Phase 8 external
 acceptance gates remain unchanged.
 
+### Budget Bytes ingredient-price matching fix (2026-10-17)
+
+- [x] Match the supplied `2 Tbsp olive oil ($0.32)` line to Olive oil,
+      preserving its quantity, regional unit, original wording and price note.
+- [x] Verify visible WPRM capture, all measurement modes, exact catalog matching
+      and confirmed save/reopen; keep non-price parenthetical text intact.
+
+Added a small Rust Budget Bytes adapter that separates trailing dollar prices
+from ingredient matching and retains them as source notes. No fuzzy matching,
+schema, dependency, browser API or remote capability changes were needed.
+Regression tests cover the supplied olive oil markup with synthetic surrounding
+recipe content, conservative price recognition, to-taste amounts and persistence.
+
+Passed `npm run check` (formatting, lint, strict type checking, 83 frontend tests),
+`cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`,
+`cargo test --workspace --locked` (67 unit and 11 integration tests passed;
+two existing opt-in/child tests ignored), and `git diff --check`.
+Focused `npm test -- tests/site-adapters.test.ts` and
+`cargo test --workspace --locked importers::budget_bytes` also passed.
+Cargo used `scripts/Enter-DevEnvironment.ps1`.
+
+Local Node/JSDOM execution of the production capture script against the supplied
+HTML returned all six ingredient lines, including the olive oil quantity and
+price. Layout primitives were emulated; live WebView2 interaction and installer
+packaging were not run. Existing saved recipes are unchanged. No implementation
+blocker remains; the phase dashboard and pending Phase 8 external acceptance
+gates remain unchanged.
+
 ## Future ideas — explicitly out of MVP
 
 - [ ] “What should we eat?” recommendations based on family ratings, last eaten, prep time, seasonality, and variety.

@@ -1,4 +1,5 @@
 //! Pure adapters produce untrusted, reviewable drafts and never persist meals.
+mod budget_bytes;
 mod cook_smarts;
 mod json_ld;
 pub mod sites;
@@ -97,6 +98,9 @@ pub(crate) fn parse_site_line(
 ) -> AppResult<crate::domain::meal_library::IngredientDraft> {
     if source_site == Some("mealplans.cooksmarts.com") {
         return cook_smarts::line(raw, mode);
+    }
+    if matches!(source_site, Some("budgetbytes.com" | "www.budgetbytes.com")) {
+        return budget_bytes::line(raw, mode);
     }
     parse_line(raw, mode)
 }

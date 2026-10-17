@@ -95,6 +95,21 @@ describe('authorized website adapters, synthetic fixtures based on inspected pub
     expect(result.recipe.prepTime).toBeUndefined();
     expect(result.recipe.cookTime).toBeUndefined();
   });
+  it('captures the supplied Budget Bytes olive oil row once, including its price note', () => {
+    const result = read(0, (html) =>
+      html.replace(
+        /<li class="wprm-recipe-ingredient">[\s\S]*?<\/li>/,
+        `<li class="wprm-recipe-ingredient" data-uid="4">
+           <span class="wprm-checkbox-container"><input type="checkbox" aria-label=" 2 Tbsp olive oil ($0.32)"><label><span class="sr-only">▢ </span></label></span>
+           <span class="wprm-recipe-ingredient-unit-system wprm-recipe-ingredient-unit-system-1"><span class="wprm-recipe-ingredient-amount">2</span> <span class="wprm-recipe-ingredient-unit">Tbsp</span></span>
+           <span class="wprm-recipe-ingredient-unit-system wprm-recipe-ingredient-unit-system-2"></span>
+           <span class="wprm-recipe-ingredient-name">olive oil </span>
+           <span class="wprm-recipe-ingredient-notes wprm-recipe-ingredient-notes-normal">($0.32)</span>
+         </li>`,
+      ),
+    );
+    expect(result.recipe.recipeIngredient[0]).toBe('2 Tbsp olive oil ($0.32)');
+  });
   it('rejects incomplete, collapsed or ambiguous Cook Smarts recipes and changed variants', () => {
     for (const transform of [
       (s: string) => s.replace('id="prepBlock"', 'hidden id="prepBlock"'),
